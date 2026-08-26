@@ -126,19 +126,47 @@ specific revised `README.md`/`ATTRIBUTION.md` handed over from the Blacksmith
 or the Claude Project chat, but does not compose or edit their content
 itself.
 
+## Session Start Protocol (automatic - runs before any task, no prompting needed)
+
+This runs at the start of every Claude Code session in this repo, unprompted
+- Kenneth should never need to ask for this, and his team members
+definitely won't know to.
+
+1. `git pull` - get whatever's changed since last session.
+2. Read `audit/CLAUDE_CODE_LAST_AUDIT.md` if present - the only continuity
+   between sessions.
+3. `git status` and `git diff` - check for anything uncommitted sitting in
+   the working tree (Zone A/C changes get committed per standing
+   authorization below; Zone B changes get reported, not committed, unless
+   this session includes an explicit handoff).
+4. Confirm `.gitignore` exists and actually excludes `.env`, `.forge-mode`,
+   `.hermes.md`, `.hermes/`. If missing or wrong, this is a Zone A fix - make
+   it and commit it.
+5. Run `hermes doctor` and `hermes skills list --source local` if `hermes`
+   is installed, to confirm the last known-good state still holds.
+6. Report a short session-start status before doing anything else:
+
+```text
+SESSION START CHECK
+Pulled: [Yes/No + what changed, or "Already up to date"]
+Last audit read: [Yes/No + one-line summary of its status]
+Uncommitted at start: [list, or "None"]
+.gitignore: [OK / Missing - fixed / Missing - fixing now]
+hermes doctor: [Clean / Issues found: ...]
+Project skills: [list with status, or "hermes not installed yet"]
+```
+
+Only after this does Claude Code proceed to whatever the actual session's
+task is. If none was given, a clean session-start check IS the whole task -
+write the audit report and stop rather than inventing work to do.
+
+## Git command policy
+
 
 
 Claude Code MAY run freely, any time: `git status`, `git diff`, `git log`,
 `git show`, `hermes doctor`, `hermes skills list`, and any other read-only
 inspection command.
-
-Claude Code SHOULD run `git pull` at the start of every session in this
-repo, automatically, before doing anything else - this is how updates
-authored elsewhere (this chat, the Blacksmith directly) actually reach the
-drive without anyone typing git commands by hand. Also check for
-`audit/CLAUDE_CODE_LAST_AUDIT.md` at session start and read it if present -
-it's the only continuity Claude Code has with what happened last session,
-since there's no persistent memory between sessions otherwise.
 
 Claude Code MAY run `git add` / `git commit` / `git push` AUTOMATICALLY,
 without asking first, in three cases:
