@@ -1,0 +1,12 @@
+# Secrets - never commit the real .env (contains a live Anthropic API key)
+.env
+
+# Per-drive state - set locally by toggle-mode, never shared via git
+.forge-mode
+
+# Generated at each launch from .hermes.template.md - never edit or commit directly
+.hermes.md
+
+# Generated at each launch from skills-source/ - never edit or commit directly
+.hermes/
+skills/
