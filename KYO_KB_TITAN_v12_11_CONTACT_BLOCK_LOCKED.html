@@ -1,0 +1,349 @@
+<!--
+Release: North Forge - Kyocera Edition - v21.5
+Version: v12.11 (HTML reference file update — supersedes v12.10; content unchanged since v12.11, only the paired North Forge release line was updated for v21.5)
+Date: 2026-08-06
+Authorship: Kenneth Walker Jr. / TSC; AI-assisted packaging by ChatGPT; v12.11 reconciliation performed by Claude at the Blacksmith's direction; Claude Code remains available for read-only audit support.
+Status: HTML template/reference file. Active template lives in 01_ACTIVE_TEST_BUILD unless this is a reference/baseline copy.
+Changelog from v12.10: (1) Support & Resources "Found a clever fix" wording corrected. (2) Firmware / Software First Check streamlined to a brief single-box nudge instead of a multi-step section. (3) Drafting/Review Block: added North Forge Build Attribution subsection; renamed "Blacksmith Review Required" to "TSC Reviewer Action Required" to match content-attribution standard (technical knowledge attributed to "TSC field engineering expertise," review sign-off attributed to "TSC Reviewer" — internal project-persona terms stay out of KB content). (4) META String placeholder updated: list ALL affected models, added part numbers and plain-language search terms, added QA reference field, dropped process/status notes from the pattern.
+-->
+<!DOCTYPE html>
+<!--
+    INTERNAL DOCUMENT CONTROL
+    ID: KYO-KB-TITAN-12.11-HTML-REFERENCE-LOCKED
+    STATUS: TEAM TEST REFERENCE TEMPLATE - LOCKED MOLD
+    BASE: KYO-KB-TITAN-12.10 patched 2026-08-06
+    PATCHES MERGED: v12.10 multimedia, video reference, field tactics, validation, stop/escalate, drafting review block; v18.03 HTML template lock; v18.05 contact block lock; v18.06 team test carry-forward; v12.11 contact-block wording fix, streamlined firmware-first box, TSC attribution rename, Build Attribution subsection, META standard update
+    COMPATIBILITY TARGET: SERVICENOW KB EDITOR - INLINE CSS ONLY
+
+    TEMPLATE LOCK RULE:
+        - This file is the KB formatting source of truth for North Forge - Kyocera Edition - v21.5 team testing.
+        - The prompt-base master must populate this structure, not freestyle Markdown.
+        - Formatting changes should be made here first, then the prompt-base master should reference the updated filename/version.
+        - Published KB body starts after the outer content container opens and ends before the Technician Drafting / Review Block.
+        - Technician Drafting / Review Block is internal only and must be removed before publishing.
+    RULES:
+        - No emojis or decorative symbols
+        - No absolute positioning
+        - Visible body should not show internal version numbers
+        - Drafting / Review Block must be deleted before publishing
+        - Published KB body content must never include technician/customer/dealer names or HL/case numbers
+        - Technical knowledge attributed to "TSC field engineering expertise"; review sign-off attributed to "TSC Reviewer" — never internal project-persona terms
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Base | [KB_NUMBER]</title>
+</head>
+<body style="font-family: Verdana, Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0; padding: 0; background-color: #F2F2F2; color: #282828;">
+
+<div style="max-width: 900px; margin: 20px auto; padding: 40px; background-color: #ffffff; border: 1px solid #CCCCCC; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 4px;">
+
+    <!-- BRAND HEADER -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F2F2F2; padding-bottom: 20px; margin-bottom: 30px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="https://placehold.co/64x64/d32f2f/ffffff?text=LOGO" alt="Kyocera logo placeholder" style="height: 64px; width: 64px; object-fit: contain;">
+            <div style="font-size: 14px; font-weight: 800; color: #282828; line-height: 1.2;">
+                Kyocera Document Solutions, US
+                <br>
+                <span style="color: #d32f2f; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Technical Support Center</span>
+            </div>
+        </div>
+        <div style="background-color: #282828; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-weight: 800; font-size: 14px; letter-spacing: 0.5px;">
+            [KB_NUMBER]
+        </div>
+    </div>
+
+    <!-- ARTICLE TITLE -->
+    <h1 style="color: #282828; margin: 0 0 25px 0; font-weight: 800; font-size: 28px; border-bottom: 3px solid #777; padding-bottom: 0.3em;">
+        <span style="color: #777;">[SERIES_NAME]: </span>[KB_ARTICLE_TITLE]
+    </h1>
+
+    <!-- AFFECTED PRODUCTS & ENVIRONMENT -->
+    <div style="background-color: #fafafa; border: 1px solid #ddd; padding: 25px; border-radius: 8px; margin: 30px 0;">
+        <h3 style="margin-top: 0; color: #282828; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+            Affected Products & Environment
+        </h3>
+        <table border="0" width="100%" cellspacing="0" cellpadding="0" style="font-size: 14px; border-collapse: collapse;">
+            <tr>
+                <td style="width: 180px; font-weight: 800; color: #0A9BCD; vertical-align: top; padding-bottom: 15px;">Affected Models:</td>
+                <td style="padding-bottom: 15px; color: #444;">[LIST_AFFECTED_MODELS_HERE]</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 800; color: #0A9BCD; vertical-align: top; padding-bottom: 15px;">Applications / Drivers:</td>
+                <td style="padding-bottom: 15px; color: #444;">[LIST_DRIVERS_OR_APPS]</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 800; color: #0A9BCD; vertical-align: top; padding-bottom: 15px;">Host OS / HyPAS Ver:</td>
+                <td style="padding-bottom: 15px; color: #444;">[OPERATING_SYSTEM_OR_HYPAS_VER]</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 800; color: #0A9BCD; vertical-align: top;">Firmware / Software Level:</td>
+                <td style="color: #444;">[CURRENT_VERSION] / [TARGET_VERSION_OR_REQUIREMENT]</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- SYMPTOM / FAILURE BEHAVIOR -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Symptom / Failure Behavior</h2>
+    <div style="border: 1px solid #ddd; padding: 25px; border-radius: 8px; margin-bottom: 30px; background-color: #ffffff;">
+        <p style="margin-top: 0; font-size: 15px; color: #333;">[DESCRIBE THE REPORTED SYMPTOM, OBSERVED BEHAVIOR, OPERATION AFFECTED, AND WHEN IT OCCURS.]</p>
+    </div>
+
+    <!-- TECHNICAL SUMMARY -->
+    <div style="border: 2px solid #0A9BCD; padding: 25px; border-radius: 8px; margin: 30px 0; background-color: #ffffff;">
+        <span style="background-color: #F2F2F2; border: 1px solid #777; padding: 4px 10px; border-radius: 4px; display: inline-block; font-weight: 800; color: #282828; font-size: 12px; margin-bottom: 15px; text-transform: uppercase;">Technical Summary</span>
+        <div style="font-size: 15px; color: #333;">
+            [SUMMARY_OF_TECHNICAL_IMPACT_AND_CONFIRMED_ROOT_CAUSE_OR_WORKING_SCOPE]
+        </div>
+    </div>
+
+    <!-- BEFORE YOU BEGIN -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Before You Begin</h2>
+    <div style="border-left: 8px solid #0A9BCD; background-color: #F2F8FA; padding: 20px; border-radius: 6px; margin: 30px 0;">
+        <p style="margin: 0 0 10px 0; font-size: 15px; color: #333;"><strong>Confirm before starting:</strong></p>
+        <ul style="margin: 0; padding-left: 20px; font-size: 15px; color: #333;">
+            <li>Exact model and serial number</li>
+            <li>Firmware/software version</li>
+            <li>Reported symptom and operation affected</li>
+            <li>Error code, event ID, jam code, or log entry if present</li>
+            <li>Required access, tools, samples, photos, screenshots, or logs</li>
+        </ul>
+    </div>
+
+    <!-- REQUIRED TOOLS / ACCESS -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Required Tools / Access</h2>
+    <div style="border: 1px solid #ddd; padding: 25px; border-radius: 8px; margin-bottom: 30px; background-color: #ffffff;">
+        <ul style="margin: 0; padding-left: 20px; font-size: 15px; color: #333;">
+            <li>[TOOL_OR_ACCESS_1]</li>
+            <li>[TOOL_OR_ACCESS_2]</li>
+            <li>[LOG_OR_SAMPLE_REQUIRED]</li>
+        </ul>
+    </div>
+
+    <!-- FIRMWARE / SOFTWARE FIRST CHECK -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Firmware / Software First Check</h2>
+    <div style="border: 2px solid #00B176; border-left: 10px solid #00B176; background-color: #e8f5e9; padding: 20px 25px; border-radius: 8px; margin: 30px 0;">
+        <p style="margin: 0; font-size: 14px; color: #2e7d32;">
+            [ONE OR TWO SENTENCES: whether firmware/software is expected to fix this specific fault, plus a brief reason to confirm currency anyway — packages routinely bundle reliability/security fixes unrelated to this symptom.] <a href="[RELEASE_NOTES_URL]" style="color: #0A9BCD;">Release notes</a> · <a href="https://kyocera.service-now.com" target="_blank" style="color: #0A9BCD;">ServiceNow</a> for current package, docs, or to open a case. Attach the relevant log to whatever you open.
+        </p>
+    </div>
+
+    <!-- DIRECT REPAIR PROCEDURE -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Direct Repair Procedure</h2>
+    <div style="background-color: #fff9c4; border: 1px solid #fbc02d; padding: 15px; margin-bottom: 25px; border-radius: 6px; font-weight: bold; font-size: 14px; text-align: center;">
+        CAUTION: [ONLY INCLUDE A RELEVANT CAUTION. REMOVE THIS BLOCK IF NOT NEEDED. Never instruct wearing an ESD wrist strap while the machine is powered/energized — straps are for de-energized board handling only.]
+    </div>
+    <div style="padding: 10px 0 10px 20px;">
+        <p style="font-size: 15px; margin-bottom: 15px;">1. [STEP_ONE]</p>
+        <p style="font-size: 15px; margin-bottom: 15px;">2. [STEP_TWO]</p>
+        <p style="font-size: 15px; margin-bottom: 15px;">3. [STEP_THREE]</p>
+        <p style="font-size: 15px; margin-bottom: 30px;">4. [RETEST_OR_VALIDATE_STEP]</p>
+    </div>
+
+    <!-- FIELD TACTICS -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Field Tactics</h2>
+    <div style="border: 1px solid #ddd; padding: 25px; border-radius: 8px; margin-bottom: 30px; background-color: #ffffff;">
+        <p style="margin-top: 0; font-size: 15px; color: #333;">[EXACT_FIELD_INSPECTION_OR_COLLECTION_STEPS. INCLUDE WHAT TO OPEN, WHAT TO INSPECT, WHAT NORMAL LOOKS LIKE, FAILURE SIGNS, WHAT TO CLEAN OR RESEAT, WHAT TO DOCUMENT, AND WHAT NOT TO DISTURB.]</p>
+    </div>
+
+    <!-- TECH TIP -->
+    <div style="border-left: 8px solid #0A9BCD; background-color: #F2F8FA; padding: 20px; border-radius: 6px; margin: 30px 0;">
+        <h3 style="margin-top: 0; color: #282828; font-size: 16px; font-weight: 800; text-transform: uppercase;">Tech Tip</h3>
+        <p style="margin: 0; font-size: 15px; color: #333;">[FIELD_TECH_TIP]</p>
+    </div>
+
+    <!-- MEDIA REFERENCE PLACEHOLDER -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Media Reference</h2>
+    <div style="border: 2px solid #0A9BCD; padding: 25px; margin-bottom: 30px; border-radius: 8px; background-color: #ffffff;">
+        <div style="display: inline-block; background-color: #0A9BCD; color: #ffffff; padding: 6px 15px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px;">
+            [IMAGE / VIDEO / MERMAID / TEXT ONLY / COMBINATION]
+        </div>
+        <div style="border: 2px dashed #CCCCCC; padding: 35px; text-align: center; background-color: #FAFAFA; border-radius: 4px; margin-top: 10px;">
+            <p style="margin: 0; font-weight: bold; color: #0A9BCD; font-size: 14px;">[INSERT APPROVED MEDIA HERE]</p>
+            <p style="margin: 12px 0 0 0; font-size: 13px; color: #555; line-height: 1.5;">
+                <strong>Description:</strong> [DESCRIBE WHAT THE MEDIA SHOWS AND WHAT THE TECH SHOULD VERIFY.]
+            </p>
+            <p style="margin: 12px 0 0 0; font-size: 13px; color: #555; line-height: 1.5;">
+                <strong>Transcript / Fallback:</strong> [PLAIN-TEXT TRANSCRIPT, ALT TEXT, OR PROCEDURE SUMMARY FOR ACCESSIBILITY AND OFFLINE USE.]
+            </p>
+        </div>
+    </div>
+
+    <!-- DIAGNOSTIC MAP -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Diagnostic Map</h2>
+    <div style="border: 1px solid #ddd; padding: 30px; border-radius: 8px; margin-bottom: 30px; background-color: #ffffff;">
+        <p style="margin-top: 0; font-size: 14px; color: #555; margin-bottom: 15px;"><em>Use the following Mermaid.js syntax block when a decision tree or troubleshooting flow reduces reading time.</em></p>
+        <div style="background-color: #FAFAFA; border: 1px solid #EEEEEE; padding: 20px; border-radius: 4px; border-left: 4px solid #0A9BCD; font-family: monospace; font-size: 14px; color: #282828; white-space: pre-wrap; overflow-x: auto;">[INSERT MERMAID CODE HERE]</div>
+        <p style="font-size: 13px; color: #555; margin-bottom: 0;"><strong>Plain-text fallback:</strong> [WRITE THE SAME FLOW IN DIRECT TEXT FOR VIEWERS THAT DO NOT RENDER MERMAID.]</p>
+    </div>
+
+    <!-- ERROR CODES / LOGS / EVIDENCE -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Error Codes / Logs / Evidence</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px; border: 1px solid #ccc;">
+        <thead>
+            <tr style="background-color: #282828; color: #ffffff;">
+                <th style="padding: 12px; text-align: left;">Code / Log / Evidence</th>
+                <th style="padding: 12px; text-align: left;">Observed Meaning</th>
+                <th style="padding: 12px; text-align: left;">Required Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd; font-weight: bold; color: #D32F2F;">[ERROR_OR_LOG_ENTRY]</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd;">[MEANING]</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd;">[ACTION]</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- COMMON MISTAKES -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Common Mistakes</h2>
+    <div style="border: 1px solid #ddd; padding: 25px; border-radius: 8px; margin-bottom: 30px; background-color: #ffffff;">
+        <ul style="margin: 0; padding-left: 20px; font-size: 15px; color: #333; line-height: 1.6;">
+            <li>[COMMON_MISTAKE_1]</li>
+            <li>[COMMON_MISTAKE_2]</li>
+            <li>[COMMON_MISTAKE_3]</li>
+        </ul>
+    </div>
+
+    <!-- VALIDATION BEFORE LEAVING -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Validation Before Leaving</h2>
+    <div style="border: 1px solid #ddd; padding: 25px; border-radius: 8px; margin-bottom: 30px; background-color: #ffffff;">
+        <ol style="margin: 0; padding-left: 20px; font-size: 15px; color: #333; line-height: 1.6;">
+            <li>Retest the original symptom.</li>
+            <li>Run the required print/copy/scan/app workflow test.</li>
+            <li>Attach samples, photos, screenshots, logs, or status pages as required.</li>
+            <li>Document firmware/software level and any settings changed.</li>
+            <li>Confirm the device is left in a known working state.</li>
+        </ol>
+    </div>
+
+    <!-- STOP AND ESCALATE -->
+    <h2 style="color: #282828; margin: 40px 0 20px 0; font-size: 22px; font-weight: 800;">Stop and Escalate If</h2>
+    <div style="border: 2px solid #D32F2F; border-left: 10px solid #D32F2F; background-color: #fff5f5; padding: 25px; border-radius: 8px; margin: 30px 0;">
+        <ul style="margin: 0; padding-left: 20px; font-size: 15px; color: #333; line-height: 1.6;">
+            <li>The model, firmware, app version, or environment does not match this article.</li>
+            <li>Required logs, samples, photos, or screenshots cannot be collected.</li>
+            <li>The observed symptom does not match the documented failure behavior.</li>
+            <li>The next step requires restricted access, live electrical testing, service mode, or disassembly not covered by this article.</li>
+        </ul>
+    </div>
+
+    <!-- SUPPORT & RESOURCES -->
+    <h2 style="color: #282828; margin-bottom: 15px; font-size: 22px; font-weight: 800;">Support & Resources</h2>
+
+    <div style="border: 2px solid #007B4F; background-color: #e8f5e9; padding: 30px; border-radius: 8px; margin-bottom: 45px;">
+        <p style="margin: 0 0 25px 0; font-weight: bold; color: #2e7d32; font-size: 15px;">Need additional assistance? Contact the Technical Support Center directly using the options below.</p>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: stretch; justify-content: space-between; gap: 40px;">
+            <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <a href="https://kyocera.service-now.com" target="_blank" style="text-decoration: none; background-color: #0288d1; color: #ffffff; padding: 14px 18px; border-radius: 6px; font-weight: bold; display: block; border: 2px solid #01579B; text-align: center; margin-bottom: 15px; font-size: 14px;">
+                        <span style="background-color: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 3px; margin-right: 12px; text-transform: uppercase; font-size: 12px;">PORTAL</span> Support Portal
+                    </a>
+                    <a href="https://mykyocera.kyoceradocumentsolutions.us" target="_blank" style="text-decoration: none; background-color: #00B176; color: #ffffff; padding: 14px 18px; border-radius: 6px; font-weight: bold; display: block; border: 2px solid #007B4F; text-align: center; font-size: 14px;">
+                        <span style="background-color: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 3px; margin-right: 12px; text-transform: uppercase; font-size: 12px;">DOWNLOAD</span> Support & Downloads
+                    </a>
+                </div>
+                <p style="font-size: 13px; color: #555; font-style: italic; margin-top: 20px; line-height: 1.4;">
+                    <strong>Note:</strong> You must log in with authorized credentials. Without a login, only end-user materials are accessible.
+                </p>
+            </div>
+            
+            <div style="flex: 1; font-size: 14px; border-left: 2px solid #c8e6c9; padding-left: 35px;">
+                <div style="margin-bottom: 20px;">
+                    <img src="https://placehold.co/128x64/d32f2f/ffffff?text=LOGO" alt="Logo" style="height: 64px; width: 128px; border-radius: 4px; opacity: 0.9; object-fit: contain;">
+                </div>
+                <p style="margin: 0 0 20px 0;">
+                    <strong style="color: #282828; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; display: block; margin-bottom: 5px;">Technical Support Center (TSC):</strong>
+                    <span style="font-size: 20px; font-weight: 800; color: #282828;">1-800-255-6482</span><br>
+                    <span style="color: #666;">Monday–Friday, 9 AM – 6 PM EST</span>
+                </p>
+                <p style="margin: 0 0 20px 0;">
+                    <strong style="color: #282828; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; display: block; margin-bottom: 5px;">TSC EMAIL:</strong>
+                    <a href="mailto:customer.service@da.kyocera.com" style="color: #0A9BCD; font-weight: bold; text-decoration: none; font-size: 15px;">customer.service@da.kyocera.com</a>
+                </p>
+                <div style="background-color: rgba(255,255,255,0.4); padding: 12px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.05); font-size: 12px; color: #444; line-height: 1.5;">
+                    <p style="margin: 0;"><strong>Found a clever fix?</strong> Don't keep it to yourself! If you have a helpful trick or shortcut for a common or frequent Kyocera device problem, we'd love to hear about it. Send an email to Customer Service with 'KB Recommendation' on the subject line, and we'll see if we can add it to the Kyocera Knowledge Base library.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TECHNICIAN DRAFTING / REVIEW BLOCK - DELETE BEFORE PUBLISHING -->
+    <div id="technician_notes_section" style="font-family: Verdana, Arial, sans-serif;">
+        <div style="border: 3px dashed #D32F2F; background-color: #F5B400; padding: 30px; border-radius: 8px;">
+            <h4 style="margin-top: 0; color: #282828; font-size: 18px; border-bottom: 1px solid rgba(0,0,0,0.2); padding-bottom: 10px; margin-bottom: 15px; font-weight: 800;">Technician Drafting / Review Block - Delete Before Publishing</h4>
+
+            <p style="font-size: 14px; font-weight: 800; margin-bottom: 8px; color: #282828; text-transform: uppercase;">North Forge Build Attribution:</p>
+            <div style="background-color: rgba(255,255,255,0.6); padding: 15px; border-radius: 4px; font-size: 13px; color: #282828; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 25px; line-height: 1.5;">
+                Generated by: [NORTH FORGE VERSION]<br>
+                Runtime Assistant: [Claude / ChatGPT]<br>
+                Draft date: [DATE]<br>
+                Template used: [TEMPLATE FILENAME AND VERSION]<br>
+                Human review and final authority: [REVIEWER NAME], Technical Support Center (TSC)
+            </div>
+
+            <p style="font-size: 14px; font-weight: 800; margin-bottom: 8px; color: #282828; text-transform: uppercase;">META String:</p>
+            <div style="background-color: rgba(255,255,255,0.6); padding: 15px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #282828; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 25px; line-height: 1.5; word-break: break-all;">
+                [KB_NUMBER], [ALL_AFFECTED_MODELS_COMMA_SEPARATED], [SOFTWARE_OR_FIRMWARE], [ERROR_CODES], [PART_NUMBERS], [SYMPTOM_TERMS], [PLAIN_LANGUAGE_SEARCH_TERMS e.g. "motor", "motor failure", "power supply failure"], [ARTICLE_TAGS], QA reference: [PENDING OR NUMBER]
+                <!-- List every affected model, not just the primary confirmed one. This is a ServiceNow search aid only — do not include process/status notes like "release notes pending" here. -->
+            </div>
+
+            <p style="font-size: 14px; font-weight: 800; margin-bottom: 8px; color: #282828; text-transform: uppercase;">Media Generation Bundle:</p>
+            <div style="background-color: rgba(255,255,255,0.6); padding: 15px; border-radius: 4px; font-size: 13px; color: #282828; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 25px; line-height: 1.5;">
+                <strong>Multimedia Selection:</strong> [IMAGE / VIDEO / MERMAID / TEXT ONLY / COMBINATION]<br><br>
+                <strong>Selection Reason:</strong> [WHY THIS MEDIA TYPE BEST SERVES THE TECHNICIAN FOR THIS PROCEDURE OR CONCEPT]<br><br>
+
+                <strong>Image Generation Prompt:</strong><br>
+                <strong>Visual Type:</strong> [SCREENSHOT / WIRING DIAGRAM / WORKFLOW / UI REFERENCE / TRAINING ILLUSTRATION / NOT SELECTED]<br>
+                <strong>Prompt Text:</strong> [IMAGE_PROMPT_OR_NOT_SELECTED]<br>
+                <strong>Placement Recommendation:</strong> [WHERE_IMAGE_SHOULD_BE_PLACED]<br>
+                <strong>Required Labels:</strong> [LABELS_REQUIRED_ON_VISUAL]<br>
+                <strong>Do Not Include:</strong> [IMAGE_EXCLUSIONS]<br>
+                <strong>Alt Text:</strong> [ALT_TEXT]<br>
+                <strong>Media Tags:</strong> [IMAGE_TAGS]<br><br>
+
+                <strong>Video Generation Prompt:</strong><br>
+                <strong>Video Type:</strong> [PROCEDURE WALKTHROUGH / COMPONENT IDENTIFICATION / SOFTWARE WORKFLOW / TRAINING OVERVIEW / NOT SELECTED]<br>
+                <strong>Scene Description:</strong> [DESCRIBE THE ENVIRONMENT, DEVICE, AND STARTING STATE]<br>
+                <strong>Camera Perspective:</strong> [TECHNICIAN'S-EYE-VIEW / SIDE ANGLE / OVERHEAD / OTHER]<br>
+                <strong>Key Actions to Show in Sequence:</strong> [LIST EACH STEP IN ORDER]<br>
+                <strong>On-Screen Labels Required:</strong> [COMPONENT NAMES, CONNECTORS, UI ELEMENTS TO LABEL]<br>
+                <strong>Narration Notes / Script Outline:</strong> [KEY POINTS TO STATE ALOUD AT EACH STEP]<br>
+                <strong>Duration Target:</strong> [UNDER 90 SECONDS / UNDER 4 MINUTES / UNDER 2 MINUTES / OTHER]<br>
+                <strong>Do Not Include:</strong> [VIDEO_EXCLUSIONS]<br>
+                <strong>Transcript Text:</strong> [PLAIN-TEXT TRANSCRIPT FOR ACCESSIBILITY AND OFFLINE USE]<br>
+                <strong>Media Tags:</strong> [VIDEO_TAGS]
+            </div>
+
+            <p style="font-size: 14px; font-weight: 800; margin-bottom: 8px; color: #282828; text-transform: uppercase;">Deep Search Notes:</p>
+            <div style="background-color: rgba(255,255,255,0.6); padding: 15px; border-radius: 4px; font-size: 13px; color: #282828; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 25px; line-height: 1.5;">
+                <strong>Sources Checked:</strong> [SOURCES]<br><br>
+                <strong>Confirmed Findings:</strong> [CONFIRMED_FINDINGS]<br><br>
+                <strong>Conflicts / Gaps:</strong> [CONFLICTS_OR_GAPS]<br><br>
+                <strong>Publish Status:</strong> [READY / NOT READY / NEEDS BLACKSMITH REVIEW]
+            </div>
+
+            <p style="font-size: 14px; font-weight: 800; margin-bottom: 8px; color: #282828; text-transform: uppercase;">Suggested Tech Tips:</p>
+            <div style="background-color: rgba(255,255,255,0.6); padding: 15px; border-radius: 4px; font-size: 13px; color: #282828; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 25px; line-height: 1.5;">
+                [SHORT FIELD OBSERVATIONS OR PATTERNS. SOURCE-BACKED OR CLEARLY LABELED FIELD-REASONED.]
+            </div>
+
+            <p style="font-size: 14px; font-weight: 800; margin-bottom: 8px; color: #282828; text-transform: uppercase;">Drift / Clarification Review:</p>
+            <div style="background-color: rgba(255,255,255,0.6); padding: 15px; border-radius: 4px; font-size: 13px; color: #282828; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 25px; line-height: 1.5;">
+                <strong>Confidence:</strong> [HIGH / MEDIUM / LOW]<br><br>
+                <strong>Source Status:</strong> [SOURCE-BACKED / FIELD-REASONED / PARTIALLY SUPPORTED / UNSUPPORTED]<br><br>
+                <strong>Possible Drift:</strong> [UNVERIFIED FIRMWARE CLAIM / MODEL UNCERTAINTY / CONSUMER WINDOWS PATH ASSUMPTION / UNVERIFIED EXACT FILENAME / VAGUE REPAIR / MISSING LOGS / MISSING SAMPLES / MISSING SCREENSHOTS / MISSING SERVICE CODE / MISSING VALIDATION / MISSING ALT TEXT / MISSING TRANSCRIPT TEXT / VISUAL NOT COMPLIANT / MULTIMEDIA SELECTION NOT JUSTIFIED / UNSUPPORTED FORUM CLAIM]<br><br>
+                <strong>Missing Details Needed:</strong> [FACTS NEEDED BEFORE PUBLISHING]<br><br>
+                <strong>TSC Reviewer Action Required:</strong> [ITEMS THE TSC REVIEWER MUST CONFIRM]<br><br>
+                <strong>Do Not Publish Until:</strong> [HARD STOP CONDITIONS]
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
