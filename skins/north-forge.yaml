@@ -1,0 +1,38 @@
+name: north-forge
+description: North Forge - Kyocera Edition. Reuses the same palette as the KB visual standard for consistency.
+
+# Unknown keys are safely ignored and missing values inherit from the built-in
+# default skin, so getting a field wrong here won't break anything - just
+# won't look quite right until corrected. Verify with /skin north-forge on a
+# real session and adjust.
+
+colors:
+  banner_border: "#D32F2F"      # Kyocera red - matches visual_media_standard
+  banner_title: "#F2F2F2"       # light gray
+  banner_accent: "#0A9BCD"      # technical-label blue
+  banner_dim: "#282828"         # dark gray
+  banner_text: "#F2F2F2"
+  ui_accent: "#0A9BCD"
+  ui_label: "#0A9BCD"
+  ui_ok: "#00B176"              # confirmed/recommended-path green
+  ui_error: "#D32F2F"
+  prompt: "#F2F2F2"
+  input_rule: "#D32F2F"
+  response_border: "#0A9BCD"
+  session_label: "#D32F2F"
+  session_border: "#CCCCCC"
+
+spinner:
+  # Plain, no emoji/decorative glyphs - matches the "no fake polish, no
+  # decorative symbols" tone North Forge uses everywhere else.
+  thinking_verbs:
+    - "checking the fault log"
+    - "cross-referencing"
+    - "pulling the diagnostic map"
+    - "confirming firmware"
+
+branding:
+  agent_name: "North Forge"
+  welcome: "North Forge - Kyocera Edition. Type a command or describe the issue."
+  response_label: " NORTH FORGE "
+  tool_prefix: "> "

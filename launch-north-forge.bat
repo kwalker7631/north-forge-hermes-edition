@@ -1,0 +1,63 @@
+@echo off
+setlocal enabledelayedexpansion
+cd /d "%~dp0"
+
+rem --- assemble live skills\ and .hermes.md from source, based on the mode toggle ---
+set "MODE=sales"
+if exist ".forge-mode" (
+    set /p MODE=<".forge-mode"
+)
+if /i not "%MODE%"=="full" if /i not "%MODE%"=="sales" (
+    echo Unrecognized .forge-mode value "%MODE%" - defaulting to sales for safety.
+    set "MODE=sales"
+)
+
+if exist "skills" rmdir /s /q "skills"
+mkdir "skills"
+xcopy /e /i /y "skills-source\shared" "skills" >nul
+if /i "%MODE%"=="full" (
+    xcopy /e /i /y "skills-source\tsc-only" "skills" >nul
+)
+
+powershell -NoProfile -Command ^
+    "$m='%MODE%';" ^
+    "$t=Get-Content '.hermes.template.md' -Raw;" ^
+    "$b=Get-Content \"mode-blocks\$m-banner.md\" -Raw;" ^
+    "$c=Get-Content \"mode-blocks\$m-menu.md\" -Raw;" ^
+    "$t=$t.Replace('{{MODE_BANNER_BLOCK}}',$b).Replace('{{COMMAND_MENU_BLOCK}}',$c);" ^
+    "Set-Content -Path '.hermes.md' -Value $t -NoNewline"
+
+echo North Forge running in %MODE% mode.
+
+where hermes >nul 2>nul
+if errorlevel 1 (
+    echo Hermes not found on this machine - installing now...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "iex (irm https://hermes-agent.nousresearch.com/install.ps1)"
+    echo.
+    echo Install finished. Close this window and double-click this launcher again.
+    pause
+    exit /b
+)
+
+if not exist ".env" (
+    if exist ".env.example" (
+        copy ".env.example" ".env" >nul
+        echo.
+        echo First run: created .env from the template.
+        echo Add your Anthropic API key in the notepad window that opens, save, close it, then run this launcher again.
+        notepad ".env"
+        pause
+        exit /b
+    )
+)
+
+if defined HERMES_HOME (
+    set "SKIN_DIR=%HERMES_HOME%\skins"
+) else (
+    set "SKIN_DIR=%LOCALAPPDATA%\hermes\skins"
+)
+if not exist "%SKIN_DIR%" mkdir "%SKIN_DIR%"
+copy /Y "skins\north-forge.yaml" "%SKIN_DIR%\north-forge.yaml" >nul
+hermes config set display.skin north-forge >nul 2>nul
+
+hermes
