@@ -9,6 +9,16 @@ This repo is the **content layer** for North Forge (Kyocera Edition) running on 
 
 A thumb drive deployment = Hermes installed locally on the host machine (from the engine) + this repo's contents pointed to as the working directory.
 
+## Model choice matters - this is not Claude-only
+
+North Forge's identity, tone, and rules in `.hermes.template.md` are written model-agnostic on purpose - "you are North Forge," never "you are Claude" or any other provider name. Hermes supports 30+ model providers via `hermes model`, and switching between them is intended and encouraged, not an edge case.
+
+**Real constraint worth knowing before experimenting:** output quality depends heavily on which model is actually running underneath. A fast/cheap or lightweight model (e.g., a "flash"/"quick" tier model) will noticeably under-perform a frontier-tier model on North Forge's actual work - KB drafting, diagnostic reasoning, following the locked template correctly. This isn't a North Forge bug to fix; it's a property of the model chosen. When in doubt, prefer a stronger model over a faster one for anything going into a real KB or a real technician's hands. Track which models have actually been tried against North Forge and how they performed in `DEMO_PREP_BACKLOG.md`, so this stays evidence-based rather than assumed.
+
+## Repo governance
+
+This repo is private and not published. Kenneth Walker Jr. is the sole administrator - he is the only person who creates, edits, or commits content here. Team members who use a drive built from this repo never touch the repo itself; if someone has a suggestion or hits a problem, it's relayed to Kenneth (via a log, a description, or eventually the fault-logging skill once built) and handled through the Claude Project chat + Claude Code + Blacksmith review loop - never applied directly by whoever reported it.
+
 ## What's in here
 
 ```
@@ -36,6 +46,8 @@ setup-thumbdrive.ps1           <- first-time Windows setup script (manual, step-
 launch-north-forge.bat         <- one-click Windows launcher: assembles the current mode, trusts the project skills, installs Hermes if missing, applies the skin, starts
 launch-north-forge.sh          <- same, for Mac/Linux
 KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html  <- locked KB HTML template, required for /kb to produce a real draft
+fallback/
+  NORTH_FORGE_v21.8_PASTE_VERSION.md  <- complete, original single-file prompt - paste into any chat AI if this whole Hermes setup is ever unavailable
 ATTRIBUTION.md                  <- required acknowledgment that this runs on the open-source Hermes Agent engine
 NEXT_STEPS.md                   <- what's built vs. still to build
 ```
@@ -58,6 +70,16 @@ On a Sales-mode drive, the TSC-only skill files are never copied into the live `
 
 The CLI is rebranded via a Hermes **skin** (`skills/north-forge.yaml`) - agent name, welcome text, and colors change to "North Forge" using the same palette already defined in the KB visual standard (Kyocera red, technical blue, confirmed-path green). Skins only affect appearance, not behavior - the underlying engine is still Hermes Agent, MIT-licensed, and that's acknowledged in `ATTRIBUTION.md`. Nous Research is not affiliated with or endorsing this deployment.
 
+## Fallback: standalone paste-in version
+
+`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` is the complete, original, unsplit v21.8 master prompt - the same one used before the Hermes adaptation. If the drive, the engine, or the skill-loading mechanism is ever unavailable, copy that file's content into any chat AI (Claude, ChatGPT, Gemini, whatever's on hand) as a last resort - no setup required, works standalone. It is not auto-generated from `.hermes.template.md` and `skills-source/`, so keep it updated manually when the master prompt changes.
+
+## Windows drive provisioning (recommended way to set up a new drive)
+
+`provision-new-drive.ps1` is the safe, drive-letter-agnostic way to get North Forge onto a fresh thumb drive on Windows. It does NOT assume D:, E:, or any specific letter - it lists the drives actually present, auto-picks if there's only one, and hard-refuses to ever touch the system (`C:`) drive no matter how it's selected. It also checks the target drive's filesystem and refuses to proceed on FAT32 (4GB file-size cap, real problems here) - exFAT or NTFS only. Then it clones (or pulls, if already cloned) and launches.
+
+Run it from PowerShell: `.\provision-new-drive.ps1` - it prompts only when there's real ambiguity (more than one non-system drive present), and never asks for anything that could be mistyped into damaging the machine.
+
 ## One-click launch (for team distribution)
 
 `launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root. Each one: rebuilds `skills/` and `.hermes.md` for whatever mode this drive is set to, installs Hermes if it's missing on that machine, sets up `.env` on first run if needed, copies the current skin into place, and starts North Forge - so a team member just needs to double-click (Windows) or run the script (Mac/Linux) rather than type commands or think about mode at all.
@@ -79,7 +101,7 @@ On Linux, the same drag-and-drop-into-terminal trick works, or `bash launch-nort
 
 Windows doesn't have any of this trouble - `.bat` files run by file extension, not permission bit, so double-click works there from the first plug-in.
 
-You'll also need `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` (the locked KB template) placed in this repo's root before `/kb` can produce a publishable draft - it's not checked in here yet because it needs to come from the existing Claude Project's knowledge base.
+`KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` (the locked KB template) is checked in at the repo root - required before `/kb` can produce a publishable draft.
 
 ## Why the content is split into skills instead of one big file
 
