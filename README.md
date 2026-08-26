@@ -25,7 +25,7 @@ skills-source/                <- the real, tracked skill content (one copy, neve
   tsc-only/
     kb-builder/SKILL.md       <- full /kb procedure (built) - FULL mode only
     (placeholders for hotline-ticket, assist-intake, escalation-packet, audit, fault-logging, training-guide)
-skills/                        <- GENERATED at each launch from skills-source/ - never edit directly, never committed
+.hermes/skills/                 <- GENERATED at each launch from skills-source/ - the exact folder name Hermes scans for project-local skills (see note below) - never edit directly, never committed
 .forge-mode                    <- GENERATED per physical drive by toggle-mode - never committed, defaults to sales if absent
 toggle-mode.bat / .sh          <- Kenneth-only: sets a drive's mode to FULL or SALES
 skins/
@@ -33,11 +33,18 @@ skins/
 .env.example                   <- copy to .env, fill in your own Anthropic API key, never commit the real .env
 .gitignore                     <- excludes secrets, per-drive mode, and generated files from version control
 setup-thumbdrive.ps1           <- first-time Windows setup script (manual, step-by-step)
-launch-north-forge.bat         <- one-click Windows launcher: assembles the current mode, installs Hermes if missing, applies the skin, starts
+launch-north-forge.bat         <- one-click Windows launcher: assembles the current mode, trusts the project skills, installs Hermes if missing, applies the skin, starts
 launch-north-forge.sh          <- same, for Mac/Linux
+KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html  <- locked KB HTML template, required for /kb to produce a real draft
 ATTRIBUTION.md                  <- required acknowledgment that this runs on the open-source Hermes Agent engine
 NEXT_STEPS.md                   <- what's built vs. still to build
 ```
+
+**Correction from an earlier version of this repo:** the generated skill folder used to be plain `skills/` at the repo root. That was wrong - confirmed by reading Hermes's actual installed source code, the real paths it scans for project-local skills are `.hermes/skills/` or `.agents/skills/`. Fixed everywhere in this version. Worth knowing this happened if you're demoing the debugging process, not just the fix - the folder name came from a third-party blog post that turned out to be inaccurate, and checking the real source code (not just documentation) is what actually resolved it.
+
+## Project skills need to be trusted (a Hermes security feature, not a bug)
+
+Separately from the folder-name issue: Hermes will not load skills from a project-local folder until you run `hermes skills trust` once - this stops a compromised `git pull` from silently injecting a malicious skill into a repo you already trusted. `launch-north-forge.bat`/`.sh` **auto-run this trust step on every launch**, trading a bit of that security model away for zero friction across the team - a deliberate choice, made because this repo is Blacksmith-reviewed before it ever reaches a drive. If that tradeoff ever stops feeling right (e.g. drives get built by more people than just Kenneth, or content starts coming from less-trusted sources), removing the auto-trust line and requiring `hermes skills trust` as a manual one-time step per machine is the safer default to fall back to.
 
 ## One repo, one toggle, two drive types
 
