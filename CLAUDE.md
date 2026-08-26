@@ -94,7 +94,39 @@ given once per handoff. This is placement, not editing: Claude Code writes
 the file byte-for-byte as handed over, it does not compose, rephrase, or
 extend the content itself.
 
-## Git command policy
+## Zone C — Operational docs (Claude Code MAY update and commit freely)
+
+Files:
+- `NEXT_STEPS.md`
+
+Reasoning: this is a running work-status log, not field-support content and
+not infrastructure code - it's closer to the audit report than to Zone A or
+Zone B. Keeping it current (what's done, what's still open, what was found
+during a session) is useful exactly because it's low-stakes to get slightly
+wrong and easy to correct next time.
+
+Claude Code MAY: add, check off, or revise entries in `NEXT_STEPS.md`
+reflecting real session findings, and commit/push those changes
+automatically, same standing authorization as Zone A.
+
+Claude Code MUST NOT: use `NEXT_STEPS.md` edits as a backdoor to describe or
+imply a Zone B content change that didn't actually happen - entries must
+describe real findings/actions from that session, not aspirational or
+assumed ones.
+
+## Zone B (continued) — user-facing documentation
+
+`README.md` and `ATTRIBUTION.md` are ALSO Zone B (read-only for Claude Code),
+in addition to the files already listed above. Reasoning: these are
+Blacksmith-reviewed documentation the team and Kenneth rely on being
+accurate as written - not code, not a status log, closer in spirit to
+authored content even though they don't contain field-repair procedures.
+Same placement exception applies: Claude Code may place and commit a
+specific revised `README.md`/`ATTRIBUTION.md` handed over from the Blacksmith
+or the Claude Project chat, but does not compose or edit their content
+itself.
+
+
 
 Claude Code MAY run freely, any time: `git status`, `git diff`, `git log`,
 `git show`, `hermes doctor`, `hermes skills list`, and any other read-only
@@ -109,10 +141,13 @@ it's the only continuity Claude Code has with what happened last session,
 since there's no persistent memory between sessions otherwise.
 
 Claude Code MAY run `git add` / `git commit` / `git push` AUTOMATICALLY,
-without asking first, in exactly two cases:
+without asking first, in three cases:
 1. A confirmed Zone A fix (see above) - commit message must describe the
    actual fix, not a generic "fix issues" message.
-2. Placing a specific pre-approved file into Zone B when handed one for
+2. A Zone C update (see above) - commit message should describe what
+   changed in plain terms (e.g., "mark hotline-ticket skill as still
+   outstanding after this session's review").
+3. Placing a specific pre-approved file into Zone B when handed one for
    exactly that purpose (see the Zone B exception above) - commit message
    should name the file and what it is (e.g., "add hotline-ticket skill
    v1", "update kb-builder skill per Blacksmith revision").
@@ -130,8 +165,9 @@ state:
 ```text
 NORTH FORGE HERMES EDITION - CLAUDE CODE WORKING RULES ACTIVE
 Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, setup script, .gitignore
-Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, CLAUDE.md
-Git: git pull automatically at session start; auto-commit/push for Zone A fixes and for placing pre-approved Zone B handoffs; never author or edit Zone B content myself
+Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, CLAUDE.md
+Zone C (operational docs, may update + commit freely): NEXT_STEPS.md
+Git: git pull automatically at session start; auto-commit/push for Zone A fixes, Zone C updates, and placing pre-approved Zone B handoffs; never author or edit Zone B content myself
 I will not edit Zone B content, including this file, and will not compose content on Zone B's behalf - only place exactly what I'm handed.
 ```
 
