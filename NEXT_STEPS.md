@@ -6,7 +6,6 @@
 - `skills-source/tsc-only/kb-builder/SKILL.md` - full /kb procedure, ported from the v21.8 master
 - `skills-source/shared/sales-assist/SKILL.md` - scoped and boundary-defined, but NOT yet given real content
 - Mode toggle system (`.forge-mode`, `toggle-mode.bat`/`.sh`, launcher assembly logic) - built but not yet tested on a real Hermes session
-- Project-skill loading audited end-to-end (2026-08-26): confirmed `launch-north-forge.bat` copies `skills-source/shared/` + (in `full` mode) `skills-source/tsc-only/` into `.hermes/skills/` byte-identical to source, runs `hermes skills trust .`, and both `kb-builder` and `sales-assist` load and show `enabled` in `hermes skills list --source local`. Checked against Hermes's own trust/discovery logic (`agent/skill_utils.py`): repo is a valid git checkout, listed in `skills.trusted_project_dirs`, `project_discovery` not disabled, no quarantine hits. No bug found, nothing changed.
 
 ## Not yet built (do not invent content for these - flag and wait)
 - `skills-source/tsc-only/hotline-ticket/` - /hl, /ticket
@@ -26,3 +25,4 @@
 - Decide how FULL-mode drives (TSC) vs. SALES-mode drives (reps) actually get distributed/built - e.g. does Kenneth set `.forge-mode` once per physical drive before handing it out, or is there a simpler batch process for provisioning many drives at once
 - If/when local Llama (via Docker) gets wired in as a provider option: confirm the container's endpoint, port, and model name, and decide whether a large reference-docs folder for PDF research lives on the drive outside the git repo (large binaries don't belong in git)
 - Confirm a real `/kb` draft actually renders correctly now that the locked HTML template has been added to the repo root
+- `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` added (2026-08-26) - complete standalone paste-in version for disaster recovery. Keep it manually in sync with `.hermes.template.md`/`skills-source/` when either changes; nothing auto-generates one from the other.

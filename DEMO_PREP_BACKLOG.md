@@ -46,36 +46,9 @@ who "knows nothing about computers" but follows instructions well - a much
 higher simplicity bar than the TSC team. Likely wants mobile-friendliness
 specifically (Hermes's messaging-gateway bridge to Telegram/WhatsApp/etc. was
 mentioned earlier in this project as a real, already-available path, not
-speculative).
-
-Concrete plan (2026-08-26): Pine Barren Farms already exists as a separate,
-already-developed project (details TBD - not yet described what form it
-takes: prompt, scripts, video material, etc.). Intent is to prove the Forge
-System skeleton generalizes by porting it in as a proof-of-concept, using
-North Forge Kyocera Edition's build as the template.
-
-IMPORTANT - recommended approach, flagged back to Kenneth for confirmation:
-build this as a SIBLING repo (e.g. `north-forge-pine-barren-farms`), not by
-overwriting or repurposing this repo's content. Kyocera Edition is an active,
-soon-to-be-demoed deliverable (Greg) - the proof-of-concept that the
-architecture generalizes and the safety of that specific deliverable should
-never be the same risk. The Forge System conventions (engine/content split,
-mode toggle, skin, launcher scripts, CLAUDE.md governance) are what transfers
-- a new repo built the same way, not this one converted.
-
-Next input needed before this can actually start: what the existing Pine
-Barren Farms material actually consists of today.
-
-## 7. Third proof case, informal - franchise/food-service ops (OPEN, someday)
-
-Kenneth has a friend who owns/manages several Dunkin' Donuts locations -
-mentioned as someone who might be interested in a similar tool trained on
-that business's menu/processes/procedures, for internal store-manager use
-("a boss or super brain on speed dial"), not customer-facing. Not being
-pursued now - logged as a third possible proof-of-concept for the Forge
-System pattern generalizing across verticals (tech support -> elder-care
-demos -> food-service franchise ops), consistent with item 6's framing.
-
+speculative). This is a separate content package from North Forge Kyocera,
+same engine - no work started yet, explicitly parked pending further
+discussion ("let's digest this and talk more").
 
 ## 4. Multi-model reality check (OPEN, ongoing)
 
@@ -120,20 +93,4 @@ edition actually gets built (Pine Barren Farms is the real candidate, per
 item 3 above) - not something to design in the abstract before there's a
 second real instance to learn from. No action taken on this yet; logged so
 the framing doesn't get lost between sessions.
-
-## 8. Cross-platform testing status (OPEN, low priority)
-
-Demo scope decided (2026-08-26): Windows-only for the Greg demo, disclosed
-honestly as the one actually field-tested path (blank drive ->
-`provision-new-drive.ps1` -> clone -> launch -> verified, done live).
-Mac/Linux launchers are built the same way and should work, but neither has
-been run on a real machine yet - "should work" isn't the same claim as
-"confirmed," and that gap shouldn't get papered over in how the demo is
-described.
-
-Test hardware available whenever there's time (not urgent, not blocking the
-demo): several Macs in Kenneth's lab, plus Linux boxes (Red Hat, possibly
-another distro). Linux sees little real use on the team either way, so this
-is "nice to have a working utility eventually," not a near-term priority.
-
 
