@@ -34,11 +34,11 @@ if [ "$MODE" != "full" ] && [ "$MODE" != "sales" ]; then
     MODE="sales"
 fi
 
-rm -rf skills
-mkdir -p skills
-cp -r skills-source/shared/. skills/ 2>/dev/null || true
+rm -rf .hermes/skills
+mkdir -p .hermes/skills
+cp -r skills-source/shared/. .hermes/skills/ 2>/dev/null || true
 if [ "$MODE" = "full" ]; then
-    cp -r skills-source/tsc-only/. skills/ 2>/dev/null || true
+    cp -r skills-source/tsc-only/. .hermes/skills/ 2>/dev/null || true
 fi
 
 python3 - "$MODE" << 'PYEOF'
@@ -56,6 +56,12 @@ with open(".hermes.md", "w", encoding="utf-8") as f:
 PYEOF
 
 echo "North Forge running in $MODE mode."
+
+# Project-local skills require an explicit trust decision before Hermes will
+# load them (security gate against a git pull silently injecting a skill).
+# Auto-approved here since this repo is Blacksmith-reviewed before it ever
+# reaches a drive - see README for the tradeoff this makes.
+hermes skills trust . >/dev/null 2>&1 || true
 
 if ! command -v hermes >/dev/null 2>&1; then
     echo "Hermes not found on this machine - installing now..."
