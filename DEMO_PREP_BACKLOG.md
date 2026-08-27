@@ -94,3 +94,28 @@ item 3 above) - not something to design in the abstract before there's a
 second real instance to learn from. No action taken on this yet; logged so
 the framing doesn't get lost between sessions.
 
+## 7. GitHub repo visibility: docs say private, repo is actually PUBLIC (OPEN - Kenneth decision)
+
+Found during the 2026-08-26 Claude Code drive audit. `README.md` line 20
+states "This repo is private and not published," and the whole governance
+model (Blacksmith-only edits, relayed fault reports, PAT-in-provision-script
+ceremony) assumes private. But `gh repo view kwalker7631/north-forge-hermes-edition`
+returns `visibility: PUBLIC`, and an unauthenticated fetch of the repo URL
+returns HTTP 200 - it is world-readable on GitHub right now.
+
+No secrets are exposed by this: `.env` is gitignored and was never committed,
+and a full git-history scan for key patterns (`sk-ant-`, `ghp_`,
+`github_pat_`, AWS) came back clean - the provision script only ever held the
+`YOUR_TOKEN_HERE` placeholder. What IS public: all field-support content, the
+KYO_KB_TITAN locked template, the Kyocera branding/palette, the governance
+docs, and Kenneth's authorship.
+
+Decision for Kenneth (not a Claude Code action - changing repo visibility is
+outward-facing and his call): either flip the repo to Private in GitHub
+settings to match the docs, or, if public is actually intended, update
+`README.md` and drop the now-unnecessary read-only-PAT step from
+`provision-new-drive.ps1` / the README prerequisites (a public repo clones
+with no token). `README.md` is Zone B and `provision-new-drive.ps1` is not
+listed in any CLAUDE.md zone (it arrived as a Claude Project chat handoff) -
+both were left untouched pending that decision.
+

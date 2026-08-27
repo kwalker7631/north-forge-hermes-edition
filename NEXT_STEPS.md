@@ -17,9 +17,9 @@
 - `skills-source/shared/sales-assist/SKILL.md` real content - needs actual spec sheets/datasheets, curated and Blacksmith-approved, not written from general knowledge
 
 ## Also outstanding
-- Upload `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` into this repo's root (currently only in the Claude Project's knowledge base)
+- ~~Upload `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` into this repo's root~~ - DONE: file is present at the repo root and tracked in git (commit `e7beb1f`). Confirmed 2026-08-26 audit.
 - Decide whether `CLAUDE.md` (for Claude Code, same working directory) should mirror `.hermes.template.md`'s output or stay separate
-- Confirm `kwalker7631/north-forge-agent` is a registered GitHub fork of NousResearch/hermes-agent so `gh repo sync` works for engine updates
+- ~~Confirm `kwalker7631/north-forge-agent` is a registered GitHub fork of NousResearch/hermes-agent so `gh repo sync` works for engine updates~~ - DONE: verified via `gh repo view` on 2026-08-26 - `isFork: true`, parent `NousResearch/hermes-agent`, default branch `main`. `gh repo sync` path is valid.
 - Live-test the /flush + memory-scrubbing interaction described in the Hermes addendum - this hasn't been run against Hermes's actual memory writes yet, only specified
 - ~~Live-test the mode toggle end to end~~ - DONE: confirmed the launcher correctly builds separate FULL/SALES skill sets. Folder-name bug found and fixed (was `skills/`, corrected to `.hermes/skills/` after reading actual source); trust gate found and auto-approval added to the launcher.
 - Decide how FULL-mode drives (TSC) vs. SALES-mode drives (reps) actually get distributed/built - e.g. does Kenneth set `.forge-mode` once per physical drive before handing it out, or is there a simpler batch process for provisioning many drives at once
