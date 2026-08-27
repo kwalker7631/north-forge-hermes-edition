@@ -4,10 +4,10 @@ This repo is the **content layer** for North Forge (Kyocera Edition) running on 
 
 ## Two-repo architecture
 
-- **Engine:** `kwalker7631/north-forge-agent` - an untouched fork/mirror of NousResearch/hermes-agent. Never edited directly. Kept current with `gh repo sync` when Nous ships updates.
+- **Engine:** `kwalker7631/north-forge-agent` - an untouched fork/mirror of NousResearch/hermes-agent. Never edited directly. Kept current with `gh repo sync` when Nous ships updates. This is a reference/audit copy only - it is not what the installed `hermes` command actually runs from (see below).
 - **Content (this repo):** `kwalker7631/north-forge-hermes-edition` - North Forge's own material only: the always-loaded context file, the per-mode skills, and setup tooling. This is what gets built, versioned, and demoed.
 
-A thumb drive deployment = Hermes installed locally on the host machine (from the engine) + this repo's contents pointed to as the working directory.
+A thumb drive deployment = Hermes installed locally on the host machine (from Hermes's own official installer, which creates a real git checkout under that machine's `~/.hermes` / `%LOCALAPPDATA%\hermes` and stays current via `hermes update` - pull-only, no ties to this repo) + this repo's contents pointed to as the working directory. Don't keep a separate copy of the engine on the drive itself - a static download snapshot can't be updated and isn't referenced by anything here.
 
 ## Model choice matters - this is not Claude-only
 
@@ -42,14 +42,19 @@ skins/
   north-forge.yaml            <- Hermes skin: rebrands the CLI as "North Forge" using the KB visual palette
 .env.example                   <- copy to .env, fill in your own Anthropic API key, never commit the real .env
 .gitignore                     <- excludes secrets, per-drive mode, and generated files from version control
-setup-thumbdrive.ps1           <- first-time Windows setup script (manual, step-by-step)
+provision-new-drive.ps1        <- CANONICAL way to set up a new drive on Windows (see below) - drive-letter-agnostic, safe, one command
+setup-thumbdrive.ps1           <- SUPERSEDED - kept only because Kenneth's own personal drive was set up with it early on. Do not use for new drives.
 launch-north-forge.bat         <- one-click Windows launcher: assembles the current mode, trusts the project skills, installs Hermes if missing, applies the skin, starts
 launch-north-forge.sh          <- same, for Mac/Linux
 KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html  <- locked KB HTML template, required for /kb to produce a real draft
 fallback/
   NORTH_FORGE_v21.8_PASTE_VERSION.md  <- complete, original single-file prompt - paste into any chat AI if this whole Hermes setup is ever unavailable
 ATTRIBUTION.md                  <- required acknowledgment that this runs on the open-source Hermes Agent engine
+CLAUDE.md                       <- Claude Code's working rules for this repo (Zone A/B/C authority model) - read by Claude Code automatically, not by Hermes itself
 NEXT_STEPS.md                   <- what's built vs. still to build
+DEMO_PREP_BACKLOG.md            <- running punch-list for demo prep, polish, and things flagged for later
+audit/
+  CLAUDE_CODE_LAST_AUDIT.md    <- most recent Claude Code session's audit report, overwritten each session
 ```
 
 **Correction from an earlier version of this repo:** the generated skill folder used to be plain `skills/` at the repo root. That was wrong - confirmed by reading Hermes's actual installed source code, the real paths it scans for project-local skills are `.hermes/skills/` or `.agents/skills/`. Fixed everywhere in this version. Worth knowing this happened if you're demoing the debugging process, not just the fix - the folder name came from a third-party blog post that turned out to be inaccurate, and checking the real source code (not just documentation) is what actually resolved it.
@@ -74,17 +79,21 @@ The CLI is rebranded via a Hermes **skin** (`skins/north-forge.yaml`) - agent na
 
 `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` is the complete, original, unsplit v21.8 master prompt - the same one used before the Hermes adaptation. If the drive, the engine, or the skill-loading mechanism is ever unavailable, copy that file's content into any chat AI (Claude, ChatGPT, Gemini, whatever's on hand) as a last resort - no setup required, works standalone. It is not auto-generated from `.hermes.template.md` and `skills-source/`, so keep it updated manually when the master prompt changes.
 
-## Windows drive provisioning (recommended way to set up a new drive)
+## Setting up a new drive (Windows) - the one canonical path
 
-`provision-new-drive.ps1` is the safe, drive-letter-agnostic way to get North Forge onto a fresh thumb drive on Windows. It does NOT assume D:, E:, or any specific letter - it lists the drives actually present, auto-picks if there's only one, and hard-refuses to ever touch the system (`C:`) drive no matter how it's selected. It also checks the target drive's filesystem and refuses to proceed on FAT32 (4GB file-size cap, real problems here) - exFAT or NTFS only. Then it clones (or pulls, if already cloned) and launches.
+`provision-new-drive.ps1` is the only recommended way to set up a new drive. It is drive-letter-agnostic (does NOT assume D:, E:, or any specific letter - it lists the drives actually present and auto-picks if there's only one), hard-refuses to ever touch the system (`C:`) drive no matter how it's selected, and refuses to proceed on a FAT32-formatted drive (4GB file-size cap, real problems here) - exFAT or NTFS only. It installs Git if missing, clones (or pulls, if already cloned), and launches - one command, nothing else to run first.
 
-**One-time prep Kenneth does before handing this to anyone (not a team-member step):** the script needs a real GitHub access token filled in (find the line that sets `$cloneUrl` near the top of the file), replacing `YOUR_TOKEN_HERE`, since this repo is private. Generate a fine-grained, read-only (Contents: Read-only), single-repo-scoped token at `github.com/settings/personal-access-tokens/new`, then edit that one line. The script itself checks for the placeholder and refuses to run with a clear message if it's still there - a team member should never see that message, only Kenneth preparing a drive should.
+```powershell
+.\provision-new-drive.ps1
+```
 
-Run it from PowerShell: `.\provision-new-drive.ps1` - it prompts only when there's real ambiguity (more than one non-system drive present), and never asks for anything that could be mistyped into damaging the machine.
+No GitHub CLI (`gh`), no `gh auth login`, no browser sign-in step for whoever runs this - the script clones using a read-only access token that's already embedded in the file (see below for how that got there). It only prompts when there's real ambiguity (more than one non-system drive present), and never asks for anything that could be mistyped into damaging the machine.
 
-## One-click launch (for team distribution)
+`setup-thumbdrive.ps1` is superseded by this script and kept only for historical reasons - don't use it for new drives.
 
-`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root. Each one: rebuilds `.hermes/skills/` and `.hermes.md` for whatever mode this drive is set to, installs Hermes if it's missing on that machine, sets up `.env` on first run if needed, copies the current skin into place, and starts North Forge - so a team member just needs to double-click (Windows) or run the script (Mac/Linux) rather than type commands or think about mode at all.
+## One-click launch (what happens after provisioning, and for repeat use)
+
+`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root - `provision-new-drive.ps1` calls the `.bat` automatically at the end of first-time setup, and either one is what a team member runs on every visit after that. Each one: rebuilds `.hermes/skills/` and `.hermes.md` for whatever mode this drive is set to, installs Hermes if it's missing on that machine, sets up `.env` on first run if needed, copies the current skin into place, and starts North Forge - so a team member just needs to double-click (Windows) or run the script (Mac/Linux) rather than type commands or think about mode at all.
 
 **One real caveat on Mac/Linux:** exFAT (needed for a drive that works across Windows/Mac/Linux) can't store the Unix "executable" permission bit, and macOS doesn't auto-run anything on drive insert (Apple removed that years ago for security). So the very first time on any given Mac needs one manual step - after that, it's a real double-click icon every time.
 
@@ -99,7 +108,7 @@ That single run installs Hermes if needed, sets up `.env`, and - important - cre
 
 (This assumes the drive keeps the same volume name each time it's plugged in - macOS mounts by name, so renaming the drive after setup would need the one-time step redone.)
 
-On Linux, the same drag-and-drop-into-terminal trick works, or `bash launch-north-forge.sh` typed directly if terminal is already comfortable.
+On Linux, the same drag-and-drop-into-terminal trick works, or `bash launch-north-forge.sh` typed directly if terminal is already comfortable. Requires `python3` on PATH - the script checks for this and gives a clear error with an install hint if it's missing, rather than failing with a raw error partway through.
 
 Windows doesn't have any of this trouble - `.bat` files run by file extension, not permission bit, so double-click works there from the first plug-in.
 
@@ -113,40 +122,38 @@ Hermes truncates context files over 20,000 characters (drops the middle silently
 
 Hermes skills normally refine themselves through use. North Forge's skills are the exception - see the `hermes_specific_addendum` section in `.hermes.md`. Nothing in `skills-source/` gets auto-edited. Changes go through the Blacksmith (Kenneth Walker Jr.).
 
-## Prerequisites (check these before step 1)
+## Kenneth's own GitHub CLI setup (repo administration - NOT needed to provision a drive)
 
-Do this once per machine, before creating or cloning anything.
+Nothing below this point is needed by a team member setting up a drive - `provision-new-drive.ps1` handles that with no `gh` dependency at all. This section is for Kenneth's own administrative tasks: creating the read-only access token that gets embedded in `provision-new-drive.ps1`, managing repo settings, syncing the engine fork, and similar `gh`-driven tasks.
 
-**1. Use PowerShell, not Git Bash.** Every command in this README and in the setup scripts is written for PowerShell. Git Bash can run some of it, but paths and `.bat` files behave differently there and it's not worth the translation. To open PowerShell: press the Windows key, type `PowerShell`, press Enter.
+**1. Use PowerShell, not Git Bash** for these commands specifically - Git Bash can run some of it, but paths and `.bat` files behave differently there and it's not worth the translation.
 
 **2. Check git is installed:**
 ```powershell
 git --version
 ```
-If that errors, install Git for Windows first (https://git-scm.com/download/win) before continuing.
+If that errors, install Git for Windows first (https://git-scm.com/download/win).
 
 **3. Check GitHub CLI (`gh`) is installed:**
 ```powershell
 gh auth status
 ```
-If you get `'gh' is not recognized...`, it's not installed yet:
+If you get `'gh' is not recognized...`, install it:
 ```powershell
 winget install --id GitHub.cli
 ```
-Then **close this PowerShell window completely and open a brand new one** — this matters, PowerShell won't see the new `gh` command in the same window it was installed from.
+Then close this PowerShell window completely and open a brand new one - this matters, PowerShell won't see the new `gh` command in the same window it was installed from.
 
 **4. Log in:**
 ```powershell
 gh auth login
 ```
-Answer the prompts: **GitHub.com** → **HTTPS** → **Yes** (authenticate Git with GitHub credentials) → **Login with a web browser**. It gives you a one-time code and opens your browser — paste the code, approve it, come back.
+Answer the prompts: **GitHub.com** -> **HTTPS** -> **Yes** (authenticate Git with GitHub credentials) -> **Login with a web browser**. It gives you a one-time code and opens your browser - paste the code, approve it, come back.
 
 **5. Confirm:**
 ```powershell
 gh auth status
 ```
-You're looking for `✓ Logged in to github.com account <your username>`. Once you see that, move on to cloning the repo below.
+You're looking for a line confirming you're logged in to github.com. Once you see that, `gh` is ready for repo administration tasks - `gh repo view`, `gh repo sync` on the engine fork, and so on.
 
-## First-time setup
-
-Run `setup-thumbdrive.ps1` from PowerShell on the machine you're setting up (see script header for what it does and why the Hermes engine installs locally rather than living on the drive itself - short version: exFAT can't hold the symlinks a Python venv needs, and a Windows-built runtime won't run on Mac/Linux anyway).
+**Generating the read-only token that goes in `provision-new-drive.ps1`:** go to `github.com/settings/personal-access-tokens/new`, scope it to this one repository only, set Repository permissions -> Contents: Read-only (nothing else needed), generate it, and paste it into the line that sets `$cloneUrl` near the top of `provision-new-drive.ps1`, replacing `YOUR_TOKEN_HERE`. This is a one-time edit before handing a drive to anyone - the script itself refuses to run with a clear message if that placeholder is still there, so a team member should never see it.

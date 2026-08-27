@@ -1,12 +1,43 @@
-# Secrets - never commit the real .env (contains a live Anthropic API key)
+# Secrets - never commit
 .env
+*.env
+.hermes.override.md
+AGENTS.override.md
 
-# Per-drive state - set locally by toggle-mode, never shared via git
+# Per-drive mode toggle - local to each physical drive, never synced via git
+# (a git pull overwriting a Sales drive's toggle back to a committed value
+# would be exactly the failure this whole system exists to prevent)
 .forge-mode
 
-# Generated at each launch from .hermes.template.md - never edit or commit directly
+# Generated at each launch from skills-source/ + .hermes.template.md + mode-blocks/
+# - these are build artifacts, not source. Never edit them directly; edit the
+# source and re-launch. .hermes/ here is a PROJECT-LOCAL folder (the exact
+# name Hermes scans for project skills) - unrelated to the user's global
+# ~/.hermes profile directory.
+/.hermes/
 .hermes.md
 
-# Generated at each launch from skills-source/ - never edit or commit directly
-.hermes/
-skills/
+# Hermes runtime/state - this repo holds the content layer only,
+# not per-machine state, memory, sessions, or logs
+config.yaml
+state.db
+state.db-*
+sessions/
+memories/
+cron/
+logs/
+*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+__pycache__/
+*.pyc
+node_modules/
+
+# Claude Code's own settings dir - keeping this in the repo's own .gitignore
+# makes the repo self-contained instead of depending on a machine-global
+# git config to exclude it
+.claude/

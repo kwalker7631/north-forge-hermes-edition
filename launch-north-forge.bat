@@ -7,6 +7,9 @@ set "MODE=sales"
 if exist ".forge-mode" (
     set /p MODE=<".forge-mode"
 )
+rem trim any trailing/leading whitespace so a stray space or BOM in
+rem .forge-mode doesn't silently fall through to the sales default
+for /f "tokens=* delims= " %%A in ("%MODE%") do set "MODE=%%A"
 if /i not "%MODE%"=="full" if /i not "%MODE%"=="sales" (
     echo Unrecognized .forge-mode value "%MODE%" - defaulting to sales for safety.
     set "MODE=sales"

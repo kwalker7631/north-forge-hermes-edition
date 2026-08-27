@@ -9,6 +9,7 @@ SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 # icon on the Mac's own internal disk instead - every run after this one,
 # use that icon, not this file.
 DESKTOP_LAUNCHER="$HOME/Desktop/North Forge.command"
+mkdir -p "$HOME/Desktop"
 if [ ! -f "$DESKTOP_LAUNCHER" ]; then
     cat > "$DESKTOP_LAUNCHER" << SHORTCUT
 #!/bin/bash
@@ -39,6 +40,12 @@ mkdir -p .hermes/skills
 cp -r skills-source/shared/. .hermes/skills/ 2>/dev/null || true
 if [ "$MODE" = "full" ]; then
     cp -r skills-source/tsc-only/. .hermes/skills/ 2>/dev/null || true
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "python3 is required for this launcher and wasn't found on this machine."
+    echo "Install it (e.g. 'brew install python3' on Mac, or your distro's package manager on Linux), then run this script again."
+    exit 1
 fi
 
 python3 - "$MODE" << 'PYEOF'
