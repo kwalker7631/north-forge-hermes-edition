@@ -55,6 +55,34 @@ findings the session-start response had repeated from older audits.
    plainly that this drive doesn't have that capability ...` - `/draft` IS
    in the list.
 
+## Follow-up verification (2 more checks, same session)
+
+6. `grep -n "command menu above\|command menu below" .hermes.template.md`:
+   - L44 (startup routing, "Do not show the startup menu first"):
+     `route immediately to the correct mode (see command menu below for the
+     full, authoritative list)`.
+   - L90 (flush_clear_rule, "/flush and /clear are the same command"):
+     `stay in whatever mode was active (see command menu above for the full,
+     authoritative list of modes)`.
+   PASS - both parentheticals now defer to the command menu block; neither
+   enumerates individual commands. "below" (L44, above the menu marker) and
+   "above" (L90, below the marker) are both correct relative positioning.
+
+7. `grep -in "draft" NEXT_STEPS.md`:
+   - L27: `Confirm a real /kb draft actually renders correctly ...` - refers
+     to a /kb output draft, NOT the /draft mode. Unrelated.
+   - L29: `AUDIT 2026-08-26 (pre-flight): /draft ("Draft Writer") is
+     referenced in .hermes.template.md's assistant_router_rule and listed in
+     mode-blocks/full-menu.md, but has no entry in "Not yet built" above, no
+     skills-source/ folder or placeholder ... Decide whether it is
+     intentionally template-only ... or a missing placeholder that should be
+     tracked here.`
+   FAIL - /draft is NOT a tracked build item. The "Not yet built" section
+   (L10-17) lists hotline-ticket, assist-intake, escalation-packet, audit,
+   fault-logging, training-guide, sales-assist content - not /draft. L29 is
+   a note flagging the gap, not an entry closing it. The session-start
+   list's "/draft not tracked in NEXT_STEPS.md" item stands, unresolved.
+
 ## Zone A changes made
 None to infrastructure/scripts. This audit file (itself Zone A) rewritten to
 record the verification above and retract two stale findings (see below).
@@ -69,12 +97,18 @@ audits are STALE and do not hold against current disk content:
   first raised it; that audit's text was being repeated without re-reading.
 - RETRACTED: "mode-blocks/sales-menu.md redirect/reject list omits /draft."
   FALSE as of this read - `/draft` is in the L6 reject list.
-Still genuinely open (NOT re-verified this session, no fresh read done):
-`.hermes.template.md` mode lists vs. `mode-blocks/full-menu.md`
-consistency; `/draft` mode not tracked in `NEXT_STEPS.md` "Not yet built"
-(logged there as a pre-flight note); default `/assist` mode backed only by
-an unbuilt placeholder skill. These need their own fresh read before being
-repeated again.
+Confirmed still open by fresh read this session:
+- `/draft` mode not tracked in `NEXT_STEPS.md` "Not yet built" (check 7
+  above). L29 pre-flight note flagging the gap is still unresolved -
+  someone needs to decide template-only vs. missing placeholder.
+Still open, NOT re-read this session:
+- `.hermes.template.md` mode lists vs. `mode-blocks/full-menu.md`
+  consistency; default `/assist` mode backed only by an unbuilt placeholder
+  skill. These need their own fresh read before being repeated again.
+Verified RESOLVED by fresh read this session:
+- `.hermes.template.md` startup_sequence + flush_clear_rule mode-list
+  parentheticals no longer hardcode a partial command list - both now point
+  to the command menu block as the authoritative list (check 6 above).
 
 ## Commits made this session
 - 7f9365b - "Write session audit report (session-start check, no changes)"
@@ -91,6 +125,9 @@ repeated again.
   3.45.1 WAL-reset bug.
 
 ## Status
-Clean. All five requested verifications pass against current disk content.
-Two stale carried-forward findings retracted. No Zone A code fix needed; no
-new Zone B issue.
+Clean. Checks 1-6 pass against current disk content; check 7 fails as
+expected and confirms an already-known open item (/draft untracked in
+NEXT_STEPS.md). Two stale carried-forward findings retracted; one
+carried-forward finding (mode-list parentheticals) verified resolved; one
+(/draft tracking) verified still open. No Zone A code fix needed; no new
+Zone B issue.
