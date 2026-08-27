@@ -46,9 +46,25 @@ who "knows nothing about computers" but follows instructions well - a much
 higher simplicity bar than the TSC team. Likely wants mobile-friendliness
 specifically (Hermes's messaging-gateway bridge to Telegram/WhatsApp/etc. was
 mentioned earlier in this project as a real, already-available path, not
-speculative). This is a separate content package from North Forge Kyocera,
-same engine - no work started yet, explicitly parked pending further
-discussion ("let's digest this and talk more").
+speculative).
+
+Concrete plan (2026-08-26): Pine Barren Farms already exists as a separate,
+already-developed project (details TBD - not yet described what form it
+takes: prompt, scripts, video material, etc.). Intent is to prove the Forge
+System skeleton generalizes by porting it in as a proof-of-concept, using
+North Forge Kyocera Edition's build as the template.
+
+IMPORTANT - recommended approach, flagged back to Kenneth for confirmation:
+build this as a SIBLING repo (e.g. `north-forge-pine-barren-farms`), not by
+overwriting or repurposing this repo's content. Kyocera Edition is an active,
+soon-to-be-demoed deliverable (Greg) - the proof-of-concept that the
+architecture generalizes and the safety of that specific deliverable should
+never be the same risk. The Forge System conventions (engine/content split,
+mode toggle, skin, launcher scripts, CLAUDE.md governance) are what transfers
+- a new repo built the same way, not this one converted.
+
+Next input needed before this can actually start: what the existing Pine
+Barren Farms material actually consists of today.
 
 ## 4. Multi-model reality check (OPEN, ongoing)
 
@@ -94,28 +110,55 @@ item 3 above) - not something to design in the abstract before there's a
 second real instance to learn from. No action taken on this yet; logged so
 the framing doesn't get lost between sessions.
 
-## 7. GitHub repo visibility: docs say private, repo is actually PUBLIC (OPEN - Kenneth decision)
+## 7. Third proof case, informal - franchise/food-service ops (OPEN, someday)
 
-Found during the 2026-08-26 Claude Code drive audit. `README.md` line 20
-states "This repo is private and not published," and the whole governance
-model (Blacksmith-only edits, relayed fault reports, PAT-in-provision-script
-ceremony) assumes private. But `gh repo view kwalker7631/north-forge-hermes-edition`
-returns `visibility: PUBLIC`, and an unauthenticated fetch of the repo URL
-returns HTTP 200 - it is world-readable on GitHub right now.
+Kenneth has a friend who owns/manages several Dunkin' Donuts locations -
+mentioned as someone who might be interested in a similar tool trained on
+that business's menu/processes/procedures, for internal store-manager use
+("a boss or super brain on speed dial"), not customer-facing. Not being
+pursued now - logged as a third possible proof-of-concept for the Forge
+System pattern generalizing across verticals (tech support -> elder-care
+demos -> food-service franchise ops), consistent with item 6's framing.
 
-No secrets are exposed by this: `.env` is gitignored and was never committed,
-and a full git-history scan for key patterns (`sk-ant-`, `ghp_`,
-`github_pat_`, AWS) came back clean - the provision script only ever held the
-`YOUR_TOKEN_HERE` placeholder. What IS public: all field-support content, the
-KYO_KB_TITAN locked template, the Kyocera branding/palette, the governance
-docs, and Kenneth's authorship.
+## 8. Cross-platform testing status (OPEN, low priority)
 
-Decision for Kenneth (not a Claude Code action - changing repo visibility is
-outward-facing and his call): either flip the repo to Private in GitHub
-settings to match the docs, or, if public is actually intended, update
-`README.md` and drop the now-unnecessary read-only-PAT step from
-`provision-new-drive.ps1` / the README prerequisites (a public repo clones
-with no token). `README.md` is Zone B and `provision-new-drive.ps1` is not
-listed in any CLAUDE.md zone (it arrived as a Claude Project chat handoff) -
-both were left untouched pending that decision.
+Demo scope decided (2026-08-26): Windows-only for the Greg demo, disclosed
+honestly as the one actually field-tested path (blank drive ->
+`provision-new-drive.ps1` -> clone -> launch -> verified, done live).
+Mac/Linux launchers are built the same way and should work, but neither has
+been run on a real machine yet - "should work" isn't the same claim as
+"confirmed," and that gap shouldn't get papered over in how the demo is
+described.
+
+Test hardware available whenever there's time (not urgent, not blocking the
+demo): several Macs in Kenneth's lab, plus Linux boxes (Red Hat, possibly
+another distro). Linux sees little real use on the team either way, so this
+is "nice to have a working utility eventually," not a near-term priority.
+
+## 9. Scrub .env before distributing any physical drive (OPEN)
+
+Flagged by drive-level audit (2026-08-26): Kenneth's personal build drive has
+a live Anthropic API key in `.env` in plaintext, correctly gitignored (never
+committed - confirmed by full git history scan) so this is not a repo leak,
+but it is a real, working credential sitting on physical media. Fine for a
+personal build/test drive; needs one of two things before any drive goes to
+a team member: (a) scrub `.env` back to the template and let them add their
+own key, or (b) confirm a spend cap is set on the key in the Anthropic
+console so a lost/copied drive can't run up an unbounded bill. No process
+currently checks for this - candidate for a step in whatever provisioning
+checklist Kenneth uses when actually building drives for the team.
+
+## 10. Repo visibility (RESOLVED - verified 2026-08-26)
+
+Drive-level audit found `kwalker7631/north-forge-hermes-edition` was
+PUBLIC on GitHub, contradicting both the README ("private and not
+published") and Kenneth's explicit earlier intent. Fixed via GitHub
+settings -> Danger Zone -> Change repository visibility -> Private.
+Independently re-verified after the fix: unauthenticated fetches of both
+the repo page and the raw README now return 404 (confirmed private), where
+they previously returned 200. No credentials were ever exposed in the
+window it was public (`.env` never committed, confirmed by full history
+scan). Closed.
+
+
 
