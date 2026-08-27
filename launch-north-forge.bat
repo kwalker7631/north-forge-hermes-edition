@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
-rem --- assemble live skills\ and .hermes.md from source, based on the mode toggle ---
+rem --- assemble live .hermes/skills/ and .hermes.md from source, based on the mode toggle ---
 set "MODE=sales"
 if exist ".forge-mode" (
     set /p MODE=<".forge-mode"
@@ -30,12 +30,7 @@ powershell -NoProfile -Command ^
 
 echo North Forge running in %MODE% mode.
 
-rem Project-local skills require an explicit trust decision before Hermes will
-rem load them (security gate against a git pull silently injecting a skill).
-rem Auto-approved here since this repo is Blacksmith-reviewed before it ever
-rem reaches a drive - see README for the tradeoff this makes.
-hermes skills trust . >nul 2>nul
-
+rem --- install Hermes FIRST if missing - nothing below this works without it ---
 where hermes >nul 2>nul
 if errorlevel 1 (
     echo Hermes not found on this machine - installing now...
@@ -58,6 +53,7 @@ if not exist ".env" (
     )
 )
 
+rem --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
 if defined HERMES_HOME (
     set "SKIN_DIR=%HERMES_HOME%\skins"
 ) else (
@@ -65,6 +61,16 @@ if defined HERMES_HOME (
 )
 if not exist "%SKIN_DIR%" mkdir "%SKIN_DIR%"
 copy /Y "skins\north-forge.yaml" "%SKIN_DIR%\north-forge.yaml" >nul
-hermes config set display.skin north-forge >nul 2>nul
+
+echo Activating North Forge skin...
+hermes skin use north-forge
+echo Skin list after activation (look for * next to north-forge):
+hermes skin list
+
+rem Project-local skills require an explicit trust decision before Hermes will
+rem load them (security gate against a git pull silently injecting a skill).
+rem Auto-approved here since this repo is Blacksmith-reviewed before it ever
+rem reaches a drive - see README for the tradeoff this makes.
+hermes skills trust .
 
 hermes

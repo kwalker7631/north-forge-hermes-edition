@@ -24,7 +24,7 @@ SHORTCUT
     echo ""
 fi
 
-# --- assemble live skills/ and .hermes.md from source, based on the mode toggle ---
+# --- assemble live .hermes/skills/ and .hermes.md from source, based on the mode toggle ---
 MODE="sales"
 if [ -f ".forge-mode" ]; then
     MODE="$(tr '[:upper:]' '[:lower:]' < .forge-mode | tr -d '[:space:]')"
@@ -57,12 +57,7 @@ PYEOF
 
 echo "North Forge running in $MODE mode."
 
-# Project-local skills require an explicit trust decision before Hermes will
-# load them (security gate against a git pull silently injecting a skill).
-# Auto-approved here since this repo is Blacksmith-reviewed before it ever
-# reaches a drive - see README for the tradeoff this makes.
-hermes skills trust . >/dev/null 2>&1 || true
-
+# --- install Hermes FIRST if missing - nothing below this works without it ---
 if ! command -v hermes >/dev/null 2>&1; then
     echo "Hermes not found on this machine - installing now..."
     curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
@@ -83,9 +78,20 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
+# --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
 HERMES_SKIN_DIR="${HERMES_HOME:-$HOME/.hermes}/skins"
 mkdir -p "$HERMES_SKIN_DIR"
 cp -f "skins/north-forge.yaml" "$HERMES_SKIN_DIR/north-forge.yaml"
-hermes config set display.skin north-forge >/dev/null 2>&1 || true
+
+echo "Activating North Forge skin..."
+hermes skin use north-forge
+echo "Skin list after activation (look for * next to north-forge):"
+hermes skin list
+
+# Project-local skills require an explicit trust decision before Hermes will
+# load them (security gate against a git pull silently injecting a skill).
+# Auto-approved here since this repo is Blacksmith-reviewed before it ever
+# reaches a drive - see README for the tradeoff this makes.
+hermes skills trust .
 
 exec hermes
