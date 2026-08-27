@@ -98,6 +98,7 @@ extend the content itself.
 
 Files:
 - `NEXT_STEPS.md`
+- `DEMO_PREP_BACKLOG.md`
 
 Reasoning: this is a running work-status log, not field-support content and
 not infrastructure code - it's closer to the audit report than to Zone A or
@@ -105,7 +106,8 @@ Zone B. Keeping it current (what's done, what's still open, what was found
 during a session) is useful exactly because it's low-stakes to get slightly
 wrong and easy to correct next time.
 
-Claude Code MAY: add, check off, or revise entries in `NEXT_STEPS.md`
+Claude Code MAY: add, check off, or revise entries in `NEXT_STEPS.md` and
+`DEMO_PREP_BACKLOG.md`
 reflecting real session findings, and commit/push those changes
 automatically, same standing authorization as Zone A.
 
@@ -194,7 +196,7 @@ state:
 NORTH FORGE HERMES EDITION - CLAUDE CODE WORKING RULES ACTIVE
 Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, setup script, .gitignore
 Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, CLAUDE.md
-Zone C (operational docs, may update + commit freely): NEXT_STEPS.md
+Zone C (operational docs, may update + commit freely): NEXT_STEPS.md, DEMO_PREP_BACKLOG.md
 Git: git pull automatically at session start; auto-commit/push for Zone A fixes, Zone C updates, and placing pre-approved Zone B handoffs; never author or edit Zone B content myself
 I will not edit Zone B content, including this file, and will not compose content on Zone B's behalf - only place exactly what I'm handed.
 ```

@@ -60,15 +60,15 @@ Separately from the folder-name issue: Hermes will not load skills from a projec
 
 ## One repo, one toggle, two drive types
 
-There is no separate "sales version" to maintain. Every skill is authored exactly once, in `skills-source/`, tagged `shared/` (both modes) or `tsc-only/` (FULL mode only). Every launch, the launcher deletes and rebuilds the live `skills/` folder and the live `.hermes.md` from that source plus whichever `.forge-mode` says - so there's never a chance of the two "versions" drifting apart, because there's only ever one source.
+There is no separate "sales version" to maintain. Every skill is authored exactly once, in `skills-source/`, tagged `shared/` (both modes) or `tsc-only/` (FULL mode only). Every launch, the launcher deletes and rebuilds the live `.hermes/skills/` folder and the live `.hermes.md` from that source plus whichever `.forge-mode` says - so there's never a chance of the two "versions" drifting apart, because there's only ever one source.
 
 `.forge-mode` is a one-word file (`full` or `sales`) that lives on each physical drive, is never committed to git, and is set once with `toggle-mode.bat`/`.sh` (Kenneth-only tooling, not something a rep needs). Missing the file at all defaults to `sales` - fails safe rather than fails open.
 
-On a Sales-mode drive, the TSC-only skill files are never copied into the live `skills/` folder at all - not hidden, not disabled by a prompt instruction alone, physically absent from that session. The `.hermes.md` generated for that mode also tells the model plainly to redirect any support/repair/KB request to the normal TSC channel rather than attempt it from general knowledge.
+On a Sales-mode drive, the TSC-only skill files are never copied into the live `.hermes/skills/` folder at all - not hidden, not disabled by a prompt instruction alone, physically absent from that session. The `.hermes.md` generated for that mode also tells the model plainly to redirect any support/repair/KB request to the normal TSC channel rather than attempt it from general knowledge.
 
 ## Branding
 
-The CLI is rebranded via a Hermes **skin** (`skills/north-forge.yaml`) - agent name, welcome text, and colors change to "North Forge" using the same palette already defined in the KB visual standard (Kyocera red, technical blue, confirmed-path green). Skins only affect appearance, not behavior - the underlying engine is still Hermes Agent, MIT-licensed, and that's acknowledged in `ATTRIBUTION.md`. Nous Research is not affiliated with or endorsing this deployment.
+The CLI is rebranded via a Hermes **skin** (`skins/north-forge.yaml`) - agent name, welcome text, and colors change to "North Forge" using the same palette already defined in the KB visual standard (Kyocera red, technical blue, confirmed-path green). Skins only affect appearance, not behavior - the underlying engine is still Hermes Agent, MIT-licensed, and that's acknowledged in `ATTRIBUTION.md`. Nous Research is not affiliated with or endorsing this deployment.
 
 ## Fallback: standalone paste-in version
 
@@ -78,11 +78,13 @@ The CLI is rebranded via a Hermes **skin** (`skills/north-forge.yaml`) - agent n
 
 `provision-new-drive.ps1` is the safe, drive-letter-agnostic way to get North Forge onto a fresh thumb drive on Windows. It does NOT assume D:, E:, or any specific letter - it lists the drives actually present, auto-picks if there's only one, and hard-refuses to ever touch the system (`C:`) drive no matter how it's selected. It also checks the target drive's filesystem and refuses to proceed on FAT32 (4GB file-size cap, real problems here) - exFAT or NTFS only. Then it clones (or pulls, if already cloned) and launches.
 
+**One-time prep Kenneth does before handing this to anyone (not a team-member step):** the script needs a real GitHub access token filled in on line 5, replacing `YOUR_TOKEN_HERE`, since this repo is private. Generate a fine-grained, read-only (Contents: Read-only), single-repo-scoped token at `github.com/settings/personal-access-tokens/new`, then edit that one line. The script itself checks for the placeholder and refuses to run with a clear message if it's still there - a team member should never see that message, only Kenneth preparing a drive should.
+
 Run it from PowerShell: `.\provision-new-drive.ps1` - it prompts only when there's real ambiguity (more than one non-system drive present), and never asks for anything that could be mistyped into damaging the machine.
 
 ## One-click launch (for team distribution)
 
-`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root. Each one: rebuilds `skills/` and `.hermes.md` for whatever mode this drive is set to, installs Hermes if it's missing on that machine, sets up `.env` on first run if needed, copies the current skin into place, and starts North Forge - so a team member just needs to double-click (Windows) or run the script (Mac/Linux) rather than type commands or think about mode at all.
+`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root. Each one: rebuilds `.hermes/skills/` and `.hermes.md` for whatever mode this drive is set to, installs Hermes if it's missing on that machine, sets up `.env` on first run if needed, copies the current skin into place, and starts North Forge - so a team member just needs to double-click (Windows) or run the script (Mac/Linux) rather than type commands or think about mode at all.
 
 **One real caveat on Mac/Linux:** exFAT (needed for a drive that works across Windows/Mac/Linux) can't store the Unix "executable" permission bit, and macOS doesn't auto-run anything on drive insert (Apple removed that years ago for security). So the very first time on any given Mac needs one manual step - after that, it's a real double-click icon every time.
 
@@ -109,7 +111,7 @@ Hermes truncates context files over 20,000 characters (drops the middle silently
 
 ## Skills are locked, not self-improving
 
-Hermes skills normally refine themselves through use. North Forge's skills are the exception - see the `hermes_specific_addendum` section in `.hermes.md`. Nothing in `skills/` gets auto-edited. Changes go through the Blacksmith (Kenneth Walker Jr.).
+Hermes skills normally refine themselves through use. North Forge's skills are the exception - see the `hermes_specific_addendum` section in `.hermes.md`. Nothing in `skills-source/` gets auto-edited. Changes go through the Blacksmith (Kenneth Walker Jr.).
 
 ## Prerequisites (check these before step 1)
 
