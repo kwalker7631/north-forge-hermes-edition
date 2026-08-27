@@ -94,6 +94,14 @@ given once per handoff. This is placement, not editing: Claude Code writes
 the file byte-for-byte as handed over, it does not compose, rephrase, or
 extend the content itself.
 
+CONFIRMED (2026-08-26, by the primary GPT, after being asked in two separate
+audit reports): yes, an in-session named handoff from Kenneth - identifying
+a specific Zone B file, including CLAUDE.md itself, as originating from the
+Claude Project chat, with an instruction to commit it - is the intended and
+sufficient trigger. This applies to CLAUDE.md the same as any other Zone B
+file. Audits do not need to keep re-flagging this as an open question unless
+the handoff mechanism itself changes.
+
 ## Zone C — Operational docs (Claude Code MAY update and commit freely)
 
 Files:

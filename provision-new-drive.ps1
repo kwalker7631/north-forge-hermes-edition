@@ -14,7 +14,7 @@ if ($cloneUrl -match "YOUR_TOKEN_HERE") {
     Write-Host ""
     Write-Host "STOP - this is a message for KENNETH, not whoever is running this script:" -ForegroundColor Red
     Write-Host "The clone URL below still has the placeholder token. Before handing this" -ForegroundColor Red
-    Write-Host "drive/script to anyone, edit line 5 of this file and replace YOUR_TOKEN_HERE" -ForegroundColor Red
+    Write-Host "the line that sets cloneUrl near the top of this file and replace YOUR_TOKEN_HERE" -ForegroundColor Red
     Write-Host "with the real read-only access token (see README.md for how to generate one)." -ForegroundColor Red
     Write-Host "This is a one-time edit you do before distributing - team members should" -ForegroundColor Red
     Write-Host "never see this message." -ForegroundColor Red
