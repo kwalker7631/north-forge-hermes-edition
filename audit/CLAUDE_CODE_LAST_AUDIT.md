@@ -1,110 +1,50 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-08-26 (fix4 placement session)
-Requested task: Extract `north-forge-hermes-fix4.zip` into the repo root,
-overwriting `launch-north-forge.bat` and `launch-north-forge.sh` (both Zone A).
-Verify the diff makes sense -- correct ordering (install Hermes before any
-`hermes` command runs) and skin activation switched to `hermes skin use` with
-visible output instead of a suppressed `hermes config set` call -- then commit
-and push per standing Zone A authorization.
+Timestamp: 2026-08-26 20:45 -0400 (session-start check only)
+Requested task: None given. Per CLAUDE.md, a clean Session Start Protocol
+run IS the whole task when no task is provided — run the checks, write this
+report, stop without inventing work.
 
 ## Files inspected
-- `git pull` (already up to date), `git status`, `git diff` (full, both
-  files), `git log`
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` (previous audit -- clean/routine)
-- `.gitignore` -- confirmed it excludes `.env`, `.forge-mode`, `.hermes.md`,
-  `.hermes/` (also `skills/`). OK, no fix needed.
-- `north-forge-hermes-fix4.zip` -- extracted to scratchpad; also extracted
-  `north-forge-hermes-fix4 (1).zip` for comparison
-- `launch-north-forge.bat` -- full new file read (77 lines), diff vs HEAD
-- `launch-north-forge.sh` -- full new file read (98 lines), diff vs HEAD
-- `hermes doctor` -- all checks passed (pre-existing optional-tool and
-  not-logged-in warnings only; unrelated to this change)
-- `hermes skills list --source local` -- kb-builder + sales-assist, both
-  local/enabled
-- `hermes skin --help`, `hermes skin list` -- confirmed `skin use` and
-  `skin list` are real subcommands; active skin is already `north-forge` (`*`)
+- `git pull` (already up to date), `git status`, `git diff` (working tree
+  clean, empty diff), `git log --oneline -5`
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (previous audit — clean/routine, fix4
+  launcher placement session, commit `9b43e75` + report `b1796bc`)
+- `.gitignore` — confirmed present and excludes `.env`, `.forge-mode`,
+  `.hermes.md`, `.hermes/` (also `skills/`). OK, no fix needed.
+- `hermes --version` — v0.20.5 (2026.8.19), install method git, "Update
+  available: 117 commits behind"
+- `hermes doctor` — "All checks passed! 🎉" (warnings below are environment
+  notes, all outside this repo's zones)
+- `hermes skills list --source local` — `kb-builder` + `sales-assist`, both
+  `local` / `enabled`. Unchanged from last session.
 
 ## Zone A changes made
-
-Both files replaced with the fix4 versions. Commit `9b43e75`.
-
-**`launch-north-forge.bat`** (+14 / -8), **`launch-north-forge.sh`** (+14 / -8)
--- identical structural change in each:
-
-1. **Ordering fix.** `hermes skills trust .` moved from *before* the
-   install-if-missing check to *after* the skin-activation block.
-   - Before: `trust` ran first (silenced with `>nul 2>nul` / `>/dev/null
-     2>&1 || true`), then `where hermes` / `command -v hermes` install
-     gate, then `.env` bootstrap, then skin copy + `hermes config set`.
-     On a machine without Hermes the first `hermes` call was guaranteed to
-     fail silently before the installer ever ran.
-   - After: `.hermes/skills` + `.hermes.md` assembly (no hermes calls) ->
-     install gate -> `.env` bootstrap -> skin copy -> `hermes skin use` ->
-     `hermes skin list` -> `hermes skills trust .` -> launch `hermes`.
-     First `hermes` invocation now provably follows the install gate.
-
-2. **Skin activation.** `hermes config set display.skin north-forge`
-   (output suppressed) replaced with:
-   ```
-   echo Activating North Forge skin...
-   hermes skin use north-forge
-   echo Skin list after activation (look for * next to north-forge):
-   hermes skin list
-   ```
-   Uses the documented dedicated subcommand and prints the skin list so an
-   operator can confirm the `*` landed on `north-forge`. `hermes skills
-   trust .` also no longer suppresses its output.
-
-3. **Comment copyedit.** Stale `assemble live skills\ ...` /
-   `assemble live skills/ ...` comment updated to name the real target,
-   `.hermes/skills/`. No behavior change (the `if exist "skills"` /
-   `rm -rf` cleanup of a legacy `skills` dir is unchanged).
-
-Verification details:
-- `fix4.zip` and `fix4 (1).zip` are byte-identical to each other (md5) for
-  both files.
-- The zip contents were already byte-identical to the working-tree copies
-  before Claude Code acted -- Kenneth extracted the zip before invoking the
-  session (same pattern as the fix3 session). Claude Code re-ran the
-  extraction (no-op) and copied the scratchpad files over the working-tree
-  files explicitly to honor the literal instruction; `git status` still
-  showed only the two expected modifications afterward.
-- Line endings: LF-only in the zip, the working tree, and HEAD for both
-  files. The `git diff` shows content hunks only, no whole-file
-  line-ending flip. (`core.autocrlf` prints the usual "LF will be replaced
-  by CRLF" warning; the committed blob stays LF, matching HEAD.)
-- Diff scope confirmed limited to the three items above -- the
-  skills-assembly logic, the PowerShell/`python3` template render, the
-  `.env` bootstrap, and the macOS desktop-launcher creation are all
-  untouched.
+None. Working tree was clean at session start; no bug reproduced, nothing
+patched.
 
 ## Zone B findings (not fixed - reported only)
-None. No Zone B file was inspected for change or touched this session.
+None. No Zone B file was opened for review this session.
 
 ## Commits made this session
-- `9b43e75` - Fix launcher ordering: install Hermes before any hermes
-  command; visible skin activation. `launch-north-forge.bat` +14/-8,
-  `launch-north-forge.sh` +14/-8. Pushed to `origin/main`
-  (`844d792..9b43e75`).
-- (this audit report - committed and pushed after it is written)
+- (this audit report — committed and pushed after it is written, per
+  standing Zone A authorization for the operational record)
 
 ## Uncertain / flagged for primary GPT review
-- **`hermes config set display.skin` -- was the old call actually broken,
-  or just silent?** Not tested. `hermes skin set` per `--help` sets one
-  *color* of the active skin, not the active skin itself, so `config set
-  display.skin` was a different (config-key) path whose validity Claude
-  Code did not verify. It does not matter for accepting fix4: `hermes skin
-  use` is the documented way to switch skins and the change is sound
-  regardless. Noted only so the primary GPT knows the old line's behavior
-  was not independently reproduced.
-- **Provenance asserted, not verified (carried forward).** fix4.zip being
-  the intended Claude-Project-chat / Blacksmith output is Kenneth's stated
-  account, taken on trust -- consistent with the diff matching the
-  described intent exactly.
-- Otherwise nothing flagged - routine Zone A placement, diff matches the
-  stated intent on both counts (ordering + visible skin activation).
+- **Hermes install is drifting from upstream (informational, not a repo
+  issue).** `hermes doctor` now surfaces two notes it did not call out last
+  session: SQLite 3.45.1 WAL-reset bug (`hermes update` recommended;
+  state.db is in rollback-journal mode and not exposed, so low impact) and
+  "117 commits behind upstream". Also Playwright Chromium not installed
+  (`browser_*` tools hidden). None of this touches
+  `north-forge-hermes-edition` content or its Zone A scripts — it is the
+  local Hermes CLI install on this machine. Flagged only so the primary GPT
+  is aware the tooling environment is aging; the doctor still reports all
+  checks passed and the known-good skill state (kb-builder, sales-assist,
+  both enabled) still holds.
+- Otherwise nothing flagged — routine session-start check, no changes, no
+  Zone B review requested.
 
 ## Status
-Clean. Routine Zone A fix placement; both described intents verified in the
-diff, committed and pushed.
+Clean. Session-start check only; nothing to fix, nothing uncommitted at
+start, known-good state confirmed unchanged since the fix4 session.
