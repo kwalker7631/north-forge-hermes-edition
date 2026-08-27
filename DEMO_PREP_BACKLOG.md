@@ -25,6 +25,41 @@ Kyocera logo asset, confirmation of exact brand colors beyond what's already
 in the KB visual standard, and a decision on layout/panels wanted for the
 demo before this gets built.
 
+REAL SCHEMA CONFIRMED (2026-08-26, verified against actual source, not
+assumed): theme files live at `~/.hermes/dashboard-themes/<name>.yaml`.
+Real, usable fields: `palette`/`colors` (background, card, primary,
+secondary, accent, destructive, success, warning, border, etc.),
+`typography` (fontSans, fontMono, baseSize, lineHeight), `layout`
+(radius, density, and a `layoutVariant` of `standard` / `cockpit` /
+`tiled` - cockpit is the one worth using for the "something's going on"
+look Kenneth wants), named asset slots (`assets.bg`, `hero`, `logo`,
+`crest`, `sidebar`, `header` - this is where a real Kyocera logo file
+goes), component-style buckets for restyling chrome (card/header/footer/
+sidebar/tab/progress/badge/backdrop/page), and up to 32KB of `customCSS`
+for anything the schema doesn't cover. This is a genuine reskin system, not
+a toy - worth building for real once the logo/color decision is made.
+
+COMMUNITY/OFFICIAL PRIOR ART FOUND (2026-08-26): worth studying before
+building from scratch.
+- **`NousResearch/hermes-example-plugins`** (official Nous repo) - contains
+  a "strike-freedom-cockpit" demo combining a theme + UI plugin into a full
+  visual reskin with custom HUDs. This is the closest existing thing to
+  what Kenneth described ("something's going on, not just a chat in a box")
+  and, being official, is the safest reference to study/adapt structure
+  from rather than designing the cockpit HUD concept from zero.
+- `minutechreview/hermes-dashboard-themes` - a 20-theme community pack
+  (`git clone` + copy `*.yaml` into `dashboard-themes/`). None are
+  Kyocera-branded, but useful for seeing real theme-file patterns.
+- Broader discovery if needed later: `hermes dashboard theme install <repo>`
+  (built-in installer), the official community plugin index, and
+  `0xNyk/awesome-hermes-agent` (independent curated directory).
+- CAUTION, stated plainly by the community directory itself: "an ecosystem
+  listing is a discovery aid, not a security endorsement" - backend
+  dashboard plugins run real Python with real FastAPI routes (actual code
+  execution, not just CSS). The official Nous example is safe to study;
+  anything pulled from a random third-party repo needs an actual read-
+  through before touching a machine that holds an API key.
+
 ## (add more items here as they come up)
 
 ## 2. Fault-logging skill - priority bumped (OPEN)
@@ -65,6 +100,17 @@ mode toggle, skin, launcher scripts, CLAUDE.md governance) are what transfers
 
 Next input needed before this can actually start: what the existing Pine
 Barren Farms material actually consists of today.
+
+## 7. Third proof case, informal - franchise/food-service ops (OPEN, someday)
+
+Kenneth has a friend who owns/manages several Dunkin' Donuts locations -
+mentioned as someone who might be interested in a similar tool trained on
+that business's menu/processes/procedures, for internal store-manager use
+("a boss or super brain on speed dial"), not customer-facing. Not being
+pursued now - logged as a third possible proof-of-concept for the Forge
+System pattern generalizing across verticals (tech support -> elder-care
+demos -> food-service franchise ops), consistent with item 6's framing.
+
 
 ## 4. Multi-model reality check (OPEN, ongoing)
 
@@ -110,16 +156,6 @@ item 3 above) - not something to design in the abstract before there's a
 second real instance to learn from. No action taken on this yet; logged so
 the framing doesn't get lost between sessions.
 
-## 7. Third proof case, informal - franchise/food-service ops (OPEN, someday)
-
-Kenneth has a friend who owns/manages several Dunkin' Donuts locations -
-mentioned as someone who might be interested in a similar tool trained on
-that business's menu/processes/procedures, for internal store-manager use
-("a boss or super brain on speed dial"), not customer-facing. Not being
-pursued now - logged as a third possible proof-of-concept for the Forge
-System pattern generalizing across verticals (tech support -> elder-care
-demos -> food-service franchise ops), consistent with item 6's framing.
-
 ## 8. Cross-platform testing status (OPEN, low priority)
 
 Demo scope decided (2026-08-26): Windows-only for the Greg demo, disclosed
@@ -134,6 +170,19 @@ Test hardware available whenever there's time (not urgent, not blocking the
 demo): several Macs in Kenneth's lab, plus Linux boxes (Red Hat, possibly
 another distro). Linux sees little real use on the team either way, so this
 is "nice to have a working utility eventually," not a near-term priority.
+
+## 11. Messaging-gateway platform list (informational, resolved)
+
+Kenneth's friend asked whether this could bind to other chat platforms like
+Discord or Teams. Verified against the actual Platform enum in the engine
+source (not assumed): real, supported platforms are Telegram, Discord,
+WhatsApp (+ WhatsApp Cloud), Slack, Signal, Mattermost, Matrix, Email, SMS,
+DingTalk, plus a few China-market platforms (WeChat/Weixin, Feishu, WeCom,
+QQ). Microsoft Teams is NOT supported as a chat platform - the only
+Teams-adjacent piece is a Microsoft Graph webhook adapter for change
+notifications (mailbox/calendar events), not a bot/chat integration. No
+action needed - answered, logged for reference if it comes up again.
+
 
 ## 9. Scrub .env before distributing any physical drive (OPEN)
 
