@@ -2,63 +2,95 @@
 
 Timestamp: 2026-08-26
 
-Requested task: None given explicitly - Kenneth pointed Claude Code at the
-repo (`@north-forge-hermes-edition`) with no further instruction. Per
-CLAUDE.md, a clean session-start check is the whole task when none is given.
-Note: this Claude Code session's own working directory is `E:\` (drive
-root); the repo was reached as a named subdirectory, not as the session cwd.
+Requested task: Kenneth pointed Claude Code at the repo with no initial
+instruction (session-start check done, committed as 7f9365b), then gave a
+specific follow-up: re-read five files/areas from current disk content -
+NOT from any carried-forward summary - and quote actual grep/file output
+for each. This report records that verification and corrects two stale
+findings the session-start response had repeated from older audits.
 
-## Files inspected
-- `git status` (working tree clean, up to date with origin/main),
-  `git pull --ff-only` (Already up to date), `git log --oneline -8`,
-  `git remote -v`, `git branch -vv`.
-- `README.md`, `CLAUDE.md` - full read (session-start orientation).
-- `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md` - full read (Zone C status).
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` (previous) - full read, prior-session
-  continuity.
-- `.gitignore` - full read + required-exclusions check.
-- `hermes --version`, `hermes doctor`, `hermes skills list --source local`.
+## Files inspected (this verification)
+- `CLAUDE.md` - lines 22-55, full read of the Zone A block.
+- `README.md` - lines 22-61 (the "What's in here" inventory block) + grep
+  `-in "step 1"` and grep `-in "cloning the repo below"` over the whole file.
+- `launch-north-forge.sh` - full read (105 lines) + grep `mkdir -p` and grep
+  `python3`.
+- `launch-north-forge.bat` - grep `"tokens=\*"`.
+- `.hermes.template.md` - raw-byte non-ASCII scan (Python).
+- `mode-blocks/sales-menu.md` - full read (8 lines) + raw-byte non-ASCII
+  scan + grep `/draft`.
+
+## Verification results (actual output)
+
+1. CLAUDE.md Zone A list (lines 24-34) literally contains, in order:
+   launch-north-forge.bat, launch-north-forge.sh, toggle-mode.bat,
+   toggle-mode.sh, setup-thumbdrive.ps1, provision-new-drive.ps1,
+   .env.example, skins/north-forge.yaml, audit/CLAUDE_CODE_LAST_AUDIT.md,
+   .gitignore. -> provision-new-drive.ps1 (L30), .env.example (L31),
+   skins/north-forge.yaml (L32), audit/CLAUDE_CODE_LAST_AUDIT.md (L33) are
+   ALL present.
+
+2. README.md inventory: L45 `provision-new-drive.ps1 <- CANONICAL way to set
+   up a new drive on Windows ...`; L46 `setup-thumbdrive.ps1 <- SUPERSEDED
+   ...`; L92 prose repeats "superseded ... don't use it for new drives".
+   grep -in "step 1" -> No matches. grep -in "cloning the repo below" ->
+   No matches.
+
+3. launch-north-forge.sh: `mkdir -p "$HOME/Desktop"` at L12, directly above
+   the Desktop-launcher creation block (L11 DESKTOP_LAUNCHER=..., L13-26 the
+   `if [ ! -f ... ]` block). `command -v python3` guard at L45 (exit 1 with
+   install hint), preceding the python-dependent assembly at L51
+   (`python3 - "$MODE" << 'PYEOF'` reading .hermes.template.md + mode-blocks/,
+   writing .hermes.md). Skills-folder assembly (rm -rf / mkdir -p / cp,
+   L38-43) runs before the guard but is pure shell, no python dependency.
+
+4. launch-north-forge.bat L12:
+   `for /f "tokens=* delims= " %%A in ("%MODE%") do set "MODE=%%A"` - present.
+
+5. Non-ASCII scan: `.hermes.template.md` 0 non-ASCII bytes (12439 bytes
+   total, also under the 20000-char Hermes truncation limit);
+   `mode-blocks/sales-menu.md` 0 non-ASCII bytes (498 bytes total). Both
+   pure ASCII. sales-menu.md L6 reject list:
+   `... (/kb, /hl, /esc, /audit, /log, /train, /assist, /draft), explain
+   plainly that this drive doesn't have that capability ...` - `/draft` IS
+   in the list.
 
 ## Zone A changes made
-None. No Zone A file had a reproduced bug. `.gitignore` already excludes
-`.env` / `*.env`, `.forge-mode`, `.hermes.md`, `/.hermes/` (plus `.claude/`,
-runtime `config.yaml` / `state.db*` / `sessions/` / `memories/` / `cron/` /
-`logs/`) - no fix needed. `hermes doctor` reports "All checks passed"; only
-the long-standing off-path warnings remain:
-- SQLite 3.45.1 WAL-reset bug (state.db currently in rollback-journal mode,
-  not exposed).
-- Install 117 commits behind upstream (`hermes update` available).
-- Playwright Chromium not installed - `browser_*` tools hidden from the
-  agent.
-- Optional providers not logged in (Nous Portal, OpenAI Codex, MiniMax, xAI);
-  `python-telegram-bot` / `discord.py` not installed; no `GITHUB_TOKEN` for
-  the Skills Hub rate limit.
+None to infrastructure/scripts. This audit file (itself Zone A) rewritten to
+record the verification above and retract two stale findings (see below).
+Commit hash in `git log`.
 
 ## Zone B findings (not fixed - reported only)
-None new. No fresh line-by-line Zone B audit was performed (not requested).
-The open Zone B items from the previous audits still stand as recorded and
-remain Blacksmith / primary-GPT territory:
-- `CLAUDE.md` zone-list drift - `provision-new-drive.ps1`, `.env.example`,
-  `skins/north-forge.yaml` appear in the "Required first response" Zone A
-  prose but not in the dedicated Zone A file list at the top of the file.
-- `.hermes.template.md` mode lists vs. `mode-blocks/full-menu.md`
-  inconsistency; `sales-menu.md` redirect list omitting `/draft`; `/draft`
-  mode not tracked in `NEXT_STEPS.md` (already logged there as a pre-flight
-  audit note, not yet resolved); default `/assist` mode backed only by an
-  unbuilt placeholder skill.
+Two findings that the session-start response had carried forward from older
+audits are STALE and do not hold against current disk content:
+- RETRACTED: "CLAUDE.md Zone A file list omits provision-new-drive.ps1 /
+  .env.example / skins/north-forge.yaml." FALSE as of this read - all three
+  are in the list at lines 30-32. Fixed at some point since the audit that
+  first raised it; that audit's text was being repeated without re-reading.
+- RETRACTED: "mode-blocks/sales-menu.md redirect/reject list omits /draft."
+  FALSE as of this read - `/draft` is in the L6 reject list.
+Still genuinely open (NOT re-verified this session, no fresh read done):
+`.hermes.template.md` mode lists vs. `mode-blocks/full-menu.md`
+consistency; `/draft` mode not tracked in `NEXT_STEPS.md` "Not yet built"
+(logged there as a pre-flight note); default `/assist` mode backed only by
+an unbuilt placeholder skill. These need their own fresh read before being
+repeated again.
 
 ## Commits made this session
-- This report - "Write session audit report (session-start check, no
-  changes)" (Zone A operational record). Hash recorded in `git log`.
+- 7f9365b - "Write session audit report (session-start check, no changes)"
+  (session-start, Zone A).
+- This report - "Audit: file-content verification, retract 2 stale Zone B
+  findings" (Zone A). Hash in `git log`.
 
 ## Uncertain / flagged for primary GPT review
-Nothing flagged - routine session. Working tree was clean at session start;
-nothing to place or commit beyond this report. Standing off-path items
-unchanged: `hermes` 117 commits behind upstream; SQLite 3.45.1 WAL-reset
-bug. Local project skills currently resolve as FULL mode (`kb-builder` and
-`sales-assist` both enabled), consistent with this being Kenneth's personal
-build/test drive.
+- Process lesson, not a content bug: the session-start response repeated
+  two Zone B findings verbatim from prior audit text without re-reading the
+  files. Both turned out to be already fixed. Prior-audit "open findings"
+  should be treated as leads to re-verify, not facts to restate.
+- Off-path items unchanged: `hermes` 117 commits behind upstream; SQLite
+  3.45.1 WAL-reset bug.
 
 ## Status
-Clean. Session-start check passed. No Zone A fix needed, no new Zone B
-issue, no uncommitted work at session start.
+Clean. All five requested verifications pass against current disk content.
+Two stale carried-forward findings retracted. No Zone A code fix needed; no
+new Zone B issue.
