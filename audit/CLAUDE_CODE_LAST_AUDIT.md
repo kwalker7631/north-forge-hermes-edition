@@ -1,125 +1,123 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-08-26
-Requested task: Kenneth asked me to run `git status` / `git diff --stat` and
-show the full list first, then place a set of Zone B files "handed over by
-the Claude Project chat" that were sitting uncommitted -- README.md,
-ATTRIBUTION.md, CLAUDE.md, DEMO_PREP_BACKLOG.md, provision-new-drive.ps1,
-NEXT_STEPS.md, and anything from the flat zip bundle (mode-blocks/*,
-skills-source/**, KYO_KB_TITAN template, fallback/*) -- verifying each is a
-coherent, non-partial, non-self-authored version before committing, then
-push and update this audit file.
+Timestamp: 2026-08-26 20:00 EDT
+Requested task: Extract `north-forge-hermes-fix2.zip` into the repo root,
+overwriting existing files. Three files -- `README.md`, `CLAUDE.md`,
+`provision-new-drive.ps1` -- were handed over by the Claude Project chat for
+placement, to address findings 1-3 from the previous audit (README's
+remaining `skills/` vs `.hermes/skills/` inconsistencies plus the skin-path
+typo; `CLAUDE.md` not naming `DEMO_PREP_BACKLOG.md` under Zone C;
+`provision-new-drive.ps1` silently producing a broken clone command when the
+placeholder token is unreplaced). Confirm each diff matches that
+description, then commit and push.
 
 ## Files inspected
-- git status / git diff / git diff --stat / git diff --cached / git status -sb / git log
-- CLAUDE.md (full diff)
-- README.md (full diff + grep for residual `skills/` vs `.hermes/skills/` references)
-- ATTRIBUTION.md (full diff)
-- DEMO_PREP_BACKLOG.md (full diff + tail read to confirm clean ending)
-- NEXT_STEPS.md (full diff)
-- audit/CLAUDE_CODE_LAST_AUDIT.md (working-tree change vs. committed 614802c)
-- fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md (new file: line count, head, tail,
-  full structural-marker scan -- all 27 `<...>` section blocks open/close balanced)
-- provision-new-drive.ps1 (new file: full read)
-- .gitignore (contents) + git check-ignore on both new files
-- git config core.autocrlf (true) + confirmed no .gitattributes
-- hermes doctor, hermes skills list --source local
+- `git pull` (already up to date), `git status`, `git diff` (full, both
+  modified files), `git log`
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (previous session's report, read in full)
+- `.gitignore` (contents)
+- `north-forge-hermes-fix2.zip` -- extracted to scratchpad, listed (exactly 3
+  files), byte-compared against the working-tree copies (identical) and
+  against committed HEAD
+- `CLAUDE.md` -- full working-tree diff vs HEAD
+- `README.md` -- full working-tree diff vs HEAD + grep of every `skills` /
+  `skins` mention to confirm no bare `skills/` reference survives
+- `provision-new-drive.ps1` -- full read (99 lines), line-ending check (LF,
+  no CR), confirmed not present in HEAD (genuinely new file)
+- `hermes doctor` (clean apart from pre-existing SQLite/optional-package
+  warnings unrelated to this repo)
 
 ## Zone A changes made
-None. No Zone A file (launch scripts, toggle scripts, setup-thumbdrive.ps1,
-.gitignore) was touched this session.
+None. No Zone A file (launch scripts, toggle scripts, `setup-thumbdrive.ps1`,
+`.gitignore`) was touched this session. `.gitignore` was inspected and is
+correct -- it excludes `.env`, `.forge-mode`, `.hermes.md`, `.hermes/`, and
+`skills/`.
 
 ## Zone B findings (not fixed - reported only)
 
-1. **provision-new-drive.ps1 held back, NOT committed.** Line 80 contains a
-   literal placeholder in the clone URL:
-   `git clone https://YOUR_TOKEN_HERE@github.com/kwalker7631/north-forge-hermes-edition.git`.
-   The revised README (committed this session) states the repo is private
-   and presents `provision-new-drive.ps1` as "the recommended way to set up
-   a new drive," run simply as `.\provision-new-drive.ps1`. As placed, that
-   clone will fail credential auth on a private repo rather than "just
-   work." This is either an intentional per-machine fill-in (which
-   contradicts the README's framing) or a redacted token that needs its
-   real value restored before the file is functional. Kenneth's handoff
-   instruction was explicit: "if anything looks partial, self-authored, or
-   inconsistent, stop and report it instead of committing it." Reporting;
-   the file is still sitting untracked in the working tree, uncommitted.
+1. **The "line 5" pointer for the token edit is wrong in all three places it
+   appears -- the placeholder is on line 12.** In the placed
+   `provision-new-drive.ps1`, the `$cloneUrl = "https://YOUR_TOKEN_HERE@..."`
+   assignment is line 12. Lines 1-7 are the header comment, line 5 being
+   `# (or updates) North Forge onto it and launches.` -- not an editable
+   token line. Yet:
+   - `provision-new-drive.ps1` line 17 tells Kenneth to "edit line 5 of this
+     file and replace YOUR_TOKEN_HERE";
+   - the new `README.md` paragraph says the token goes "on line 5";
+   - Kenneth's own handoff message repeats "edit line 5 with your real
+     token".
+   The loud-fail guard itself is correct and works regardless of line number
+   (`if ($cloneUrl -match "YOUR_TOKEN_HERE")`), so the described fix -- fail
+   loudly instead of silently -- is genuinely delivered. But anyone
+   following the instruction will edit a comment line and the script will
+   still refuse to run. Recommend the Claude Project chat reissue both files
+   with "line 12" (or reword to "the `$cloneUrl` line near the top" so it
+   can't drift again). Not fixed here: Zone B is read-only and the placement
+   exception is byte-for-byte only.
 
-2. **README.md internal inconsistency re: the generated skill folder name
-   (carried forward from audit 614802c).** README now authoritatively calls
-   the generated folder `.hermes/skills/` (line 38) and line 55 is a
-   "Correction from an earlier version" note claiming it was "Fixed
-   everywhere in this version." But lines 63, 67, and 85 still describe the
-   live generated folder as plain `skills/` ("rebuilds `skills/`", "the
-   live `skills/` folder"). Line 71 (`skills/north-forge.yaml`, the skin
-   path) and line 112 ("nothing in `skills/` gets auto-edited") may or may
-   not be in scope. The file is internally inconsistent with its own
-   "fixed everywhere" claim. README.md was committed this session anyway --
-   it is a coherent, complete document (no truncation), and Kenneth
-   explicitly authorized committing it; this is an authored-content
-   wording issue for whoever maintains README content, not a placement
-   defect. Same disposition the previous audit reached.
+2. **`CLAUDE.md` was committed by Claude Code again this session** (commit
+   `2925db2`), under the Zone B "placing pre-approved content" exception.
+   The handoff was correctly formed for it: Kenneth named the specific file,
+   stated it came from the Claude Project chat, and said "commit and push";
+   the diff is coherent (three related edits, all naming
+   `DEMO_PREP_BACKLOG.md` under Zone C) and byte-matches the `CLAUDE.md`
+   loaded as this session's own project instructions; Claude Code did not
+   author it. This is the same item the previous audit raised as finding 4
+   and asked the primary GPT to confirm -- carrying it forward: is an
+   in-session named handoff from Kenneth the intended trigger for committing
+   a `CLAUDE.md` change, given this is the governance file editing its own
+   history?
 
-3. **DEMO_PREP_BACKLOG.md is still not named in any zone in CLAUDE.md
-   (carried forward from audit 614802c).** It was treated this session as
-   an operational doc (like NEXT_STEPS.md / Zone C) and committed under the
-   handoff authorization. If that is the intended long-term treatment,
-   CLAUDE.md's Zone C list should name it. Adding it to CLAUDE.md is a Zone
-   B edit and is not something Claude Code will do -- flagging so the
-   governance file and actual practice do not silently diverge.
+3. **Provenance is asserted, not independently verified (carried forward
+   from previous audits).** All three files were already sitting in the
+   working tree, byte-identical to the zip, before Claude Code acted --
+   Kenneth had evidently extracted the zip before invoking the session.
+   Claude Code re-ran the extraction (no-op, identical bytes), checked each
+   file for internal coherence and completeness, and confirmed each diff
+   matches the described intent. That the content specifically originated in
+   the Claude Project chat is Kenneth's stated account, taken on trust; this
+   was a consistency check, not a byte-origin check.
 
-4. **CLAUDE.md was committed by Claude Code this session** (commit 92dbc9b),
-   under the Zone B "placing pre-approved content" exception. The handoff
-   this session was correctly formed for that exception -- Kenneth (the
-   Blacksmith) named the specific file, stated it came from the Claude
-   Project chat, and authorized the commit; the diff is coherent and
-   byte-matches the CLAUDE.md version loaded as this session's own project
-   instructions; Claude Code did not author it. Still worth the primary
-   GPT confirming that an in-session named handoff from Kenneth is the
-   intended trigger for committing a CLAUDE.md change, since this is the
-   governance file editing its own history.
+4. **README "fixed everywhere" claim is now actually true (previous finding
+   2 resolved).** Every bare `skills/` reference in `README.md` now resolves
+   to `.hermes/skills/`, `skills-source/`, or `skins/`. Grep of all
+   `skills`/`skins` mentions confirms no stray plain `skills/` describing
+   the generated folder remains. The line-55 "Fixed everywhere in this
+   version" note is no longer contradicted by later paragraphs.
 
-5. **Provenance is asserted, not independently verified (carried forward).**
-   All six placed files were on disk before Claude Code did anything this
-   session, and none were authored by Claude Code. That they specifically
-   originated in the Claude Project chat is Kenneth's stated account, taken
-   on trust. Content was checked for internal coherence and completeness
-   (a consistency check), not for byte-origin (a provenance check).
+5. **`DEMO_PREP_BACKLOG.md` is now named in Zone C (previous finding 3
+   resolved).** `CLAUDE.md` Zone C now lists it in the files list, the "MAY
+   add/check off/revise" clause, and the Required-first-response block.
+   Governance file and actual practice (it was committed as a Zone C-style
+   doc in prior sessions) no longer diverge.
 
 ## Commits made this session
-- `f055a97` - Add v21.8 standalone paste-in fallback version
-- `63092aa` - Place revised README + ATTRIBUTION from Claude Project chat handoff
-- `92dbc9b` - Place CLAUDE.md update from Claude Project chat handoff
-- `f8ea1cf` - Place demo backlog trim + NEXT_STEPS fallback note from Claude Project chat handoff
+- `2925db2` - Place README + CLAUDE.md + provision-new-drive.ps1 from Claude
+  Project chat handoff. `CLAUDE.md` +6/-1, `README.md` +12/-7,
+  `provision-new-drive.ps1` new (99 lines). Pushed to `origin/main`
+  (`f674cf6..2925db2`).
 - (this audit report - committed and pushed after it is written)
 
 ## Uncertain / flagged for primary GPT review
-
-- **provision-new-drive.ps1 not committed** (finding 1). Needs a decision:
-  is `YOUR_TOKEN_HERE` an intentional fill-in, or does the file need a
-  corrected clone line (or a switch to interactive Git Credential Manager
-  auth) handed over before it is placed? Recommend the Claude Project chat
-  resolve and re-hand-over.
-- **This session's audit file arrived pre-blanked.** The working-tree copy
-  of audit/CLAUDE_CODE_LAST_AUDIT.md was reset to a "Timestamp: not yet
-  run / (none yet - this is the initial placeholder)" stub before this
-  session started, discarding the real audit committed at 614802c and its
-  open flags. That blanked stub was NOT in Kenneth's handoff list and was
-  NOT committed. This file overwrites it with the real session audit, and
-  findings 2/3/5 above are the still-open items recovered from the 614802c
-  version so they are not lost.
-- **README.md shipped with the `skills/` inconsistency** (finding 2), at
-  Kenneth's explicit authorization. Recommend the Claude Project chat
-  produce a corrected README (lines 63/67/85, plus a call on 71/112) and
-  hand it over for placement.
-- **CLAUDE.md Zone C list vs. DEMO_PREP_BACKLOG.md** (finding 3) - governance
-  file may need to name this file if it is staying.
-- **CLAUDE.md committed by Claude Code** (finding 4) - confirm the handoff
-  trigger is as intended.
+- **"Line 5" is wrong in README.md, provision-new-drive.ps1, and the handoff
+  message -- the token placeholder is on line 12** (finding 1). The files
+  were placed and committed as handed over (Kenneth's instruction was an
+  unconditional "commit and push," and the loud-fail behavior that was
+  requested does work), but both `README.md` and `provision-new-drive.ps1`
+  need a one-line correction reissued from the Claude Project chat.
+  Kenneth: when you fill in your token, edit **line 12**
+  (`$cloneUrl = "https://YOUR_TOKEN_HERE@github.com/..."`), not line 5.
+- **CLAUDE.md committed by Claude Code** (finding 2) - previous audit's
+  finding 4, still awaiting primary GPT confirmation that the named-handoff
+  trigger is intended for the governance file itself.
+- Previous audit's held-back file is now resolved: `provision-new-drive.ps1`
+  was committed this session because this handoff fixed the silently-broken
+  clone (previous audit's finding 1) and Kenneth's instruction this session
+  was an unconditional commit-and-push, not the previous session's
+  conditional "stop and report if inconsistent."
 
 ## Status
-Needs primary GPT review (Zone B content, including CLAUDE.md itself,
-committed this session under the placement exception; one handoff file
-held back as inconsistent; README committed with a known internal
-inconsistency; audit file had been pre-blanked and was restored with real
-content).
+Needs primary GPT review (Zone B content, including `CLAUDE.md` itself,
+committed under the placement exception; one authored-content defect placed
+as-handed and flagged -- the "line 5" pointer should read "line 12" in both
+`README.md` and `provision-new-drive.ps1`).
