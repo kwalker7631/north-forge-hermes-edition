@@ -1,200 +1,189 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-08-28 (session continued from the draft-writer placement task
-earlier the same session)
+Timestamp: 2026-08-28 (third task this session)
 
-Requested task: Two parts this session.
-(1) Place `skills-source/tsc-only/draft-writer/SKILL.md` from a Claude
-Project chat handoff zip - DONE earlier (commits `bd8969c`, `3f28184`,
-`7e4d55d`); see "Commits made this session" below.
-(2) Then, on request, run an audit pass on the two findings the 2026-08-26
-audit explicitly deferred as "need their own fresh read before being
-repeated again": (A) `.hermes.template.md` mode/skill lists vs.
-`mode-blocks/full-menu.md` consistency, and (B) the default `/assist` mode
-being backed only by an unbuilt placeholder skill. This report records that
-fresh read. Read-only - no Zone B file was changed.
+Requested task: Place `north-forge-hermes-full-skillset-v2.zip` (Claude
+Project chat handoff): overwrite `.hermes.template.md` and
+`mode-blocks/full-menu.md`, add six new tsc-only skill folders
+(hotline-ticket, assist-intake, escalation-packet, audit, fault-logging,
+training-guide). Verify each diff against the handoff description, confirm
+the six folders exist on disk, confirm FULL and SALES assembled `.hermes.md`
+stay under Hermes's 20,000-char limit, commit, push, then mark the six
+skills done in `NEXT_STEPS.md` and close the wiring findings from the
+2026-08-28 audit. Explicit instruction: do NOT use or test any of it - a
+separate deliberate QA session does that.
 
-## Files inspected (this audit pass)
-- `.hermes.template.md` - full read (124 lines) + targeted grep for
-  DEFAULT MODE / skill-inventory / `.hermes/skills/` lines.
-- `mode-blocks/full-menu.md` - full read (15 lines).
-- `mode-blocks/sales-menu.md` - full read (8 lines).
-- `mode-blocks/full-banner.md`, `mode-blocks/sales-banner.md` - full read.
-- `launch-north-forge.sh` - full read (105 lines), focus on the
-  skills-source -> `.hermes/skills/` assembly and the
-  `{{MODE_BANNER_BLOCK}}` / `{{COMMAND_MENU_BLOCK}}` substitution.
-- `skills-source/` - full tree walk. On disk: `tsc-only/kb-builder/SKILL.md`,
-  `tsc-only/draft-writer/SKILL.md`, `shared/sales-assist/SKILL.md`. Nothing
-  else - the other six "placeholder" skills have no folder or file at all.
-- `NEXT_STEPS.md` - full read (32 lines).
+## STATUS: BLOCKED - waiting on Blacksmith. NOT committed, NOT pushed.
+
+The bundle verifies clean on every point in the handoff description EXCEPT
+one: it also wires in a `web-navigator` skill that is not in the bundle and
+does not exist in the repo. Committing as-is would re-introduce the exact
+defect class the 2026-08-28 audit raised (menu + template advertising a
+skill with no file on disk). Held for a corrected bundle or an explicit
+"place as-is" from Kenneth. Working tree left as extracted (2 modified, 6
+untracked) - not reverted, not staged.
+
+## Files inspected
+- `north-forge-hermes-full-skillset-v2.zip` - `unzip -l` / `-Z` before
+  extracting; extracted to scratchpad for inspection. 14 entries: 6 skill
+  dirs + 6 SKILL.md + `.hermes.template.md` + `mode-blocks/full-menu.md`.
+  No `../`, no absolute paths, no symlinks, no dotfiles beyond the intended
+  `.hermes.template.md`, no executables, nothing outside the declared scope.
+  sha256 `8ad566cf0be8850a397520723d1cccb81c49c26130d187318e13a86f57872894`.
+- All 6 new `SKILL.md` files - full read.
+- New `.hermes.template.md` - full read + unified diff vs `HEAD`.
+- New `mode-blocks/full-menu.md` - full read + unified diff vs `HEAD`.
+- `mode-blocks/full-banner.md`, `sales-banner.md`, `sales-menu.md` - used
+  for the assembled-size computation (unchanged by this bundle).
+- `git status` - working tree already had the zip extracted into it before
+  this session (same pattern as the draft-writer handoff): `.hermes.template.md`
+  and `mode-blocks/full-menu.md` modified, the 6 skill dirs untracked. The
+  modified files are byte-identical to the zip payload (sha256 match).
+
+## Verification against the handoff description
+
+PASS - the six skill folders all exist on disk:
+  `skills-source/tsc-only/{hotline-ticket,assist-intake,escalation-packet,
+  audit,fault-logging,training-guide}/SKILL.md` - present, non-empty
+  (2668 / 8845 / 2084 / 3953 / 4664 / 1831 bytes), LF line endings, each
+  opens with a `Trigger:` line and the standard "Never rewrite this skill
+  file on your own initiative" self-lock line, same shape as kb-builder /
+  draft-writer. Content is coherent authored field-support prose,
+  cross-references `.hermes.md` rules (flush_clear_rule, field_claim_rule,
+  human_voice_protocol, kb-builder handoff) correctly, matches the
+  `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` contracts (FORGE FAULT
+  REPORT block, intake sets, depth levels). No prompt-injection or
+  instruction content aimed at Claude Code.
+
+PASS - `.hermes.template.md` skill inventory now lists the built skills
+  instead of "placeholders". L26 changed from
+  "(kb-builder, and placeholders for hotline-ticket, assist-intake,
+  escalation-packet, audit, fault-logging, training-guide)"
+  to "kb-builder, draft-writer, hotline-ticket, assist-intake,
+  escalation-packet, audit, fault-logging, training-guide - all built".
+  NOTE: that is 8 tsc-only skills, not "7" as the handoff text said - the
+  template's count (2 pre-existing + 6 new) is the correct one; the "7" in
+  the request is an off-by-one in the description, not a bundle defect.
+  L28 "Skills beyond kb-builder are staged as placeholders..." rewritten to
+  "All tsc-only skills listed above are built and tracked in NEXT_STEPS.md.
+  This note stays as a safety net for the future...". Resolves audit
+  findings A2, A3, A7.
+
+PASS - draft-writer wired in everywhere it was missing:
+  - L66 router: "run Draft Writer (read .hermes/skills/draft-writer in
+    full), matching audience..." (was: no skill path). Resolves A4.
+  - `full-menu.md` L5: "... or email (see .hermes/skills/draft-writer)"
+    (was: no pointer). Resolves A1.
+
+PASS - new router entries for hotline-ticket and escalation-packet
+  (`.hermes.template.md` L66-70 area): natural-language routing added for
+  "update a hotline ticket / put together the HL update" ->
+  `.hermes/skills/hotline-ticket`, and "escalation packet / escalate this /
+  package this for engineering" -> `.hermes/skills/escalation-packet`.
+  Resolves A5.
+
+PASS - DEFAULT MODE / "ready for /assist" lines made mode-aware:
+  - L7: "DEFAULT MODE: see mode banner below - /assist on FULL drives,
+    /sales on SALES drives" (was: "DEFAULT MODE: /assist").
+  - L50: "Default state: North Forge is ready to respond - see the mode
+    banner above for which default mode and commands this specific drive
+    supports (/assist on FULL, /sales on SALES)." (was: "ready for /assist").
+  Resolves the "new this pass" half of Finding B.
+
+PASS - `decisive_assistant_rule` next-step rule added, and it does NOT
+  conflict with the "don't dump the full command menu" rule. The new text
+  is one paragraph ("NORTH FORGE TAKES THE RUDDER - no dead-end responses
+  ... one short, contextual line naming the single most relevant next
+  move") and it explicitly self-distinguishes: "This is not the same as
+  showing the full command menu (that stays reserved for cold-start/blank
+  sessions per startup_sequence)". Also scoped to both FULL and SALES with
+  a SALES caveat ("never suggest a command this drive doesn't have"). No
+  contradiction with `full-menu.md` L14 or `startup_sequence`.
+
+PASS - assembled `.hermes.md` size (computed by mirroring the launcher's
+  Python substitution; NOT by running the launcher):
+  - FULL  = 16,076 chars (LF) / 16,227 (if CRLF on a Windows drive) / 16,076 bytes UTF-8
+  - SALES = 15,869 chars (LF) / 16,013 (if CRLF) / 15,869 bytes UTF-8
+  Both well under 20,000 on every measure. FULL matches the handoff's
+  "~16,076" exactly. SALES is ~15,869, not 16,076 - the handoff said
+  "~16,076 each"; SALES is a couple hundred under because the sales
+  banner+menu are smaller than full's. Not a problem - large margin.
+
+## FAIL / BLOCKER - undescribed `web-navigator` wiring with no skill file
+
+The bundle's `.hermes.template.md` and `mode-blocks/full-menu.md` both add
+references to a `web-navigator` skill that the bundle does not deliver and
+that does not exist anywhere in the repo (or in `Downloads/` as a separate
+zip - checked):
+
+- `.hermes.template.md` L26 (new):
+  "skills-source/shared/ holds anything available in every mode: sales-assist
+  (built, ...) and web-navigator (built, with verified real links)."
+- `mode-blocks/full-menu.md` L13 (new):
+  "/web or /links - website navigation shortcuts to kyoceradocumentsolutions.us
+  (see .hermes/skills/web-navigator). Also triggers naturally on 'where do I
+  find X on the site' without needing the slash command."
+
+On disk `skills-source/shared/` contains only `sales-assist/`. There is no
+`skills-source/shared/web-navigator/`. Consequences if committed as-is:
+1. Directly contradicts the handoff description - item 2 enumerates the
+   wiring fixes and none of them is web-navigator / `/web` / `/links`. The
+   instruction was "verify each diff against this description"; this part of
+   the diff is not in the description.
+2. Re-introduces the 2026-08-28 audit's core finding for a new skill: the
+   FULL command menu would advertise `/web ... (see .hermes/skills/
+   web-navigator)` and the template would assert "web-navigator (built)"
+   with nothing behind either.
+3. SALES inconsistency: L26 says shared/ (which is what a SALES drive gets)
+   holds web-navigator, but `sales-menu.md` (not in this bundle, unchanged)
+   has no `/web` entry, and the file still would not be there.
+
+The six tsc-only skills and every other described change are clean - the
+blocker is isolated to the two web-navigator references.
 
 ## Zone A changes made
-None to infrastructure/scripts. This audit file (itself Zone A) rewritten to
-record the pass. Commit hash in `git log`.
+None to scripts. This audit file (Zone A) written to record the blocked
+state - committed per standing Zone A authorization.
 
-## Zone B findings (not fixed - reported only)
+## Zone B changes made
+None committed. The working tree currently holds the extracted bundle
+(2 modified Zone B files + 6 untracked skill dirs) but nothing was staged
+or committed. Not reverted either - left exactly as found so Kenneth's
+extraction isn't destroyed.
 
-### Finding A - `.hermes.template.md` <-> `full-menu.md` skill-list drift
-
-The 2026-08-26 note asked whether `/draft` was "intentionally template-only"
-or "a missing placeholder." Task (1) this session resolved that: `/draft` now
-has a real skill file. But that placement was a Zone B *file* handoff only -
-it did NOT (and could not, from Claude Code) update the surrounding Zone B
-prose that describes the skill set. Four spots are now stale or asymmetric:
-
-A1. `full-menu.md` L5:
-    `/draft or /d - write a live chat response, ServiceNow note, customer
-    update, escalation note, or email`
-    - every other skill-backed menu line carries a `(see .hermes/skills/
-    <name>)` pointer (L3, L4, L6, L8, L9, L10, L11, L12). L5 still has none,
-    even though `skills-source/tsc-only/draft-writer/SKILL.md` now exists.
-    Should read `... or email (see .hermes/skills/draft-writer)`.
-
-A2. `.hermes.template.md` L26:
-    `skills-source/tsc-only/ holds TSC-exclusive procedures (kb-builder, and
-    placeholders for hotline-ticket, assist-intake, escalation-packet,
-    audit, fault-logging, training-guide).`
-    - `draft-writer` is missing from this inventory. It is a built skill,
-    not a placeholder, so it belongs next to `kb-builder`:
-    `(kb-builder, draft-writer, and placeholders for ...)`.
-
-A3. `.hermes.template.md` L28:
-    `(Skills beyond kb-builder are staged as placeholders in this initial
-    build - see NEXT_STEPS.md. ...)`
-    - now inaccurate: `draft-writer` is also built. Should read
-    `Skills beyond kb-builder and draft-writer are staged as placeholders`.
-
-A4. `.hermes.template.md` L66 (`<assistant_router_rule>`):
-    `User asks for an email ... : run Draft Writer, matching audience, no
-    HTML unless requested.`
-    - KB Builder (L64), Auditor (L68), Training Guide (L70) and Fault Report
-    (L72) each name their skill file to read ("Read .hermes/skills/
-    kb-builder in full", "read .hermes/skills/audit", etc.). The Draft
-    Writer line does not. For consistency it should say "run Draft Writer
-    (read .hermes/skills/draft-writer), matching audience, ...".
-
-All four are Zone B - left for the Blacksmith / Claude Project chat. They
-are a single coherent edit: "finish wiring draft-writer into the template
-and menu prose." A1 is already logged in `NEXT_STEPS.md`; A2-A4 are added to
-that same NEXT_STEPS note by this session's Zone C edit.
-
-### Finding A (pre-existing, not caused by this session)
-
-A5. `<assistant_router_rule>` (L58-75) gives natural-language routing for
-    Assistant, KB Builder, Draft Writer, Auditor, Training Guide, and Fault
-    Report - but NOT for `/hl` (hotline-ticket) or `/esc`
-    (escalation-packet), both of which appear in `full-menu.md` (L9, L10)
-    with skill pointers. A technician who describes the need ("I need to
-    update the hotline ticket", "put together an escalation packet") instead
-    of typing the exact slash command has no routing entry to catch it. Low
-    impact today (both skills are unbuilt; the explicit commands still
-    work), but it is a real coverage gap in the router rule.
-
-A6. `full-menu.md` L3 points `/assist` at `(see .hermes/skills/
-    assist-intake)`, but the router rule treats "Assistant" as inline
-    default behavior (L60-62) and never instructs reading `assist-intake`.
-    Menu implies a skill file the router rule does not use. Overlaps
-    Finding B.
-
-A7. `.hermes.template.md` L26 / L28 call the six unbuilt skills
-    "placeholders" / "staged as placeholders", but there is no placeholder
-    file or even an empty folder for any of them in `skills-source/` - they
-    are simply absent. "Staged as placeholders" overstates what exists;
-    "not yet built" (the `NEXT_STEPS.md` wording) is accurate. Minor.
-
-### Finding B - default `/assist` mode has no skill file (CONFIRMED still open)
-
-Fresh read confirms the 2026-08-26 pre-flight note holds:
-
-- `.hermes.template.md` L7: `DEFAULT MODE: /assist`
-- `.hermes.template.md` L50: `Default state: North Forge is ready for /assist.`
-- `.hermes.template.md` L46: vague symptom -> `route to /assist and ask for
-  the minimum evidence needed (product/app, model/version, exact symptom,
-  error/status code, recent change, what the user was trying to do)`
-- `full-menu.md` L3: `/assist or /a - support-call assist mode (see
-  .hermes/skills/assist-intake)`
-- `skills-source/` on disk: no `assist-intake` folder or file.
-- `NEXT_STEPS.md` L12: `skills-source/tsc-only/assist-intake/` listed under
-  "Not yet built (do not invent content for these - flag and wait)".
-
-Assessment:
-- NOT a blocker. `/assist` degrades gracefully: the minimum-evidence list is
-  inlined at L46, "Assistant" behavior is defined inline at L60-62, and
-  L28 + L122 (`hermes_specific_addendum` #5) both instruct "if the skill
-  file is missing/placeholder, say so plainly and fall back to the general
-  principles in this file."
-- IS a real rough edge for a fresh drive / the Greg demo: `/assist` is the
-  landing mode for every FULL-mode drive, `full-menu.md` L3 advertises a
-  skill pointer to a file that is not there, and an honest application of
-  L122 means the first `/assist` interaction on a new drive can open with a
-  "the assist-intake skill file is missing, falling back to general
-  principles" disclosure.
-- `assist-intake` is the ONE unbuilt skill on the default / always-hit path.
-  The other five placeholders (hotline-ticket, escalation-packet, audit,
-  fault-logging, training-guide) are only reached on explicit invocation.
-  `DEMO_PREP_BACKLOG.md` item 2 currently prioritizes `fault-logging` as
-  "build next"; this audit's observation is that `assist-intake` has at
-  least an equal claim because it is on the default path. That is a
-  Blacksmith prioritization call, not a Claude Code decision - flagged, not
-  acted on.
-
-### Finding B (new this pass) - "DEFAULT MODE: /assist" is not mode-qualified
-
-`.hermes.template.md` L7 (`DEFAULT MODE: /assist`) and L50 (`Default state:
-North Forge is ready for /assist.`) are static template text - they are
-NOT inside `{{MODE_BANNER_BLOCK}}` or `{{COMMAND_MENU_BLOCK}}`, so the
-launcher emits them verbatim into BOTH the FULL and the SALES `.hermes.md`.
-On a SALES drive:
-- `sales-menu.md` L6 lists `/assist` in the reject list ("this drive doesn't
-  have that capability").
-- `sales-banner.md` does not set any default mode.
-- yet the assembled `.hermes.md` still says "DEFAULT MODE: /assist" and
-  "ready for /assist" at the top.
-
-So a SALES drive ships a template that names an unavailable mode as its
-default. The `<assistant_router_rule>` L56 ("the mode banner ... takes
-precedence over anything below that would otherwise route to a TSC-only
-mode") papers over routing, but L7 / L50 are unqualified identity/status
-lines above that rule. Cleanest fix (Blacksmith / Claude Project chat):
-make L7 / L50 mode-aware, or have `sales-banner.md` explicitly state the
-SALES default is `/sales`. Zone B - not changed here.
-
-## Zone C changes made this session
-- `NEXT_STEPS.md`: (earlier) added `draft-writer/SKILL.md` to "Done" and
-  marked the 2026-08-26 `/draft` gap note RESOLVED; (this pass) expanded
-  that same note with findings A2-A4 and a pointer to this audit report for
-  Findings A5-A7 and B.
+## Zone C changes made
+None. `NEXT_STEPS.md` will be updated to mark the six skills done and close
+findings A1-A7 / B only once the bundle is actually committed - doing it now
+would imply a Zone B change that has not landed (explicitly forbidden by
+CLAUDE.md's Zone C rule).
 
 ## Commits made this session
-- `bd8969c` - "Place draft-writer skill (/draft) from Claude Project chat
-  handoff" (Zone B placement exception).
-- `3f28184` - "Mark /draft (Draft Writer) as built in NEXT_STEPS.md"
-  (Zone C).
-- `7e4d55d` - "Write session audit report (draft-writer skill placement +
-  Zone C update)" (Zone A) - superseded by this rewrite.
-- (this report) + the NEXT_STEPS.md expansion - hashes in `git log`.
+- Earlier: `bd8969c`, `3f28184`, `7e4d55d` (draft-writer placement),
+  `3a44994`, `cfa18a7` (2026-08-28 audit pass).
+- This report - hash in `git log`.
 
 ## Uncertain / flagged for primary GPT review
-- Findings A1-A4 are a direct consequence of the Zone B file-handoff
-  mechanism: a skill file can be placed byte-for-byte, but the template and
-  menu prose that describe the skill roster cannot be touched by Claude
-  Code, so they drift until the Blacksmith / Claude Project chat catches up.
-  Worth deciding whether a skill handoff should always come bundled with the
-  matching template/menu edits, so the repo is never in this half-wired
-  state between sessions.
-- Finding B prioritization (`assist-intake` vs `fault-logging` as "build
-  next") is a Blacksmith call - this audit only points out that
-  `assist-intake` is the one on the default path.
-- Finding B (new) - the unqualified "DEFAULT MODE: /assist" on SALES drives
-  - should be checked against how a SALES session actually behaves at
-  startup before deciding how much it matters; it may be fully absorbed by
-  the banner-precedence rule in practice.
-- Off-path items unchanged: `hermes` behind upstream; SQLite 3.45.1
-  WAL-reset bug is still the only `hermes doctor` warning.
+- PRIMARY: does the Claude Project chat intend a `web-navigator` skill in
+  this release? Two clean paths: (a) issue a v3 bundle that includes
+  `skills-source/shared/web-navigator/SKILL.md` (and, for consistency, a
+  `sales-menu.md` update if `/web` is meant to be available in SALES too);
+  or (b) issue a v3 bundle with the two web-navigator references removed
+  from `.hermes.template.md` L26 and `full-menu.md` L13, to be added later
+  when the skill is authored. Either resolves the blocker. If Kenneth
+  instead wants it placed as-is with web-navigator logged as a known QA-gap,
+  that is his call as Blacksmith but should be an explicit instruction.
+- The "7 tsc-only skills" vs actual 8 wording in the handoff - harmless, the
+  template is correct - noted so the primary GPT isn't surprised by the
+  count.
+- SALES assembled size is ~15,869, not the "~16,076 each" in the handoff -
+  harmless, well under limit.
+- Everything was static-checked only. Per Kenneth's instruction nothing was
+  launched, trusted, or run through Hermes. `hermes skills list` still shows
+  only kb-builder + sales-assist (the live `.hermes/skills/` is a launch
+  artifact and the launcher was not run).
 
 ## Status
-Needs primary GPT review. No Zone A code fix required. One Zone B file placed
-this session under the confirmed handoff exception; no Zone B file edited.
-Findings A1-A7 and B (two parts) are all Zone B or Blacksmith-decision items
-- none are blockers, all are for the Claude Project chat / Blacksmith to act
-on.
+Blocked - waiting on Blacksmith. Six skill files and all described wiring
+changes verified good; assembled size verified under limit; one undescribed
+web-navigator reference (template + full-menu) with no backing skill file is
+the sole blocker. Nothing committed beyond this report.
