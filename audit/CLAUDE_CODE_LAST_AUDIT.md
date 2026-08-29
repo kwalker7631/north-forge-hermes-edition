@@ -1,257 +1,156 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-08-28 (seventh task this session - end-to-end QA session)
+Timestamp: 2026-08-28 (eighth task this session - QA-fixes placement)
 
-Requested task: Deliberate end-to-end QA - first real run of the 8 built
-skills + the mode-toggle system. Five parts: (1) launch FULL, confirm
-`.hermes/skills/` assembles all 8 tsc-only + shared, `hermes doctor` clean,
-`hermes skills list --source local` shows all enabled; (2) exercise each mode
-live with real inputs; (3) spot-check 5-6 web-navigator URLs; (4) observe
-`decisive_assistant_rule`'s next-step line live; (5) toggle SALES, relaunch,
-confirm reject-list + `/web`. Full detailed report - exact commands, exact
-output.
+Requested task: Place `north-forge-hermes-qa-fixes.zip` - overwrite
+`.hermes.template.md`, `mode-blocks/full-menu.md`, `launch-north-forge.bat`,
+`launch-north-forge.sh`; add `skills-source/tsc-only/forge-audit/` and delete
+the old `skills-source/tsc-only/audit/` (rename, not duplicate). Fixes the
+two QA-session findings: (1) `audit` skill name collided with Hermes's
+reserved `hermes skills audit` sub-action; renamed to `forge-audit`.
+(2) launchers only checked `.env` existence, not key validity; now also
+length-check `ANTHROPIC_API_KEY`. Zone A = both launchers (standing
+authorization, bug reproduced in QA). Zone B = template, full-menu,
+forge-audit skill (Claude Project chat handoff). After placing: delete old
+`audit/`, confirm `forge-audit` is the only one, recompute assembled sizes
+(~16,526 FULL / ~16,520 SALES), commit, push, update `NEXT_STEPS.md`.
 
-## STATUS: PARTIAL. Deterministic QA (parts 1, 3, 5) DONE and mostly PASS.
-## Parts 2 and 4 (live mode-exercise) BLOCKED - no working model credential.
-## Two findings below; nothing committed to the repo except this report.
+## STATUS: DONE. Placed, verified, committed (`8759d15`), pushed. NEXT_STEPS updated (`d925539`).
 
----
+## Zip not available - verification method
 
-## Part 1 - FULL launch + assembly + doctor + skills list
+`north-forge-hermes-qa-fixes.zip` was not in `Downloads/` or anywhere under
+`C:\Users\kwalk` / `E:\` (searched by name and by today's mtime). The working
+tree already held the extraction (4 modified files + untracked `forge-audit/`,
+`audit/` still present). With no archive to hash against, verification was:
+(a) `git diff` every modified file vs `HEAD` and confirm each hunk is exactly
+what the task description specifies and nothing else; (b) confirm
+`forge-audit/SKILL.md` is byte-identical to the outgoing `audit/SKILL.md`
+("renamed not duplicated"); (c) confirm no other file changed and no missed
+skill-path references; (d) recompute assembled sizes and match the expected
+figures. All four held.
 
-### Commands run (Windows, PowerShell / cmd)
-- `.\launch-north-forge.bat` (via a PowerShell background job, 120 s cap;
-  `.forge-mode` was already `full`). It ran the full assembly, `hermes skin
-  use north-forge`, `hermes skin list`, `hermes skills trust .`, then the
-  final interactive `hermes` - which fails headless with
-  `prompt_toolkit ... NoConsoleScreenBufferError: No Windows console found`.
-  That is expected: the TUI cannot start without a real console. Everything
-  before that line completed.
-- `hermes doctor`
-- `hermes skills list --source local`  and  `hermes skills list`
-- `hermes prompt-size`  (offline)
+## Verification detail
 
-### Assembly - PASS
-`.hermes/skills/` after the FULL launch contains exactly 10 dirs, each with a
-`SKILL.md`:
-```
-sales-assist  web-navigator            (shared)
-kb-builder  draft-writer  hotline-ticket  assist-intake
-escalation-packet  audit  fault-logging  training-guide   (tsc-only)
-```
-Launcher output: "North Forge running in full mode." and
-"10 project skill(s) will load in sessions started inside this repo" /
-"10 project skill(s) loaded from this repo". Session tool/skill banner lists
-`general: assist-intake, +8 more`.
+### `.hermes.template.md` (Zone B) - PASS
+Two hunks, both matching the description:
+- L26 skill inventory: `... escalation-packet, audit, fault-logging ...` ->
+  `... escalation-packet, forge-audit, fault-logging ...`, plus an added
+  sentence: "The audit skill is named forge-audit, not audit - "audit"
+  collides with a reserved sub-action name in Hermes's own `hermes skills
+  audit` command and silently gets dropped from `hermes skills list` if used,
+  even though it still assembles and loads. The user-facing command is still
+  /audit or /chk; only the underlying folder/skill name changed."
+- L72 router: `run Auditor (read .hermes/skills/audit)` ->
+  `run Auditor (read .hermes/skills/forge-audit)`.
+No other bytes changed. Template grew 14,686 -> 15,042 B (+356), all in the
+L26 sentence.
 
-`.hermes.md` assembled: 16,168 chars (launcher's PowerShell
-`Set-Content -NoNewline`; my earlier offline Python calc was 16,164 - a
-4-char newline-handling difference, immaterial). Contains "MODE: FULL",
-contains "/web or /links", no unreplaced `{{...}}` markers. Well under 20,000.
+### `mode-blocks/full-menu.md` (Zone B) - PASS
+One hunk: L6 `/audit or /chk - review existing output for drift/failure (see
+.hermes/skills/audit)` -> `(see .hermes/skills/forge-audit)`. The `/audit or
+/chk` command name is unchanged.
 
-`git status --porcelain` after all launches: empty. `.hermes/`, `.hermes.md`,
-`.forge-mode` are all gitignored - no repo pollution.
+### `launch-north-forge.bat` (Zone A) - PASS, fix is correct
+New 20-line block inserted after the `if not exist ".env"` block, before the
+skin copy. Reads the `ANTHROPIC_API_KEY=` line from `.env` via an inline
+PowerShell call, emits `MISSING` / `SHORT` (value length < 30) / `OK`; if not
+`OK`, prints a clear message, opens `notepad ".env"`, `pause`, `exit /b`.
+Threshold 30 is sound - real Anthropic keys are ~100+ chars, the template
+placeholder is ~13. Flow is correct: first run creates `.env` from example
+and exits; second run with the placeholder now stops here instead of
+launching a dead session; third run with a real key proceeds.
 
-### `hermes skills list --source local` - PASS with one caveat (FINDING 1)
-9 rows, all `local` / `enabled`: assist-intake, draft-writer,
-escalation-packet, fault-logging, hotline-ticket, kb-builder, sales-assist,
-training-guide, web-navigator.
-The `audit` skill is MISSING from this list even though its folder assembled
-and the session says "10 loaded". See FINDING 1.
+### `launch-north-forge.sh` (Zone A) - PASS, fix is correct
+Bash mirror of the same guard: `KEYVAL="$(grep '^ANTHROPIC_API_KEY=' .env |
+head -1 | cut -d'=' -f2- | tr -d '[:space:]')"`; if empty or
+`${#KEYVAL} -lt 30`, print the message, open `${EDITOR:-nano} ".env"`,
+`exit 0`. Same threshold, same placement (after the `.env`-exists block).
 
-### `hermes doctor` - NOT clean (FINDING 2 + known items)
-"Found 2 issue(s) to address":
-1. `✗ model.provider 'anthropic' is set but no API key is configured (check
-   ~/.hermes/.env or run 'hermes setup')`
-2. `Run 'hermes setup' to configure missing API keys for full tool access`
-Also: `⚠ Anthropic API (couldn't verify)`. Plus the long-known
-`⚠ SQLite 3.45.1 (WAL-reset bug)` (off-path, flagged in prior audits) and a
-batch of optional-integration warnings (telegram, discord, Playwright
-Chromium, web-search provider, Nous Portal / Codex / xAI not logged in) that
-are not relevant to North Forge's core function. The blocking item is #1 -
-see FINDING 2.
+### `forge-audit/SKILL.md` (Zone B) - PASS
+`diff` and `sha256` both show it is byte-identical to the outgoing
+`skills-source/tsc-only/audit/SKILL.md`
+(`a503a27cf6344fee3823d05c280b87cfbd54e9871251eebe19d477a2ec286503`). Git
+recorded the commit as a 100% rename. The file's internal `# Audit Skill`
+H1 and "Auditor" persona wording are unchanged and fine - the skill is about
+auditing; only the folder/registration name needed to change.
 
-### `hermes prompt-size` (offline, informational)
-System prompt total 38,178 B; skills index 7,697 B; tool schemas 60,918 B
-(21 tools). This is Hermes's own fixed session budget, separate from the
-16 KB North Forge `.hermes.md` - just recorded for reference.
+### Old `audit/` folder - DELETED
+`git rm -r skills-source/tsc-only/audit`. `skills-source/tsc-only/` now holds
+8 dirs: assist-intake, draft-writer, escalation-packet, fault-logging,
+forge-audit, hotline-ticket, kb-builder, training-guide. No `audit`.
 
----
+### No missed references
+`grep -i audit` across the repo: every remaining hit is either the
+`audit/CLAUDE_CODE_LAST_AUDIT.md` report path / read-only-audit governance in
+`CLAUDE.md` (unrelated), the user-facing `/audit` command in
+`mode-blocks/sales-menu.md` reject list and `full-banner.md` /
+`sales-banner.md` capability prose (correctly unchanged - the command name
+did not change), or `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` which uses
+`/audit` / "Auditor" as concepts with no skill-file paths (nothing to sync).
+The one stale spot is `README.md` L37 - see Zone B findings.
 
-## Part 2 - exercise each mode live - BLOCKED
+### Assembled `.hermes.md` sizes - PASS (match the expected figures exactly)
+Recomputed by mirroring the launcher substitution (not by running it):
+- FULL  = 16,526 chars (LF) / 16,677 worst-case CRLF / 16,526 bytes UTF-8
+- SALES = 16,520 chars (LF) / 16,665 worst-case CRLF / 16,520 bytes UTF-8
+Expected ~16,526 / ~16,520 - exact. Far under the 20,000 limit. No
+unreplaced `{{...}}` markers.
 
-Could not be performed. Two independent reasons:
-- **No working model credential (FINDING 2).** `hermes doctor` shows the
-  `anthropic` provider has no key and the Anthropic API can't be verified;
-  Nous Portal (the configured `claude-fable-5 · Nous Research` path) shows
-  "not logged in". Nothing is wired up for North Forge to call a model, so
-  `/assist`, `/kb`, `/hl`, `/esc`, `/audit`, `/log`, `/train`, `/draft`,
-  `/web` cannot be run for real by anyone right now.
-- **The launcher's `hermes` is an interactive TUI** that will not start
-  without a real console (confirmed: `NoConsoleScreenBufferError` when run
-  headless). A non-interactive path exists - `hermes chat -q "<query>" -Q
-  --max-turns N` - but running each of the 9 modes that way would spend real
-  API credits on the account's key and run an autonomous agent with tools
-  enabled. That needs the credential fixed first AND an explicit go-ahead on
-  spend; it was not done.
+## Zone A changes made
+- `launch-north-forge.bat`, `launch-north-forge.sh` - the API-key-length
+  guard described above. Before: launched into a broken session on a
+  placeholder key. After: refuses and reopens the editor with a clear
+  message. Committed in `8759d15`.
+- This audit file.
 
-Recommendation: once a real key is in place, either Kenneth runs the modes
-interactively and pastes the transcripts, or (with an explicit spend
-go-ahead) a follow-up session drives them with `hermes chat -q ... -Q
---max-turns 3 --run-budget 120` per mode and captures each.
+## Zone B changes made (placement exception - not authoring)
+- `.hermes.template.md`, `mode-blocks/full-menu.md`, and the
+  `audit/` -> `forge-audit/` rename. In-session named handoff from Kenneth,
+  identified as from the Claude Project chat, with an instruction to commit.
+  Content placed as-is; the rename is a 100% git rename (no content edit).
+  Committed in `8759d15`.
 
----
+## Zone B findings (not fixed - reported only)
+- `README.md` L37: "(placeholders for hotline-ticket, assist-intake,
+  escalation-packet, audit, fault-logging, training-guide)" - stale twice
+  over: those skills are built (not placeholders) since `d414f81`, and
+  `audit` is now `forge-audit`. `README.md` is Zone B and was not in this
+  handoff. A future Claude Project chat handoff should refresh that line.
 
-## Part 3 - web-navigator URL spot-check - PASS
-
-`curl -sIL -A "Mozilla/5.0" --max-time 25` against 7 of the ~40 URLs in
-`skills-source/shared/web-navigator/SKILL.md`:
-
-| URL (from the skill) | HTTP | note |
-|---|---|---|
-| /en/support/downloads.html | 200 | Download Center |
-| /en/support.html | 200 | Support & Download hub |
-| /en/solutions-services.html | 200 | Products & Services overview |
-| /en/solutions-services/printing-solutions/product-configurator.html | 200 | 200-redirects to `https://kyoceraconfigurator.com/` - the configurator is a separate subsite; the skill's label still describes where you land |
-| /en/request-a-proposal.html | 200 | Request a Proposal |
-| /en/about-us/contact-us/dealer-locator.html | 200 | Dealer Locator |
-| /en/insights/departments-and-industries/healthcare.html | 200 | Healthcare vertical |
-
-All 7 resolve and land where the skill says. The other ~33 were not checked
-this pass; the sample covers each of the skill's section groups.
-
----
-
-## Part 4 - observe `decisive_assistant_rule` live - BLOCKED
-
-Same reason as Part 2 - requires live model output. The rule text itself was
-re-read and is well-formed (one paragraph, explicit "not the same as showing
-the full command menu", FULL+SALES scoped). Whether it produces a one-line
-next-step pointer in practice and does not fight the "no giant menu" rule can
-only be seen in a live session.
-
----
-
-## Part 5 - SALES toggle + relaunch - PASS
-
-Commands: `'sales' | Set-Content -NoNewline .forge-mode` (same effect as
-`toggle-mode.bat`), then `.\launch-north-forge.bat` (job, 120 s), then
-restore `'full'` and relaunch.
-
-- Launcher: "North Forge running in sales mode." /
-  "2 project skill(s) will load" / "2 project skill(s) loaded from this
-  repo". Session banner: `general: sales-assist, web-navigator` - no
-  tsc-only skills.
-- `.hermes/skills/` after SALES launch: exactly `sales-assist`,
-  `web-navigator` (2 dirs). The 8 tsc-only skills are physically absent, as
-  designed.
-- SALES `.hermes.md` (16,170 chars): contains "MODE: SALES ASSIST ONLY";
-  does NOT contain "MODE: FULL"; contains the reject-list line ("...explain
-  plainly that this drive doesn't have that capability..."); contains
-  "/web or /links"; does NOT contain "/kb or /k" (a FULL-only command); no
-  unreplaced markers.
-- Restore: `.forge-mode` back to `full`, relaunch -> "10 project skill(s)",
-  `.hermes/skills/` back to 10 dirs. Drive left in FULL state.
-
-The reject-list *behavior* (North Forge actually declining `/kb` etc. on a
-SALES drive) is a live-session check - blocked with Part 2. The assembly and
-context side of SALES mode is correct.
-
----
-
-## FINDING 1 - `audit` skill: assembles + loads but is not listed, likely a reserved-name collision
-
-`skills-source/tsc-only/audit/` xcopies into `.hermes/skills/audit/SKILL.md`
-fine, and the FULL session banner says "10 project skill(s) loaded". But
-`hermes skills list` (and `--source local`) shows only 9 local skills -
-`audit` is absent. `hermes skills <action>` has a built-in sub-action also
-named `audit` (`{trust,untrust,...,check,update,audit,uninstall,...}`), so a
-project skill named `audit` collides with that reserved word. The session
-loader and the management CLI disagree: one counts it, the other drops it.
-
-Impact: unknown until a live session - `/audit` *may* still trigger the
-skill (the session says it loaded), or it may not. The `audit/SKILL.md`
-content itself is fine (3953 B, no BOM, LF, opens with `# Audit Skill` +
-Trigger + self-lock line, same shape as its siblings).
-
-Recommendation (Blacksmith / Claude Project chat, Zone B - not changed
-here): rename the skill to something non-reserved (e.g. `forge-audit` or
-`kb-audit`) and update the `/audit` references in `.hermes.template.md`
-(L72) and `mode-blocks/full-menu.md` (L6). OR confirm by live test that
-`/audit` triggers despite the listing gap and document that the CLI listing
-is cosmetically short.
-
-## FINDING 2 - no working model credential; `hermes doctor` not clean; North Forge cannot run a model
-
-- Repo `.env`: `ANTHROPIC_API_KEY` is present but only 13 characters - a
-  placeholder, not a real `sk-ant-...` key (~108 chars). (This contradicts
-  `DEMO_PREP_BACKLOG.md` item 9's note about a live key on the build drive -
-  either this checkout is not that drive, or the key was scrubbed since.
-  Worth reconciling.)
-- Hermes's own `~/AppData/Local/hermes/.env`: `ANTHROPIC_API_KEY` length 1,
-  `ANTHROPIC_TOKEN` length 0 - effectively empty.
-- `hermes doctor`: `✗ model.provider 'anthropic' ... no API key`,
-  `⚠ Anthropic API (couldn't verify)`, `⚠ Nous Portal auth (not logged in)`.
-- The launcher never catches this: its only credential check is
-  `if not exist ".env"` - a file that exists but contains a placeholder
-  passes, and the user is dropped straight into a `hermes` session that
-  can't call a model.
-
-Impact: blocks Parts 2 and 4 of this QA entirely. Also a real
-demo/onboarding risk - a freshly provisioned drive whose `.env` still has
-the template value launches "successfully" and then fails on the first
-actual prompt.
-
-Recommendation:
-- Put a real Anthropic key (with a console spend cap - see `DEMO_PREP` item
-  9) into whichever `.env` Hermes actually reads on the target machine, or
-  log in to the configured provider, then re-run `hermes doctor` to
-  green-light.
-- Consider (Zone A, `launch-north-forge.bat` / `.sh`) hardening the
-  credential check: after copying `.env.example` -> `.env`, also refuse to
-  proceed if `ANTHROPIC_API_KEY` is empty or still equals the template
-  value, instead of only checking file existence. Flagged, not changed -
-  wanted a decision first.
-
----
-
-## Global-state changes made by running the launcher (expected, reversible)
-- `hermes skin use north-forge` ran 3x (once per launch) -> set
-  `display.skin = north-forge` in `~/AppData/Local/hermes/config.yaml` and
-  activated the skin. This is what the launcher does every run. Revert with
-  `hermes skin use default` if unwanted.
-- `hermes skills trust .` ran 3x -> "Already trusted: E:\north-forge-hermes-edition"
-  (this repo was already in the trust store; no change).
-- `.hermes/skills/`, `.hermes.md` rebuilt 3x (FULL, SALES, FULL). All
-  gitignored. Drive left in FULL.
-- No repo files changed. `git status` clean.
-
-## Zone A / B / C changes
-- Zone A: this audit file only.
-- Zone B: none.
-- Zone C: none (`NEXT_STEPS.md` not touched - QA is not "done", parts 2/4
-  are blocked).
+## Zone C changes made
+- `NEXT_STEPS.md` (commit `d925539`): new "QA session (2026-08-28)" section
+  recording the assembly/toggle/URL PASSes, both findings now FIXED
+  (`8759d15`), and that QA parts 2/4 stay blocked until a real Anthropic key
+  is on this fresh drive. Updated the `audit` -> `forge-audit` references and
+  the mode-toggle "tested" status. Flagged the `README.md` L37 staleness.
 
 ## Commits made this session
-- Tasks 1-6: `bd8969c`, `3f28184`, `7e4d55d`, `3a44994`, `cfa18a7`,
-  `df6a328`, `187cd5e`, `0b179f0`, `d414f81`, `3c2b7f3`, `1898d33`,
-  `07b1343`, `971ac01`.
-- This report (task 7) - hash in `git log`.
+- Tasks 1-7: `bd8969c` `3f28184` `7e4d55d` `3a44994` `cfa18a7` `df6a328`
+  `187cd5e` `0b179f0` `d414f81` `3c2b7f3` `1898d33` `07b1343` `971ac01`
+  `05e92aa`.
+- `8759d15` - QA fixes: forge-audit rename + launcher key guard (task 8).
+- `d925539` - NEXT_STEPS QA section (task 8).
+- This report (task 8) - hash in `git log`.
 
 ## Uncertain / flagged for the North Forge GPT / Blacksmith
-- FINDING 2 is the blocker to finishing QA. Nothing about the skills or the
-  mode toggle is wrong - the assembly, the mode split, the menu/banner
-  swap, the trust gate, the skin activation, and the web-navigator links all
-  check out. What is missing is a working model credential.
-- FINDING 1 (`audit` name collision) is a real Zone B issue - a rename is
-  the clean fix. Needs a Claude Project chat handoff like the others.
-- Parts 2 and 4 still owe a real result. Options: (a) Kenneth runs the 9
-  modes interactively post-credential-fix and pastes transcripts for review;
-  (b) a follow-up session runs `hermes chat -q` per mode with an explicit
-  spend go-ahead and `--max-turns` / `--run-budget` caps.
+- The qa-fixes zip was not on disk, so this placement was verified by
+  diff-against-description + content-identity checks, not a byte-for-byte
+  hash match against an archive. The change set is small and every hunk
+  matched the stated intent exactly, so confidence is high, but noting the
+  method.
+- `README.md` L37 needs a Claude Project chat refresh (Zone B).
+- QA parts 2 and 4 remain owed. Precondition: a real, spend-capped Anthropic
+  API key on this specific drive (`hermes doctor` must go green on the
+  `anthropic` provider). Then run the 9 modes - interactively with pasted
+  transcripts, or via `hermes chat -q` with an explicit spend go-ahead and
+  `--max-turns` / `--run-budget` caps.
+- Not launched or tested this task - no `.hermes.md` / `.hermes/skills/`
+  rebuild, no `hermes` invocation.
 
 ## Status
-Partial / blocked. Parts 1, 3, 5 done and passing (with FINDING 1 noted on
-part 1). Parts 2, 4 blocked on FINDING 2 (no model credential). Repo
-untouched apart from this report; working tree clean; drive left in FULL
-mode.
+Clean / done. Both QA findings fixed and verified; assembled sizes match the
+expected figures exactly; old `audit/` folder gone, `forge-audit` is the sole
+audit-skill folder. Repo at `origin/main` (`d925539`), working tree clean.
+One Zone B staleness (`README.md` L37) flagged. QA parts 2/4 still blocked on
+a real API key.
