@@ -41,3 +41,10 @@ node_modules/
 # makes the repo self-contained instead of depending on a machine-global
 # git config to exclude it
 .claude/
+
+# Legacy wrong folder name from an early build. The correct project-skills
+# directory is .hermes/skills/ (see above) - a bare root-level skills/ was the
+# mistaken name, confirmed wrong by reading Hermes's own source. Ignore it so a
+# stray old build artifact by that name can never be committed by accident.
+# Root-anchored so it does not touch skills-source/ (tracked source content).
+/skills/

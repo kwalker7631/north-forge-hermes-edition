@@ -40,6 +40,23 @@ output). Results:
   updated `.hermes.template.md` (inventory + router) and
   `mode-blocks/full-menu.md` pointer. User-facing `/audit` / `/chk`
   unchanged. Zone B placement from the Claude Project chat.
+  - **CORRECTION 2026-08-29 (full-repo evaluation): this diagnosis was wrong
+    and the rename did NOT fix the list-drop.** `forge-audit` still does not
+    appear in `hermes skills list --source local` after a clean FULL rebuild
+    (verified this session). Real cause, confirmed against engine source
+    (`hermes-agent/tools/skills_guard.py`): the `skills-guard-v1` scanner rule
+    `agent_config_mod` (regex `AGENTS\.md|CLAUDE\.md|\.cursorrules|\.clinerules`)
+    flags any project skill whose `SKILL.md` contains the literal string
+    `CLAUDE.md`. `forge-audit/SKILL.md` line 3 says "...a code-maintenance file
+    such as CLAUDE.md is specifically requested". That one token -> verdict
+    `dangerous` -> withheld from the list (still counts in `hermes skills
+    trust`'s "N will load" and, per this repo's own docs, still assembles into
+    a session). Proven this session: a copy of the skill with the `CLAUDE.md`
+    token reworded scans `safe` and lists normally. The folder name (`audit`
+    vs `forge-audit`) is irrelevant to this. FIX IS ZONE B - not made by Claude
+    Code: reword `forge-audit/SKILL.md` line 3 to not contain the literal
+    `CLAUDE.md`, then correct the "reserved sub-action name" explanation in
+    `.hermes.template.md` L26, `README.md` L42, and the FINDING 1 text above.
 - ~~FINDING 2: the launchers only checked that `.env` EXISTS, not that
   `ANTHROPIC_API_KEY` was real - a placeholder passed and dropped the user
   into a session that couldn't call a model.~~ FIXED 2026-08-28 (`8759d15`):
@@ -72,3 +89,70 @@ tsc-only skills as "placeholders" and now also carries the old `audit` name
 - `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` added (2026-08-26) - complete standalone paste-in version for disaster recovery. Keep it manually in sync with `.hermes.template.md`/`skills-source/` when either changes; nothing auto-generates one from the other.
 - ~~AUDIT 2026-08-26 (pre-flight): `/draft` ("Draft Writer") is referenced in `.hermes.template.md`'s `assistant_router_rule` and listed in `mode-blocks/full-menu.md`, but has no entry in "Not yet built" above, no `skills-source/` folder or placeholder.~~ - RESOLVED 2026-08-28: `skills-source/tsc-only/draft-writer/SKILL.md` placed from a Claude Project chat handoff (see "Done" above). The launcher's `skills-source/tsc-only/.` copy step picks it up in FULL mode alongside `kb-builder`; SALES drives already reject `/draft` via `mode-blocks/sales-menu.md`. FULLY RESOLVED 2026-08-28 by the full-skillset-v3 reissue handoff (commit `d414f81`), which carried the template/menu wiring alongside the six skill files: (A1) `full-menu.md` `/draft` line now has `(see .hermes/skills/draft-writer)`, and a `/web` entry was added to both `full-menu.md` and `sales-menu.md`; (A2) `.hermes.template.md` L26 inventory now lists all 8 tsc-only skills + `sales-assist` + `web-navigator` as built; (A3) L28 rewritten - no longer calls anything a placeholder, kept as a forward-looking safety net; (A4) L70 router line now reads "run Draft Writer (read .hermes/skills/draft-writer in full)"; (A5) new router entries added for hotline-ticket (L66) and escalation-packet (L68); (A6) CLOSED 2026-08-28 (commit `07b1343`): a follow-up `.hermes.template.md` handoff added `(read .hermes/skills/assist-intake in full)` to both Assistant router lines in `<assistant_router_rule>`, matching every other mode's citation pattern; (A7) all six "placeholder" skills now have real `SKILL.md` files on disk. Nothing from Finding A remains open.
 - ~~AUDIT 2026-08-26 / 2026-08-28 (Finding B): the default mode is `/assist`, whose skill `assist-intake` was an unbuilt placeholder; and `.hermes.template.md` L7/L50 named `/assist` as the default unconditionally, even on SALES drives that reject it.~~ - FULLY RESOLVED 2026-08-28 (commit `d414f81`): `skills-source/tsc-only/assist-intake/SKILL.md` now exists with real content (intake set, depth levels, evidence packs); L7 is now "DEFAULT MODE: see mode banner below - /assist on FULL drives, /sales on SALES drives" and L50 is likewise mode-aware. Nothing from Finding B remains open. (Prioritization note now moot: all six skills were built together, not one-at-a-time.)
+
+## Full repository evaluation (2026-08-29) - Claude Code
+
+Comprehensive pass ahead of Kenneth's own drive test. Every tracked file
+read; both launchers exercised in isolated dirs; git history re-scanned;
+`hermes` state re-checked. Full detail in `audit/CLAUDE_CODE_LAST_AUDIT.md`.
+
+### Zone A fixes made this session (committed)
+- `.gitignore` - added `/skills/` (root-anchored). The legacy wrong folder
+  name was NOT excluded before; `git check-ignore` confirmed `skills/old.md`
+  would have been tracked. `skills-source/` is unaffected.
+- `provision-new-drive.ps1` - the placeholder-token STOP message had a
+  word-drop from commit `aed82d7` ("Before handing this" then "the line that
+  sets cloneUrl..."). Restored to a readable sentence. `Write-Host` strings
+  only; guard logic unchanged; PowerShell parse clean.
+- `toggle-mode.bat` L6-7 - `else (echo (none set - defaults to SALES)` with a
+  dangling `)` on the next line printed `(none set - defaults to SALES`
+  (missing close paren) on a first run with no `.forge-mode`. Collapsed to
+  one line with escaped parens. Re-tested 7 cases (FULL/SALES/bogus/RESET x4)
+  - all exit 0, no parse errors, RESET still wipes exactly the 4 targets.
+
+### Zone B / Zone C findings (reported, NOT changed by Claude Code)
+- **forge-audit list-drop misdiagnosis** - see the CORRECTION under QA
+  FINDING 1 above. Headline item. Real cause is the literal `CLAUDE.md`
+  token in `forge-audit/SKILL.md` line 3 tripping Hermes's `skills-guard`
+  `agent_config_mod` rule; the `audit/`->`forge-audit/` rename did not fix
+  it. Needs a Zone B reword of that one line + a docs correction in
+  `.hermes.template.md` L26 and `README.md` L42.
+- **`skills-source/shared/sales-assist/SKILL.md` has no "Never rewrite this
+  skill file" self-lock line** - the other 9 skill files all do. It is a
+  placeholder, but the line should be added when its real content is authored
+  (Zone B).
+- **web-navigator has no `assistant_router_rule` entry** in
+  `.hermes.template.md` - it is the only skill with a `full-menu.md` line
+  (`/web or /links`, present and correct in both menu files) but no router
+  paragraph. Per commit `d414f81` this was deliberate (menu-only), and the
+  skill's own trigger covers it, so this is a consistency note, not a break.
+- DEMO_PREP_BACKLOG item numbering is out of sequence (1,2,3,7,4,5,6,8,11,9,10).
+  Cosmetic; left as-is to avoid breaking cross-references.
+
+### Re-verified clean
+- Every tracked file maps to a Zone A/B/C list - nothing unzoned.
+- Assembled context (recomputed): **FULL 16,526 chars, SALES 16,520** - both
+  ~3,480 under the 20,000 limit; zero unreplaced `{{...}}`; zero non-ASCII in
+  the template, the mode-blocks, or in fact any tracked file. (Supersedes the
+  earlier "16,076 / ~16,170" QA numbers.)
+- `.gitignore` (post-fix) excludes `.env`, `.forge-mode`, `.hermes.md`,
+  `.hermes/`, `.claude/`, and now `skills/` - all confirmed with
+  `git check-ignore -v`.
+- Full-history secret scan (`sk-ant-`, `ghp_`, `github_pat_`, `AKIA`): clean;
+  only textual mentions of the pattern names in these docs.
+- Repo visibility: PRIVATE (`gh repo view`).
+- KYO KB HTML locked contact block: portal URL, downloads URL, TSC phone
+  `1-800-255-6482`, TSC email, authorized-login note, `SUPPORT & RESOURCES`
+  markers, 128x64 logo slot - all present; no `<script>`; well-formed.
+- toggle-mode RESET (both scripts) deletes exactly `.env`, `.forge-mode`,
+  `.hermes.md`, `.hermes/skills/` - matches README; FULL/SALES behaviour is
+  byte-identical to pre-`c023a62` (confirmed via `git show`).
+
+### For Kenneth's first real launch to confirm
+- The live `.hermes/skills/` and `.hermes.md` were regenerated this session
+  (FULL) so the drive is consistent; before that, `.hermes.md` was stale
+  (pre-`forge-audit` rename). A normal `launch-north-forge` run rebuilds
+  both anyway.
+- With a real Anthropic key in place: exercise each mode live (QA parts 2/4,
+  still blocked on the key) and confirm `/audit` actually loads its skill in
+  a session even though `hermes skills list` hides it.

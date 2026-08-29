@@ -3,8 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 echo Current mode file:
-if exist ".forge-mode" (type ".forge-mode") else (echo (none set - defaults to SALES)
-)
+if exist ".forge-mode" (type ".forge-mode") else (echo ^(none set - defaults to SALES^))
 echo.
 set /p MODE="Type FULL, SALES, or RESET and press Enter: "
 

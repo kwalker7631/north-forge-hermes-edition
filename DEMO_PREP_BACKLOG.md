@@ -217,5 +217,31 @@ they previously returned 200. No credentials were ever exposed in the
 window it was public (`.env` never committed, confirmed by full history
 scan). Closed.
 
+## 12. `/audit` skill still missing from `hermes skills list` (OPEN - Zone B reword needed)
+
+Full-repo evaluation 2026-08-29 disproved the recorded explanation. The
+`audit` -> `forge-audit` folder rename (commit `8759d15`) did NOT stop the
+skill dropping from `hermes skills list` - verified with a clean FULL
+rebuild this session, `forge-audit` is still absent from the list (though
+`hermes skills trust .` still counts it among the skills that will load).
+
+Real cause, confirmed against engine source
+(`hermes-agent/tools/skills_guard.py`): the `skills-guard` scanner rule
+`agent_config_mod` flags any project skill whose `SKILL.md` contains the
+literal token `CLAUDE.md` (regex also covers `AGENTS.md`, `.cursorrules`,
+`.clinerules`) as `dangerous`, and the list view hides dangerous project
+skills. `forge-audit/SKILL.md` line 3 contains "...a code-maintenance file
+such as CLAUDE.md is specifically requested". Reworded copy tested this
+session -> scans `safe` -> lists normally.
+
+Demo impact: if the demo shows `hermes skills list`, `/audit` will look
+missing. Functionally it should still load when `/audit` is typed (per the
+package's own docs), but that half hasn't been live-verified yet (needs the
+API key). Fix is a one-line Zone B reword of `forge-audit/SKILL.md` plus a
+docs correction in `.hermes.template.md` L26 and `README.md` L42 - flagged
+to the Blacksmith / Claude Project chat, not changed by Claude Code. Detail
+in `NEXT_STEPS.md` (QA FINDING 1 CORRECTION) and
+`audit/CLAUDE_CODE_LAST_AUDIT.md`.
+
 
 
