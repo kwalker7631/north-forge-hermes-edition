@@ -56,6 +56,26 @@ if not exist ".env" (
     )
 )
 
+rem --- catch a .env that EXISTS but still holds the placeholder/an
+rem     obviously-too-short value, instead of silently launching into a
+rem     session that can't call a model. Real Anthropic keys run ~100+
+rem     chars; the template placeholder and any partial paste are much
+rem     shorter, so a length check below a safe threshold catches both
+rem     without needing to match exact placeholder text.
+for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "$line = Get-Content '.env' | Select-String '^ANTHROPIC_API_KEY='; if (-not $line) { 'MISSING' } else { $v = $line.ToString().Split('=',2)[1].Trim(); if ($v.Length -lt 30) { 'SHORT' } else { 'OK' } }"`) do set "KEYCHECK=%%L"
+if not "%KEYCHECK%"=="OK" (
+    echo.
+    echo Your .env exists, but ANTHROPIC_API_KEY looks like a placeholder or
+    echo is missing - not a real key. Launching anyway would just fail on
+    echo the first real question instead of telling you clearly now.
+    echo.
+    echo Add your real Anthropic API key in the notepad window that opens,
+    echo save, close it, then run this launcher again.
+    notepad ".env"
+    pause
+    exit /b
+)
+
 rem --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
 if defined HERMES_HOME (
     set "SKIN_DIR=%HERMES_HOME%\skins"

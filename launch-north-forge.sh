@@ -85,6 +85,23 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
+# --- catch a .env that EXISTS but still holds the placeholder/an
+# obviously-too-short value, instead of silently launching into a session
+# that can't call a model. Real Anthropic keys run ~100+ chars; the
+# template placeholder and any partial paste are much shorter, so a length
+# check below a safe threshold catches both without matching exact text.
+KEYVAL="$(grep '^ANTHROPIC_API_KEY=' .env 2>/dev/null | head -1 | cut -d'=' -f2- | tr -d '[:space:]')"
+if [ -z "$KEYVAL" ] || [ "${#KEYVAL}" -lt 30 ]; then
+    echo ""
+    echo "Your .env exists, but ANTHROPIC_API_KEY looks like a placeholder or"
+    echo "is missing - not a real key. Launching anyway would just fail on"
+    echo "the first real question instead of telling you clearly now."
+    echo ""
+    echo "Add your real Anthropic API key, save, then run this script again."
+    "${EDITOR:-nano}" ".env"
+    exit 0
+fi
+
 # --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
 HERMES_SKIN_DIR="${HERMES_HOME:-$HOME/.hermes}/skins"
 mkdir -p "$HERMES_SKIN_DIR"
