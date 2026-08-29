@@ -31,13 +31,21 @@ mode-blocks/
   sales-menu.md                <- command menu for SALES drives
 skills-source/                <- the real, tracked skill content (one copy, never duplicated)
   shared/
-    sales-assist/SKILL.md     <- available in BOTH modes (placeholder - not yet authored)
+    sales-assist/SKILL.md     <- available in BOTH modes (built, but FAQ content is still a placeholder pending real spec-sheet curation)
+    web-navigator/SKILL.md    <- available in BOTH modes (built, verified real links to kyoceradocumentsolutions.us)
   tsc-only/
-    kb-builder/SKILL.md       <- full /kb procedure (built) - FULL mode only
-    (placeholders for hotline-ticket, assist-intake, escalation-packet, audit, fault-logging, training-guide)
+    kb-builder/SKILL.md          <- full /kb procedure - FULL mode only
+    draft-writer/SKILL.md        <- /draft procedure - FULL mode only
+    hotline-ticket/SKILL.md      <- /hl, /ticket procedure - FULL mode only
+    assist-intake/SKILL.md       <- /a, /assist procedure - FULL mode only
+    escalation-packet/SKILL.md   <- /esc procedure - FULL mode only
+    forge-audit/SKILL.md         <- /audit, /chk procedure - FULL mode only. Named forge-audit, not audit - "audit" collides with a reserved sub-action name in Hermes's own `hermes skills audit` command and silently drops from `hermes skills list` if used. The user-facing command is still /audit or /chk.
+    fault-logging/SKILL.md       <- /log, /fault, /report procedure - FULL mode only
+    training-guide/SKILL.md      <- /train procedure - FULL mode only
+    (all 8 tsc-only skills built - see NEXT_STEPS.md for authorship history)
 .hermes/skills/                 <- GENERATED at each launch from skills-source/ - the exact folder name Hermes scans for project-local skills (see note below) - never edit directly, never committed
 .forge-mode                    <- GENERATED per physical drive by toggle-mode - never committed, defaults to sales if absent
-toggle-mode.bat / .sh          <- Kenneth-only: sets a drive's mode to FULL or SALES
+toggle-mode.bat / .sh          <- Kenneth-only: sets a drive's mode to FULL or SALES, or RESET to wipe a drive's personal setup before handing it to someone else
 skins/
   north-forge.yaml            <- Hermes skin: rebrands the CLI as "North Forge" using the KB visual palette
 .env.example                   <- copy to .env, fill in your own Anthropic API key, never commit the real .env
@@ -68,6 +76,8 @@ Separately from the folder-name issue: Hermes will not load skills from a projec
 There is no separate "sales version" to maintain. Every skill is authored exactly once, in `skills-source/`, tagged `shared/` (both modes) or `tsc-only/` (FULL mode only). Every launch, the launcher deletes and rebuilds the live `.hermes/skills/` folder and the live `.hermes.md` from that source plus whichever `.forge-mode` says - so there's never a chance of the two "versions" drifting apart, because there's only ever one source.
 
 `.forge-mode` is a one-word file (`full` or `sales`) that lives on each physical drive, is never committed to git, and is set once with `toggle-mode.bat`/`.sh` (Kenneth-only tooling, not something a rep needs). Missing the file at all defaults to `sales` - fails safe rather than fails open.
+
+`toggle-mode.bat`/`.sh` also has a third option: **RESET**, which wipes a drive's personal setup (`.env` - the API key, `.forge-mode` - the toggle, and the generated `.hermes.md`/`.hermes/skills/` - safe to delete, they rebuild automatically) back to a clean first-use state. Use this before handing a physical drive to a different person, so your API key doesn't travel with it and the next person gets a genuine first-run experience. Requires typing `YES` to confirm - it's destructive and worth the extra step.
 
 On a Sales-mode drive, the TSC-only skill files are never copied into the live `.hermes/skills/` folder at all - not hidden, not disabled by a prompt instruction alone, physically absent from that session. The `.hermes.md` generated for that mode also tells the model plainly to redirect any support/repair/KB request to the normal TSC channel rather than attempt it from general knowledge.
 
