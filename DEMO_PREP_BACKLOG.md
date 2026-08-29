@@ -197,6 +197,14 @@ console so a lost/copied drive can't run up an unbounded bill. No process
 currently checks for this - candidate for a step in whatever provisioning
 checklist Kenneth uses when actually building drives for the team.
 
+UPDATE 2026-08-28: option (a) now has a real mechanism. `toggle-mode.bat`/`.sh`
+gained a RESET action (commit `c023a62`, documented in the README) that wipes
+`.env`, `.forge-mode`, `.hermes.md`, and `.hermes/skills/` back to a clean
+first-use state after a `YES` confirmation. So "run `toggle-mode` -> RESET
+before handing the drive to someone else" is now a concrete provisioning-
+checklist step. Still separately worth doing (b) - set a spend cap on the key
+- as defence in depth, since RESET is honour-system, not enforced.
+
 ## 10. Repo visibility (RESOLVED - verified 2026-08-26)
 
 Drive-level audit found `kwalker7631/north-forge-hermes-edition` was
