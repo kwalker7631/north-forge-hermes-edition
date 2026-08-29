@@ -1,118 +1,110 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-08-29 (Zone C only: record two Blacksmith decisions in NEXT_STEPS.md)
+Timestamp: 2026-08-29 (session-start check only - no task given)
 
-Requested task: Record in `NEXT_STEPS.md` that the two open items from the
-last two audits are resolved by Blacksmith decision - (1) `.gitignore`'s
-`/skills/` guard is intentionally kept, no further action; (2) the
-`toggle-mode.sh` RESET-stripping edit is closed as a one-time anomaly,
-correctly caught and reverted, no recurrence, not investigated further.
-Commit per standing Zone C authorization.
+Requested task: None. Kenneth started a Claude Code session in this repo with
+no task attached and no handoff file. Per CLAUDE.md ("If none was given, a
+clean session-start check IS the whole task - write the audit report and stop
+rather than inventing work to do"), this session ran the Session Start
+Protocol, confirmed the repo is in its last known-good state, changed
+nothing, and wrote this report.
 
 ## Files inspected
 
-- `NEXT_STEPS.md` (full read, then appended one section).
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior session - continuity).
-- `git status` / `git log` (working tree state, recent commits).
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` - full read (118 lines). Prior session's
+  continuity record.
+- `.gitignore` - full read (52 lines). Checked against Session Start Protocol
+  step 4.
+- Read-only git inspection: `git pull`, `git status`, `git diff`,
+  `git diff --cached`, `git log --oneline -8`.
+- `command -v hermes` - probe for the Hermes CLI (not present).
 
-No Zone A or Zone B file was read for change or touched this session.
+No Zone A, Zone B, or Zone C file was opened for change or touched this
+session. No skill file, launcher, template, mode-block, or engine config was
+read.
 
 ## Session-start check
 
 ```
 SESSION START CHECK
-Pulled: Already up to date (origin/main at a72c1df before this session).
-Last audit read: Yes - prior session placed the CLAUDE.md STANDING RULE
-  handoff (commit 5911c7d, purely additive +18/-0). That audit's status was
-  "Clean"; it carried five flags forward from the cfd618d session, of which
-  this session's task closes two by Blacksmith decision.
-Uncommitted at start: None (working tree clean).
-.gitignore: not touched this session; unchanged from cfd618d - still carries
-  .agent-name and the re-appended /skills/ guard; .env / .forge-mode /
-  .hermes.md / .hermes/ still excluded.
-hermes doctor: not re-run - this task is a single Zone C documentation-log
-  append, touches no skill, launcher, template, or engine config. Prior
-  audits record only pre-existing environment issues (no Anthropic key on
-  this drive, SQLite 3.45.1 WAL advisory, optional deps absent).
-Project skills: unaffected by a NEXT_STEPS.md-only change; not re-listed.
+Pulled: Already up to date. origin/main = local main = 095a111 both before
+  and after `git pull` ("Already up to date.").
+Last audit read: Yes. Prior session (audit 095a111, commit 87b3555) was a
+  single Zone C append to NEXT_STEPS.md recording two Blacksmith decisions
+  that closed two open audit items: (1) the `.gitignore` `/skills/` guard is
+  intentionally kept - the cfd618d re-append was correct; (2) the one-time
+  `toggle-mode.sh` RESET-stripping working-tree edit seen at the start of the
+  cfd618d session was correctly caught and reverted, closed as an anomaly,
+  not being investigated further. That audit's status was "Clean". It carried
+  three unrelated flags forward as still-open (reproduced below).
+Uncommitted at start: None. `git status` = "nothing to commit, working tree
+  clean". `git diff` and `git diff --cached` both empty.
+.gitignore: OK. Present and correct. Explicitly excludes all four required
+  entries: `.env` (line 2), `.forge-mode` (line 10), `/.hermes/` (line 18),
+  `.hermes.md` (line 19). Also still carries `.agent-name` (line 11) and the
+  root-anchored `/skills/` legacy-folder guard (line 51) - both consistent
+  with the last several audits and with the Blacksmith decision recorded in
+  the 095a111 audit. No change needed; no Zone A fix triggered.
+hermes doctor: Not run - `hermes` is not installed on this drive
+  (`command -v hermes` returns nothing, exit non-zero). This matches every
+  prior audit on this physical drive: no Anthropic key present here, optional
+  deps absent, Hermes CLI not installed. Nothing regressed - this is the
+  established state of this drive, which holds the content layer only.
+hermes skills list --source local: Not run - same reason (no hermes CLI).
+Project skills: Cannot enumerate without the hermes CLI. `skills-source/` in
+  the repo is unchanged (not inspected for content this session, but
+  `git status` shows no modification anywhere in the tree).
 ```
-
-## Zone C change made (commit `87b3555`)
-
-`NEXT_STEPS.md` - appended one new section, `## Blacksmith decisions
-(2026-08-29) - two open audit items closed`, 30 insertions, 0 deletions.
-Full added text:
-
-```
-## Blacksmith decisions (2026-08-29) - two open audit items closed
-
-Kenneth relayed these in-session after reviewing the last two audit reports
-(the `cfd618d` onboarding + custom-agent-name handoff, audit `59c6d13`; and
-the `5911c7d` CLAUDE.md STANDING RULE placement, audit `a72c1df`). Status
-update only - no code or content change was needed for either.
-
-1. **`.gitignore` `/skills/` guard - INTENTIONALLY KEPT.** The
-   onboarding-naming handoff's `.gitignore` was cut from a pre-`8e1eb69` base
-   and dropped the root-anchored `/skills/` legacy-folder guard;
-   Claude Code re-appended it verbatim when placing (commit `cfd618d`), so
-   the net change there was `+.agent-name` only. Blacksmith decision: the
-   re-append was correct, the `/skills/` guard stays. No further action;
-   future `.gitignore` handoffs should carry it.
-2. **`toggle-mode.sh` RESET-stripping working-tree edit - CLOSED as a
-   one-time anomaly.** At the start of the `cfd618d` session `git status`
-   showed `toggle-mode.sh` modified with the whole RESET branch deleted - not
-   from any handoff zip or instruction. Claude Code reverted it
-   (`git checkout -- toggle-mode.sh`, not committed); RESET is intact and
-   consistent with `toggle-mode.bat` and the README. Blacksmith decision:
-   correctly caught and reverted, no recurrence, not being investigated
-   further. Closed.
-
-Other carry-over flags from those two audits are unchanged by this update and
-remain open: the `launch-north-forge.bat` vs `.sh` `.hermes.md` CRLF byte
-divergence on `core.autocrlf=true` machines; `launch-north-forge.bat` not yet
-run end-to-end; no live model session against the current
-`.hermes.template.md` (blocked on a real Anthropic key on this drive, same as
-QA parts 2/4).
-```
-
-This is a status update recording a decision Kenneth relayed in-session - a
-real event, not an assumed or aspirational one. It does not describe or imply
-any Zone B content change (there is none; nothing in `.gitignore` or
-`toggle-mode.sh` changed this session, and both were already in their
-decided-correct state from `cfd618d`). Zone C prohibition against using
-`NEXT_STEPS.md` as a backdoor for unmade Zone B changes: not applicable here.
 
 ## Zone A changes made
 
-None.
+None. `.gitignore` was inspected under Session Start Protocol step 4 and
+found already correct - no fix was required, so nothing was edited,
+committed, or pushed in Zone A other than this audit file itself (Zone A
+operational record, per standing authorization).
 
 ## Zone B findings (not fixed - reported only)
 
-None. No Zone B file inspected or touched.
+None. No Zone B file was inspected this session. `git status` shows the
+entire working tree clean, so no Zone B file has any uncommitted drift.
+The three carry-over flags below touch Zone B subject matter but are
+pre-existing items already on record, not new findings from this session.
 
 ## Commits made this session
 
-- `87b3555` - "NEXT_STEPS.md: record Blacksmith decisions closing two open
-  audit items". 1 file, +30/-0. Pushed to origin/main (`a72c1df..87b3555`).
-- (this audit file) - Zone A operational record, committed/pushed separately.
+- (this audit file) `audit/CLAUDE_CODE_LAST_AUDIT.md` - Zone A operational
+  record, committed and pushed per standing authorization. Hash recorded in
+  the session-ending chat response.
+
+No other commit. No Zone A code change, no Zone C update, no Zone B handoff.
 
 ## Uncertain / flagged for primary GPT review
 
-- Nothing uncertain about this session - a Zone C append of a decision
-  handed to Claude Code directly.
-- Three carry-over flags from the `cfd618d` / `5911c7d` audits remain open
-  (now also noted in `NEXT_STEPS.md` itself): (a) the `launch-north-forge.bat`
-  vs `.sh` `.hermes.md` CRLF byte divergence on `core.autocrlf=true`
-  machines - pre-existing, will matter when the "CLI banner uses the name"
-  enhancement touches the assembly code; (b) `launch-north-forge.bat` has not
-  been exercised end-to-end (only the changed PowerShell assembly one-liner
-  was, in isolation); (c) no live model session has run against the current
-  `.hermes.template.md` - blocked on a real Anthropic key on this drive, the
-  same block as QA parts 2/4 from the 2026-08-28 QA session.
+Nothing uncertain about this session itself - it read four things, confirmed
+the repo matches its last known-good state, and changed nothing. The
+session-start check passed cleanly on every step that can run on this drive.
+
+Three carry-over flags from the cfd618d / 5911c7d / 87b3555 line of audits
+remain OPEN and unchanged by this session (also tracked in NEXT_STEPS.md):
+
+- (a) `launch-north-forge.bat` vs `launch-north-forge.sh` `.hermes.md` CRLF
+  byte divergence on machines with `core.autocrlf=true`. Pre-existing. Will
+  matter when the "CLI banner uses the custom agent name" enhancement touches
+  the assembly code path.
+- (b) `launch-north-forge.bat` has not been exercised end-to-end. Only the
+  changed PowerShell assembly one-liner was tested, in isolation, during the
+  cfd618d session.
+- (c) No live model session has been run against the current
+  `.hermes.template.md`. Blocked on a real Anthropic key being present on
+  this drive - the same block as QA parts 2/4 from the 2026-08-28 QA session.
+  Cannot be cleared from this drive as currently provisioned.
+
+None of the three is newly worse; they are listed so a reader relaying files
+between sessions does not mistake this quiet session for them being resolved.
 
 ## Status
 
-Clean. Single Zone C append recording two Blacksmith decisions; committed and
-pushed (`87b3555`); working tree clean. No Zone A change, no Zone B
-inspection or finding. Two audit items closed by decision; three unrelated
-carry-over flags remain open and are now tracked in `NEXT_STEPS.md`.
+Clean. No task was given; the session-start check was the whole task. Repo is
+at 095a111, working tree clean, `.gitignore` correct, no Hermes CLI on this
+drive (established state). Nothing changed except this audit file. Three
+unrelated carry-over flags remain open and are unchanged.
