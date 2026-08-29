@@ -1,216 +1,167 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-08-29 (full repo evaluation, then Zone B real-fix placement + live verification)
+Timestamp: 2026-08-29 (provision-new-drive.ps1 enhancement: place, verify syntax, test for real)
 
-Requested task: (1) Comprehensive repository evaluation ahead of Kenneth
-personally testing the drive - 10 explicit checks. (2) Then place a Zone B
-handoff from the Claude Project chat
-(`north-forge-hermes-audit-realfix.zip`, 4 files) fixing the three findings,
-commit/push, and - since the first `audit/`->`forge-audit/` rename was
-declared done without ever being checked against a live skill list - verify
-against `hermes skills list` that `forge-audit` now appears.
+Requested task: Extract the handed-over `provision-new-drive.ps1` into the
+repo root, overwriting the current one (Zone A). New behavior: right before
+the launcher hand-off, if `%LOCALAPPDATA%\hermes\config.yaml` already exists
+on the machine, ask the operator whether it is their own Hermes setup (leave
+alone) or leftover North Forge testing (clear it) instead of silently
+assuming; only `config.yaml` and `.env` may be removed, and only on an
+explicit "clear" answer; `skills`/`memory`/`sessions` in that same folder are
+never touched. Verify the whole file is syntactically sound and test the new
+behavior for real on Windows PowerShell (not available in the Claude Project
+sandbox): existing-config prompt with the correct model line shown, answer
+"1" deletes nothing, answer "2" removes exactly `config.yaml` + `.env` with
+nothing else in the folder changed.
 
 ## Files inspected
 
-- Every tracked file (32): Zone A x10, Zone B x20 (template, 4 mode-blocks,
-  10 skills, fallback, KYO HTML, README, ATTRIBUTION, CLAUDE.md), Zone C x2.
-- Installed engine source (read-only): `hermes-agent/tools/skills_guard.py`,
-  `agent/skill_commands.py`, `hermes_cli/skills_config.py`;
-  `~/AppData/Local/hermes/cache/project_skill_scans/*.json`.
+- `provision-new-drive.ps1` (working tree, HEAD, and the handoff copy at
+  `~/Downloads/provision-new-drive.ps1` dated 2026-08-29 01:21).
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (previous session's report - continuity).
+- `.gitignore` (session-start check).
+- `~/AppData/Local/hermes/config.yaml` (first 8 lines + model/provider lines
+  only, read-only, to model the sandbox realistically - no secrets read or
+  echoed; `.env` never opened, only hashed).
 
-## Zone A changes made (commit `8e1eb69`)
+## Zone A changes made
 
-1. **`.gitignore`** - added root-anchored `/skills/` (+7 lines incl. comment).
-   Before: no `skills/` pattern anywhere; `git check-ignore --no-index
-   skills/kb-builder/SKILL.md` -> NOT IGNORED. After: `skills/**` ignored via
-   `.gitignore:50:/skills/`; `skills-source/**` still tracked; all other
-   required patterns (`.env`, `.forge-mode`, `.hermes.md`, `.hermes/`,
-   `.claude/`) still ignored. Why: item 5 requires the legacy wrong folder
-   name be excluded so an old build artifact can't be committed by accident.
+**`provision-new-drive.ps1`** - commit `7395761`. Net effect vs HEAD
+(`46bcfe9`): +36 lines, purely additive - one new block appended between
+`Write-Host "Starting North Forge..."` and `.\launch-north-forge.bat`.
 
-2. **`provision-new-drive.ps1`** - repaired the placeholder-token STOP
-   message (2 `Write-Host` lines). Before (word-drop from commit `aed82d7`):
-   `"...Before handing this"` / `"the line that sets cloneUrl near the top of
-   this file and replace YOUR_TOKEN_HERE"` - "Before handing this" has no
-   object, next line has no verb. After: `"...Before handing this"` / `"drive
-   to anyone, edit the line that sets cloneUrl near the top of this file"` /
-   `"and replace YOUR_TOKEN_HERE with the real read-only access token (see
-   README.md for how to generate one)."` `Write-Host` strings only; guard
-   logic unchanged; `Parser::ParseFile` clean.
+1. New Hermes-config check block (the requested behavior), placed from the
+   handoff:
+   - Resolves `$hermesConfigDir` = `$env:HERMES_HOME` if set, else
+     `"$env:LOCALAPPDATA\hermes"`; `$hermesConfigFile` / `$hermesEnvFile` =
+     `config.yaml` / `.env` under it.
+   - `if (Test-Path $hermesConfigFile)`: prints the path, prints the current
+     model line, then asks "Is this: 1. your own existing Hermes setup -
+     leave it alone / 2. leftover from earlier North Forge testing - clear
+     it", `Read-Host "Type 1 or 2"`.
+   - Only on `$hermesChoice -eq "2"`: `Remove-Item` `config.yaml` and `.env`
+     (each guarded by its own `Test-Path`, `-Force`, no `-Recurse`). Any
+     other answer (incl. empty / "3") -> "Leaving ... untouched", nothing
+     removed. `skills`/`memories`/`sessions`/`SOUL.md` are never referenced.
+   - `.\launch-north-forge.bat` still runs afterward regardless.
 
-3. **`toggle-mode.bat` L6-7** - fixed a malformed `else` branch. Before:
-   `else (echo (none set - defaults to SALES)` + a lone `)` on the next line
-   -> printed `(none set - defaults to SALES` (no close paren) on a first run
-   with no `.forge-mode`. After (one line, escaped): `else (echo ^(none set -
-   defaults to SALES^))`. Pre-existing defect (in the `c023a62` diff
-   context, not introduced by the RESET rebuild). Re-tested the actual edited
-   file, 7 cases via `cmd.exe` stdin-redirect - all exit 0, no parse errors,
-   RESET still wipes exactly `.env` / `.forge-mode` / `.hermes.md` /
-   `.hermes\skills` and leaves `.env.example` + `skills-source/` intact.
+2. One deviation from the handoff bytes, made under Zone A authority as a
+   confirmed defect against the stated acceptance criterion ("the correct
+   current model line shown"):
+   - Handoff line: `... | Select-String "model:" | Select-Object -First 1`.
+     Reproduced against a config.yaml mirroring the real one (`model:` /
+     `  default: claude-fable-5` / `  provider: anthropic`): the bare
+     `model:` mapping key on line 1 is the first match, so the script printed
+     `Current model setting: model:` - the section header, not the model.
+   - Changed to
+     `Select-String '^\s*(model|default|provider)\s*:\s*\S' | Select-Object -First 1`
+     (requires a non-space value after the colon). Now prints
+     `Current model setting: default: claude-fable-5`. Degrades the same as
+     before (guard skips the line) if nothing matches.
 
-Also regenerated the git-ignored build artifacts `.hermes/skills/` and
-`.hermes.md` for FULL (as the launcher does) so the drive is internally
-consistent; `git status` stayed clean.
+3. STOP-message wording (lines 16-18) intentionally NOT taken from the
+   handoff. The handoff copy was cut from a base older than commit `8e1eb69`
+   and its lines 16-18 reintroduce that commit's fixed word-drop ("...Before
+   handing this" with no object / "the line that sets cloneUrl..." with no
+   verb). Kept at the `8e1eb69` form. The task was additive only; nothing
+   asked to touch this message.
 
-## Zone B placement (commit `a49580f`) - handoff from the Claude Project chat
+Final state: full-file AST parse clean on Windows PowerShell 5.1
+(`Parser::ParseFile`, 0 errors, braces 31/31); 6637 bytes, LF-only, pure
+ASCII.
 
-`north-forge-hermes-audit-realfix.zip` (found in `~/Downloads`) contained
-exactly 4 files at correct repo-relative paths - no absolute paths, no `..`,
-nothing extra. Extracted with overwrite; `git status` showed exactly the 4
-expected files modified. Placed byte-for-byte, not composed or edited by
-Claude Code. Each diff matched the stated intent:
+## Live testing (Windows PowerShell 5.1, real execution)
 
-- `skills-source/tsc-only/forge-audit/SKILL.md` - line 3: "a code-maintenance
-  file such as CLAUDE.md is specifically requested" -> "a code-maintenance or
-  agent-configuration file is specifically requested". Self-lock line intact.
-  One line changed.
-- `skills-source/shared/sales-assist/SKILL.md` - adds the standard "Never
-  rewrite this skill file on your own initiative..." self-lock line after the
-  Trigger line (with a placeholder-applies-now clarification). One line
-  added.
-- `.hermes.template.md` - L26: the "reserved sub-action name collision"
-  explanation replaced with a "CORRECTION (2026-08-29)" paragraph describing
-  the real `skills-guard-v1` "CLAUDE.md" cause. Router: new web-navigator
-  entry added after the escalation-packet line, matching every other mode's
-  `(read .hermes/skills/X in full)` pattern.
-- `README.md` - L42: the same "reserved sub-action name" text replaced with a
-  matching CORRECTION note.
+The full script cannot run end-to-end here: `$cloneUrl` still contains
+`YOUR_TOKEN_HERE`, so the real script `exit 1`s at its own guard well before
+the new block. The new block is self-contained (depends only on `$env:*` and
+its own locals), so it was extracted **verbatim** (byte-for-byte, sha256 of
+file lines 99-132 == sha256 of the harness block) into a harness that sets
+`$ErrorActionPreference = "Stop"` (matching the script) and runs it with
+`Read-Host` fed from redirected stdin - real `Test-Path` / `Get-Content` /
+`Select-String` / `Remove-Item` against a real on-disk sandbox Hermes dir
+(`config.yaml` + `.env` + `skills/keep.txt` + `memories/MEMORY.md` +
+`sessions/session1.json` + `SOUL.md`).
 
-Post-placement verification:
-- `grep -rn "CLAUDE.md" skills-source/` -> **0 hits**. No other
-  scanner-tripping token (`AGENTS.md`, `.cursorrules`, `.clinerules`,
-  `.hermes/config.yaml`, `.hermes/SOUL.md`, `.claude/settings`,
-  `.codex/config`) anywhere in `skills-source/`.
-- All 4 placed files pure ASCII.
-- Assembled context recomputed: **FULL 17,209 chars, SALES 17,203** (matches
-  the handoff's ~17,209 / ~17,203 estimate; ~2,795 under the 20,000 limit).
-  Zero unreplaced `{{...}}`. Template still has exactly the two markers, once
-  each.
+| Scenario | Answer | Result |
+|---|---|---|
+| Existing config | `1` | Prompt shown; `Current model setting: default: claude-fable-5`; all 6 sandbox files byte-identical before/after (0 changes). |
+| Existing config | `2` | `config.yaml` + `.env` removed; `skills/keep.txt`, `memories/MEMORY.md`, `sessions/session1.json`, `SOUL.md` all byte-identical. Exactly the two files, nothing else. |
+| Existing config | *(empty / Enter)* | "Leaving ... untouched"; 0 changes. |
+| Existing config | `3` | "Leaving ... untouched"; 0 changes. Only the exact string `2` triggers removal. |
+| No config present | `1` | Block is a complete no-op, no prompt (`Test-Path` false). |
 
-## Live verification of the real fix (the step the first rename skipped)
+Additional check against the **real** `%LOCALAPPDATA%\hermes` (else-branch,
+answer `1` only - the delete branch is unreachable without an exact `2`):
+resolved `C:\Users\kwalk\AppData\Local\hermes\config.yaml`, printed
+`Current model setting: default: claude-fable-5` (matches `hermes doctor`),
+and the real dir's top-level files were sha256-identical before and after.
 
-No real Anthropic key on this drive, so a full `launch-north-forge` run
-stops at the key guard before starting a session. The skills-list check does
-not need a session or a key - ran exactly the launcher's pre-guard steps:
+All scenarios exit 0.
 
-1. Rebuilt `.hermes/skills/` for FULL (`cp -r skills-source/shared/. ` +
-   `skills-source/tsc-only/. `) -> 10 skill folders incl. `forge-audit`.
-2. `hermes skills trust .` -> "10 project skill(s) will load".
-3. `hermes skills list --source local` ->
+## Session-start check
 
 ```
-0 hub-installed, 0 builtin, 10 local - 10 enabled, 0 disabled
+SESSION START CHECK
+Pulled: Already up to date
+Last audit read: Yes - prior session placed the Zone B forge-audit real-fix
+  handoff + 3 Zone A fixes; status "Clean / resolved"; open item is the
+  pre-existing missing Anthropic key on this drive.
+Uncommitted at start: provision-new-drive.ps1 (working tree already held a
+  byte-for-byte copy of the ~/Downloads handoff; not yet committed)
+.gitignore: OK (.env, .forge-mode, .hermes.md, .hermes/ all present; also
+  config.yaml, /skills/, .claude/)
+hermes doctor: Issues found - all environment-level and pre-existing: no
+  Anthropic API key on this drive; SQLite 3.45.1 WAL-reset advisory;
+  install behind; optional deps (telegram/discord) absent; Playwright
+  Chromium not installed. No repo-content issues.
+Project skills: 10 local, 10 enabled (assist-intake, draft-writer,
+  escalation-packet, fault-logging, forge-audit, hotline-ticket, kb-builder,
+  sales-assist, training-guide, web-navigator) - forge-audit still listing,
+  matching last session's fix.
 ```
 
-   with `forge-audit` present as a listed row (assist-intake, draft-writer,
-   escalation-packet, fault-logging, **forge-audit**, hotline-ticket,
-   kb-builder, sales-assist, training-guide, web-navigator). Before the fix
-   this list showed 9 and `forge-audit` was absent.
-4. `skills-guard` scan cache for `forge-audit`: **verdict `safe`, `rules=[]`**
-   (scanned 2026-08-29T04:39:55). Before: `dangerous` / `agent_config_mod`.
-   A reworded probe copy during the evaluation had already shown the token
-   removal flips the verdict; this confirms it on the real file.
+## Zone B findings (not fixed - reported only)
 
-Not yet observed: `/audit` loading in an actual live model session (blocked
-on the API key, same as QA parts 2/4). The broken symptom was the list
-hiding it; that is fixed and verified.
-
-## Original finding 1 diagnosis (kept for continuity - now RESOLVED)
-
-`hermes skills list` withheld `forge-audit` because Hermes's `skills-guard-v1`
-scanner rule `agent_config_mod`
-(`r'AGENTS\.md|CLAUDE\.md|\.cursorrules|\.clinerules'`, critical, persistence,
-in `hermes-agent/tools/skills_guard.py`) fires on the literal string
-`CLAUDE.md` anywhere in a skill's text -> verdict `dangerous` -> hidden from
-the list (still counted by `hermes skills trust`, still assembles/loads).
-`forge-audit/SKILL.md` line 3 named `CLAUDE.md` as an example. The
-`audit/`->`forge-audit/` folder rename (`8759d15`) never addressed this - a
-folder-name change has no effect on the scanner. Reproduced both ways during
-the evaluation (token present -> dangerous -> hidden; token removed -> safe
--> listed). The repo's "reserved `hermes skills audit` sub-action name
-collision" explanation in `.hermes.template.md` L26, `README.md` L42, and
-`NEXT_STEPS.md` QA FINDING 1 was wrong; all now corrected.
-
-## Cross-check results (item by item - no change needed unless noted)
-
-- **(1) Zone coverage:** all 32 tracked files map to a Zone A/B/C list.
-  Nothing unzoned. No untracked files. On-disk `.env` / `.forge-mode` /
-  `.hermes.md` / `.hermes/skills/*` are git-ignored artifacts/secrets by
-  design.
-- **(2) Skill files:** all 10 read in full. Self-lock line: was 9/10
-  (sales-assist missing) - now 10/10 after the handoff. No stale `skills/`
-  paths. `forge-audit` H1 is still `# Audit Skill` and `fault-logging` says
-  "the audit skill" - both use the intentional user-facing `/audit` name.
-- **(3) Template <-> menus:** `/draft`, hotline-ticket, escalation-packet
-  router entries present and correct. `/web` present in both menu files;
-  web-navigator router entry was missing, now added by the handoff. Every
-  mode has a menu line and vice versa.
-- **(4) Assembled sizes:** FULL 16,526 / SALES 16,520 at evaluation time;
-  FULL 17,209 / SALES 17,203 after the real-fix text. Both well under
-  20,000. Zero `{{...}}`. Zero non-ASCII in the template, all mode-blocks,
-  and in fact every tracked file.
-- **(5) `.gitignore`:** post-fix, `git check-ignore -v` confirms `.env`,
-  `.forge-mode`, `.hermes.md`, `.hermes/`, `.claude/`, and `skills/` all
-  ignored; `skills-source/**` not ignored.
-- **(6) Secret scan:** `git rev-list --all` + `git grep` for `sk-ant-`,
-  `ghp_`, `github_pat_`, `AKIA` - only textual mentions of the pattern names
-  in these docs. `.env.example` = `your-key-here`; `provision-new-drive.ps1`
-  = `YOUR_TOKEN_HERE`. Clean.
-- **(7) Visibility:** `gh repo view` -> `"isPrivate": true`,
-  `"visibility": "PRIVATE"`.
-- **(8) Docs cross-check:** README / NEXT_STEPS / DEMO_PREP consistent on
-  skills built, RESET + its 4 targets, superseded setup script, private
-  repo. Corrected this cycle: the "reserved sub-action" story (finding 1).
-  Cosmetic-only: DEMO_PREP item numbering out of order (1,2,3,7,4,5,6,8,11,
-  9,10) - left alone.
-- **(9) toggle-mode scripts:** fresh read of both. `.sh` - `case` dispatch,
-  6/6 isolated-dir tests, `bash -n` clean, unchanged. `.bat` - `goto`-label
-  dispatch, 7/7 tests after the L6-7 fix. `git show c023a62` confirms the
-  RESET rebuild left FULL/SALES logic identical. RESET (both) deletes exactly
-  `.env` / `.forge-mode` / `.hermes.md` / `.hermes/skills/` - matches README
-  L80.
-- **(10) hermes doctor / skills list:** doctor issues are all
-  environment-level and pre-existing - no anthropic API key on this drive
-  (Kenneth's next step, untouched), SQLite WAL advisory, install behind,
-  optional deps absent. `hermes skills list --source local` - now 10/10 incl.
-  `forge-audit` (see live verification).
-- **KYO KB HTML:** locked contact-block values all present - portal
-  `https://kyocera.service-now.com`, downloads
-  `https://mykyocera.kyoceradocumentsolutions.us`, TSC phone
-  `1-800-255-6482`, TSC email `customer.service@da.kyocera.com`,
-  authorized-login note, `<!-- SUPPORT & RESOURCES -->`, 128x64 logo slot.
-  No `<script>`. Well-formed.
+None. No Zone B file was read for change or touched this session.
 
 ## Commits made this session
 
-- `4207e6f` - routine session-start check audit (earlier, before the task).
-- `8e1eb69` - full-repo evaluation: 3 Zone A fixes + Zone C findings.
-- `a49580f` - Zone B placement of the real-fix handoff (4 files).
-- Zone C follow-up (`NEXT_STEPS.md`) + this audit file - see `git log`.
+- `7395761` - provision-new-drive.ps1: prompt before reusing/clearing an
+  existing machine Hermes config (Zone A, pushed to origin/main).
+- (this audit file) - Zone A operational record.
 
 ## Uncertain / flagged for primary GPT review
 
-- Finding 1's mechanism, fix, and live verification are all now closed: the
-  literal `CLAUDE.md` token was the cause; removing it flips the
-  `skills-guard` verdict to `safe`; `hermes skills list --source local` now
-  shows `forge-audit` as the 10th skill. Worth the primary GPT confirming
-  the CORRECTION wording in `.hermes.template.md` L26 and `README.md` L42
-  reads correctly, since those were placed as authored content.
-- `/audit` loading in a live session (not just listing) is still unproven -
-  needs the API key, same block as QA parts 2/4.
-- The `.hermes.template.md` CORRECTION text itself contains the string
-  `CLAUDE.md` (explaining the rule). That is the always-loaded context file,
-  not a skill file - `skills-guard` scans `skills-source/` / `.hermes/skills/`
-  only, so it does not trip the scanner. Noted in case a future change moves
-  that text into a skill.
-- The three Zone A fixes (message strings + one ignore rule) were each
-  re-tested; a second look at the `toggle-mode.bat` `^(...^)` escaping is
-  reasonable since that file was already restructured once this cycle.
+- **The handoff `provision-new-drive.ps1` in `~/Downloads` is stale at the
+  top.** Its lines 16-18 revert commit `8e1eb69`'s STOP-message word-drop
+  fix. This session kept the `8e1eb69` wording and took only the additive
+  block. If the Claude Project chat regenerates this file, it should base it
+  on current `main` (post-`8e1eb69`) so the fix is not lost again.
+- **Model-line selector was changed, not placed verbatim.** Handoff used
+  `Select-String "model:"`, which on a real Hermes `config.yaml` prints
+  `Current model setting: model:` (the YAML section header). Changed to
+  `^\s*(model|default|provider)\s*:\s*\S` so the real value shows. This is a
+  Zone A file so the direct fix is within authority, but flagging because it
+  is a logic change to handed-over content - confirm the new selector and
+  the "default: ..." label read acceptably, or supply preferred wording.
+- **`$env:HERMES_HOME` branch is assumed, not verified against Hermes.** The
+  block prefers `$HERMES_HOME` over `%LOCALAPPDATA%\hermes`. That was the
+  clean injection point for testing and matches the block's own comment, but
+  whether the installed Hermes actually honors `HERMES_HOME` for its home
+  dir was not confirmed here. The `%LOCALAPPDATA%\hermes` else-branch (the
+  real-world path) was verified against the live dir.
+- **Not exercised:** the block running inside a real full
+  `provision-new-drive.ps1` invocation (blocked by the `YOUR_TOKEN_HERE`
+  guard) and a real `launch-north-forge.bat` follow-on after a "2" clear
+  (same missing-API-key block as prior sessions' QA parts 2/4). The new
+  block's own behavior is fully covered by the verbatim-extract tests above.
 
 ## Status
 
-Clean / resolved. All three evaluation findings fixed via the Zone B
-handoff; finding 1 (the headline) verified against a live `hermes skills
-list`. Zone A fixes made and tested. Working tree clean after commits. Repo
-private. Remaining open item is unrelated and pre-existing: no Anthropic key
-on this drive (blocks live mode exercise, QA parts 2/4).
+Needs primary GPT review - routine Zone A enhancement, placed + model-line
+selector fixed + tested for real on PowerShell 5.1, committed and pushed
+(`7395761`). Two items for the Claude Project chat: (1) regenerate any
+future `provision-new-drive.ps1` handoff from post-`8e1eb69` `main` so the
+STOP-message fix is not dropped; (2) confirm the model-line selector change.
