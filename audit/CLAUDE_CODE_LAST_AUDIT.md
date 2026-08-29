@@ -1,268 +1,216 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-08-29 (full repository evaluation)
+Timestamp: 2026-08-29 (full repo evaluation, then Zone B real-fix placement + live verification)
 
-Requested task: Genuinely comprehensive repo evaluation ahead of Kenneth
-personally testing this on his drive - 10 explicit checks: (1) zone coverage
-of every file, (2) all 10 skill files read in full + self-lock line + stale
-paths, (3) template <-> mode-blocks cross-check incl. /web//draft/hotline/
-escalation router entries, (4) recompute FULL/SALES assembled sizes + marker
-+ non-ASCII, (5) `.gitignore` via `git check-ignore -v` incl. legacy `skills/`,
-(6) full git-history secret scan, (7) repo visibility, (8) README/NEXT_STEPS/
-DEMO_PREP cross-check, (9) fresh read + live test of the just-rebuilt
-toggle-mode scripts, (10) `hermes doctor` / `hermes skills list`. Zone B
-read-only (report only); Zone A/C fix per standing authorization.
+Requested task: (1) Comprehensive repository evaluation ahead of Kenneth
+personally testing the drive - 10 explicit checks. (2) Then place a Zone B
+handoff from the Claude Project chat
+(`north-forge-hermes-audit-realfix.zip`, 4 files) fixing the three findings,
+commit/push, and - since the first `audit/`->`forge-audit/` rename was
+declared done without ever being checked against a live skill list - verify
+against `hermes skills list` that `forge-audit` now appears.
 
 ## Files inspected
 
-Every tracked file (32):
-- Zone A: `.env.example`, `.gitignore`, `launch-north-forge.bat`,
-  `launch-north-forge.sh`, `toggle-mode.bat`, `toggle-mode.sh`,
-  `setup-thumbdrive.ps1`, `provision-new-drive.ps1`, `skins/north-forge.yaml`,
-  `audit/CLAUDE_CODE_LAST_AUDIT.md`.
-- Zone B: `.hermes.template.md`, `mode-blocks/full-banner.md`,
-  `mode-blocks/full-menu.md`, `mode-blocks/sales-banner.md`,
-  `mode-blocks/sales-menu.md`, all 10 `skills-source/**/SKILL.md`
-  (assist-intake, draft-writer, escalation-packet, fault-logging,
-  forge-audit, hotline-ticket, kb-builder, training-guide; shared:
-  sales-assist, web-navigator), `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`
-  (non-ASCII/structure scan), `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html`,
-  `README.md`, `ATTRIBUTION.md`, `CLAUDE.md`.
-- Zone C: `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md`.
-- Engine source (installed, read-only): `hermes-agent/tools/skills_guard.py`,
-  `hermes-agent/agent/skill_commands.py`, `hermes-agent/hermes_cli/skills_config.py`,
+- Every tracked file (32): Zone A x10, Zone B x20 (template, 4 mode-blocks,
+  10 skills, fallback, KYO HTML, README, ATTRIBUTION, CLAUDE.md), Zone C x2.
+- Installed engine source (read-only): `hermes-agent/tools/skills_guard.py`,
+  `agent/skill_commands.py`, `hermes_cli/skills_config.py`;
   `~/AppData/Local/hermes/cache/project_skill_scans/*.json`.
 
-## Zone A changes made
+## Zone A changes made (commit `8e1eb69`)
 
-1. **`.gitignore`** - added a root-anchored `/skills/` rule (+7 lines incl.
-   comment).
-   - Before: no `skills/` pattern anywhere (the word appears only inside two
-     comments). `git check-ignore -v --no-index skills/kb-builder/SKILL.md`
-     -> NOT IGNORED; `skills/old.md` -> NOT IGNORED. The earlier
-     `git check-ignore -v "skills/"` -> `.gitignore:39:` was a false positive
-     on the blank line 39.
-   - After: `skills/`, `skills/old.md`, `skills/kb-builder/SKILL.md` ->
-     ignored via `.gitignore:50:/skills/`. `skills-source/tsc-only/...` and
-     `skills-source/shared/...` -> still NOT ignored (tracked source
-     untouched). `.env`/`.forge-mode`/`.hermes.md`/`.hermes/`/`.claude/` ->
-     still ignored.
-   - Why: item 5 explicitly requires the legacy wrong folder name be
-     excluded; an old build artifact named `skills/` could otherwise be
-     committed by accident.
-   - Commit: see "Commits" below.
+1. **`.gitignore`** - added root-anchored `/skills/` (+7 lines incl. comment).
+   Before: no `skills/` pattern anywhere; `git check-ignore --no-index
+   skills/kb-builder/SKILL.md` -> NOT IGNORED. After: `skills/**` ignored via
+   `.gitignore:50:/skills/`; `skills-source/**` still tracked; all other
+   required patterns (`.env`, `.forge-mode`, `.hermes.md`, `.hermes/`,
+   `.claude/`) still ignored. Why: item 5 requires the legacy wrong folder
+   name be excluded so an old build artifact can't be committed by accident.
 
 2. **`provision-new-drive.ps1`** - repaired the placeholder-token STOP
-   message (2 `Write-Host` lines).
-   - Before (garbled by a word-drop in commit `aed82d7`):
-     `"...Before handing this"` / `"the line that sets cloneUrl near the top
-     of this file and replace YOUR_TOKEN_HERE"` / `"with the real read-only
-     access token (see README.md...)."` - "Before handing this" has no
-     object; the next line has no verb.
-   - After: `"...Before handing this"` / `"drive to anyone, edit the line
-     that sets cloneUrl near the top of this file"` / `"and replace
-     YOUR_TOKEN_HERE with the real read-only access token (see README.md for
-     how to generate one)."` - reads as one clean sentence; restores the
-     "drive to anyone, edit" phrase that `aed82d7` dropped while swapping in
-     the "line that sets cloneUrl" wording.
-   - `Write-Host` strings only. Guard logic (`if ($cloneUrl -match
-     "YOUR_TOKEN_HERE") { ... exit 1 }`) untouched. PowerShell
-     `Parser::ParseFile` -> no syntax errors.
+   message (2 `Write-Host` lines). Before (word-drop from commit `aed82d7`):
+   `"...Before handing this"` / `"the line that sets cloneUrl near the top of
+   this file and replace YOUR_TOKEN_HERE"` - "Before handing this" has no
+   object, next line has no verb. After: `"...Before handing this"` / `"drive
+   to anyone, edit the line that sets cloneUrl near the top of this file"` /
+   `"and replace YOUR_TOKEN_HERE with the real read-only access token (see
+   README.md for how to generate one)."` `Write-Host` strings only; guard
+   logic unchanged; `Parser::ParseFile` clean.
 
-3. **`toggle-mode.bat` lines 6-7** - fixed a malformed `else` branch.
-   - Before:
-     `if exist ".forge-mode" (type ".forge-mode") else (echo (none set - defaults to SALES)`
-     then a lone `)` on the next line. On a first run (no `.forge-mode`) cmd
-     consumed the `)` inside the echo text as the block terminator and
-     printed `(none set - defaults to SALES` with no closing paren; the lone
-     `)` was an orphan.
-   - After (one line, escaped parens):
-     `if exist ".forge-mode" (type ".forge-mode") else (echo ^(none set - defaults to SALES^))`
-   - Pre-existing defect (present in the `c023a62` diff context, not
-     introduced by the RESET rebuild).
-   - Re-tested the ACTUAL edited file, 7 cases via `cmd.exe` with stdin
-     redirected from a file: FULL -> `.forge-mode`=full; SALES (no
-     `.forge-mode`) -> prints `(none set - defaults to SALES)` WITH close
-     paren, sets `.forge-mode`=sales; bogus -> "Didn't recognize that..."
-     unchanged; RESET+`YES` -> `.env` / `.forge-mode` / `.hermes.md` /
-     `.hermes\skills` all deleted, `.env.example` + `skills-source/` intact;
-     RESET+`yes` and RESET+blank -> "Cancelled - nothing was deleted.";
-     RESET+`YES` on an already-clean dir -> no-op. All exit 0, zero stderr.
+3. **`toggle-mode.bat` L6-7** - fixed a malformed `else` branch. Before:
+   `else (echo (none set - defaults to SALES)` + a lone `)` on the next line
+   -> printed `(none set - defaults to SALES` (no close paren) on a first run
+   with no `.forge-mode`. After (one line, escaped): `else (echo ^(none set -
+   defaults to SALES^))`. Pre-existing defect (in the `c023a62` diff
+   context, not introduced by the RESET rebuild). Re-tested the actual edited
+   file, 7 cases via `cmd.exe` stdin-redirect - all exit 0, no parse errors,
+   RESET still wipes exactly `.env` / `.forge-mode` / `.hermes.md` /
+   `.hermes\skills` and leaves `.env.example` + `skills-source/` intact.
 
 Also regenerated the git-ignored build artifacts `.hermes/skills/` and
-`.hermes.md` for FULL (exactly as `launch-north-forge.sh` does) so the drive
-is left internally consistent - before this session `.hermes.md` was stale
-(pre-`forge-audit` rename, 16,164 chars, still said `/audit` not
-`forge-audit`). Not a tracked change; `git status` stayed clean.
+`.hermes.md` for FULL (as the launcher does) so the drive is internally
+consistent; `git status` stayed clean.
 
-## Zone B findings (not fixed - reported only)
+## Zone B placement (commit `a49580f`) - handoff from the Claude Project chat
 
-### 1. HEADLINE: the `forge-audit` list-drop is misdiagnosed in three files, and the 2026-08-28 fix did not work
+`north-forge-hermes-audit-realfix.zip` (found in `~/Downloads`) contained
+exactly 4 files at correct repo-relative paths - no absolute paths, no `..`,
+nothing extra. Extracted with overwrite; `git status` showed exactly the 4
+expected files modified. Placed byte-for-byte, not composed or edited by
+Claude Code. Each diff matched the stated intent:
 
-- `hermes skills list --source local` shows 9 of the 10 built project
-  skills. `forge-audit` is the one missing - **still**, after the
-  `audit/` -> `forge-audit/` rename (commit `8759d15`). Verified this
-  session against a clean FULL rebuild of `.hermes/skills/`.
-- `hermes skills trust .` reports "10 project skill(s) will load", so the
-  skill is seen and (per the package's own docs) still assembles into a
-  session - it is only hidden from the *list*.
-- Root cause, confirmed by reading engine source
-  `hermes-agent/tools/skills_guard.py` (~line 462) and the scan cache
-  `~/AppData/Local/hermes/cache/project_skill_scans/*.json`:
-  the `skills-guard-v1` rule `agent_config_mod`
-  (`r'AGENTS\.md|CLAUDE\.md|\.cursorrules|\.clinerules'`, severity critical,
-  category persistence, "references agent config files") fires on the
-  literal string `CLAUDE.md`. `forge-audit/SKILL.md` line 3 reads
-  "...Use this skill unless a code-maintenance file such as CLAUDE.md is
-  specifically requested...". That single token -> scan verdict
-  `dangerous` -> withheld from `hermes skills list`.
-- Proven this session: a byte-copy of the skill with only that phrase
-  reworded (no `CLAUDE.md` token) scans `safe` and appears in the list
-  normally (10 local). Copies that kept the token but changed the folder
-  name (`forge-review`, `zzz-probe`) still scanned `dangerous` and still
-  did not list - so the folder/skill NAME is irrelevant to this behaviour.
-- Therefore these statements in the repo are WRONG:
-  - `.hermes.template.md` L26 - "'audit' collides with a reserved
-    sub-action name in Hermes's own `hermes skills audit` command and
-    silently gets dropped from `hermes skills list`".
-  - `README.md` L42 - same "reserved sub-action name" claim.
-  - `NEXT_STEPS.md` QA FINDING 1 - "collided with Hermes's reserved
-    `hermes skills audit` sub-action ... FIXED 2026-08-28 (`8759d15`):
-    renamed ...". (A CORRECTION note was added under it this session -
-    Zone C.)
-- Suggested Zone B fix (Blacksmith / Claude Project chat, NOT Claude Code):
-  reword `forge-audit/SKILL.md` line 3 so it does not contain the literal
-  `CLAUDE.md` (e.g. "a code-maintenance / agent-configuration file"), then
-  re-scan to confirm `safe` + listed; and correct the explanation text in
-  `.hermes.template.md` L26 and `README.md` L42. The folder name (`audit`
-  vs `forge-audit`) can be decided separately - it does not affect this.
+- `skills-source/tsc-only/forge-audit/SKILL.md` - line 3: "a code-maintenance
+  file such as CLAUDE.md is specifically requested" -> "a code-maintenance or
+  agent-configuration file is specifically requested". Self-lock line intact.
+  One line changed.
+- `skills-source/shared/sales-assist/SKILL.md` - adds the standard "Never
+  rewrite this skill file on your own initiative..." self-lock line after the
+  Trigger line (with a placeholder-applies-now clarification). One line
+  added.
+- `.hermes.template.md` - L26: the "reserved sub-action name collision"
+  explanation replaced with a "CORRECTION (2026-08-29)" paragraph describing
+  the real `skills-guard-v1` "CLAUDE.md" cause. Router: new web-navigator
+  entry added after the escalation-packet line, matching every other mode's
+  `(read .hermes/skills/X in full)` pattern.
+- `README.md` - L42: the same "reserved sub-action name" text replaced with a
+  matching CORRECTION note.
 
-### 2. `skills-source/shared/sales-assist/SKILL.md` has no self-lock line
+Post-placement verification:
+- `grep -rn "CLAUDE.md" skills-source/` -> **0 hits**. No other
+  scanner-tripping token (`AGENTS.md`, `.cursorrules`, `.clinerules`,
+  `.hermes/config.yaml`, `.hermes/SOUL.md`, `.claude/settings`,
+  `.codex/config`) anywhere in `skills-source/`.
+- All 4 placed files pure ASCII.
+- Assembled context recomputed: **FULL 17,209 chars, SALES 17,203** (matches
+  the handoff's ~17,209 / ~17,203 estimate; ~2,795 under the 20,000 limit).
+  Zero unreplaced `{{...}}`. Template still has exactly the two markers, once
+  each.
 
-The other 9 skill files all carry "Never rewrite this skill file on your own
-initiative..." `sales-assist/SKILL.md` does not. It is explicitly a
-placeholder ("PLACEHOLDER - NOT YET AUTHORED"), but the line should be added
-when its real content is authored, so the lock is present from day one.
-Zone B.
+## Live verification of the real fix (the step the first rename skipped)
 
-### 3. web-navigator has a menu line but no router paragraph
+No real Anthropic key on this drive, so a full `launch-north-forge` run
+stops at the key guard before starting a session. The skills-list check does
+not need a session or a key - ran exactly the launcher's pre-guard steps:
 
-`.hermes.template.md`'s `<assistant_router_rule>` gives every mode an
-explicit "User asks X: run Y (read .hermes/skills/Z in full)" line - except
-web-navigator. `/web or /links` IS present and correct in both
-`mode-blocks/full-menu.md` (L13) and `mode-blocks/sales-menu.md` (L4), with
-the natural-language trigger note, and the skill's own SKILL.md has a clear
-trigger. Per commit `d414f81` the `/web` entry was deliberately added to the
-menus only. So this is a consistency observation, not a functional break -
-noted for the Blacksmith to decide whether the router should also name it.
+1. Rebuilt `.hermes/skills/` for FULL (`cp -r skills-source/shared/. ` +
+   `skills-source/tsc-only/. `) -> 10 skill folders incl. `forge-audit`.
+2. `hermes skills trust .` -> "10 project skill(s) will load".
+3. `hermes skills list --source local` ->
 
-### 4. Minor / cosmetic (Zone B, no action expected)
+```
+0 hub-installed, 0 builtin, 10 local - 10 enabled, 0 disabled
+```
 
-- `forge-audit/SKILL.md` H1 is still `# Audit Skill` (folder is
-  `forge-audit`); `fault-logging/SKILL.md` refers to "the audit skill".
-  Both use the user-facing `/audit` name, which the template says is
-  intentional - so this is naming drift, not an error.
-- `.hermes.template.md` + `mode-blocks/*` are LF; `README.md`, `CLAUDE.md`,
-  the skill files are CRLF. `core.autocrlf=true`, no `.gitattributes`, so
-  committed blobs are normalised - harmless.
-- `setup-thumbdrive.ps1` (SUPERSEDED per README L54) still points at
-  `kb-builder` only in its closing hint - fine, kb-builder still exists;
-  not worth touching a superseded file.
+   with `forge-audit` present as a listed row (assist-intake, draft-writer,
+   escalation-packet, fault-logging, **forge-audit**, hotline-ticket,
+   kb-builder, sales-assist, training-guide, web-navigator). Before the fix
+   this list showed 9 and `forge-audit` was absent.
+4. `skills-guard` scan cache for `forge-audit`: **verdict `safe`, `rules=[]`**
+   (scanned 2026-08-29T04:39:55). Before: `dangerous` / `agent_config_mod`.
+   A reworded probe copy during the evaluation had already shown the token
+   removal flips the verdict; this confirms it on the real file.
 
-## Zone C changes made
+Not yet observed: `/audit` loading in an actual live model session (blocked
+on the API key, same as QA parts 2/4). The broken symptom was the list
+hiding it; that is fixed and verified.
 
-- `NEXT_STEPS.md` - added a "CORRECTION 2026-08-29" note under QA FINDING 1
-  (the forge-audit misdiagnosis), and a new "Full repository evaluation
-  (2026-08-29)" section recording the three Zone A fixes, the Zone B
-  findings, the recomputed assembled sizes, and what is left for Kenneth's
-  first launch to confirm.
-- `DEMO_PREP_BACKLOG.md` - added item 12 (`/audit` skill missing from
-  `hermes skills list`), demo-impact framed, pointing at the Zone B reword.
+## Original finding 1 diagnosis (kept for continuity - now RESOLVED)
 
-## Cross-check results (no change needed)
+`hermes skills list` withheld `forge-audit` because Hermes's `skills-guard-v1`
+scanner rule `agent_config_mod`
+(`r'AGENTS\.md|CLAUDE\.md|\.cursorrules|\.clinerules'`, critical, persistence,
+in `hermes-agent/tools/skills_guard.py`) fires on the literal string
+`CLAUDE.md` anywhere in a skill's text -> verdict `dangerous` -> hidden from
+the list (still counted by `hermes skills trust`, still assembles/loads).
+`forge-audit/SKILL.md` line 3 named `CLAUDE.md` as an example. The
+`audit/`->`forge-audit/` folder rename (`8759d15`) never addressed this - a
+folder-name change has no effect on the scanner. Reproduced both ways during
+the evaluation (token present -> dangerous -> hidden; token removed -> safe
+-> listed). The repo's "reserved `hermes skills audit` sub-action name
+collision" explanation in `.hermes.template.md` L26, `README.md` L42, and
+`NEXT_STEPS.md` QA FINDING 1 was wrong; all now corrected.
 
-- **Zone coverage (item 1):** all 32 tracked files map to a Zone A/B/C list
-  in `CLAUDE.md`. Nothing unzoned. No untracked files. `.env` /
-  `.forge-mode` / `.hermes.md` / `.hermes/skills/*` present on disk are
-  git-ignored build artifacts/secrets by design, not zoned.
-- **Assembled context (item 4), recomputed by replaying the launcher's
-  substitution in-memory:** FULL = **16,526 chars**, SALES = **16,520
-  chars** - both ~3,480 under the 20,000 truncation limit. Zero unreplaced
-  `{{...}}` in either. Template has exactly the two markers, once each.
-  Zero non-ASCII in `.hermes.template.md`, all four `mode-blocks/*`, and in
-  fact every one of the 32 tracked files (full scan). Supersedes the
-  "16,076 / ~16,170" numbers in NEXT_STEPS.
-- **`.gitignore` (item 5), post-fix, via `git check-ignore -v`:** `.env`
-  (`*.env`), `.forge-mode`, `.hermes.md`, `.hermes/` (`/.hermes/`),
-  `.claude/`, and now `skills/` (`/skills/`) - all ignored;
-  `skills-source/**` correctly NOT ignored.
-- **Secret scan (item 6):** `git rev-list --all` + `git grep` for `sk-ant-`,
-  `ghp_`, `github_pat_`, `AKIA` across every revision - only hits are
-  textual mentions of the pattern names themselves in `DEMO_PREP_BACKLOG.md`
-  / `audit/CLAUDE_CODE_LAST_AUDIT.md` (rev `589ed0f`). `.env.example` =
-  `your-key-here`; `provision-new-drive.ps1` = `YOUR_TOKEN_HERE`. Clean.
-- **Visibility (item 7):** `gh repo view` -> `"isPrivate": true`,
+## Cross-check results (item by item - no change needed unless noted)
+
+- **(1) Zone coverage:** all 32 tracked files map to a Zone A/B/C list.
+  Nothing unzoned. No untracked files. On-disk `.env` / `.forge-mode` /
+  `.hermes.md` / `.hermes/skills/*` are git-ignored artifacts/secrets by
+  design.
+- **(2) Skill files:** all 10 read in full. Self-lock line: was 9/10
+  (sales-assist missing) - now 10/10 after the handoff. No stale `skills/`
+  paths. `forge-audit` H1 is still `# Audit Skill` and `fault-logging` says
+  "the audit skill" - both use the intentional user-facing `/audit` name.
+- **(3) Template <-> menus:** `/draft`, hotline-ticket, escalation-packet
+  router entries present and correct. `/web` present in both menu files;
+  web-navigator router entry was missing, now added by the handoff. Every
+  mode has a menu line and vice versa.
+- **(4) Assembled sizes:** FULL 16,526 / SALES 16,520 at evaluation time;
+  FULL 17,209 / SALES 17,203 after the real-fix text. Both well under
+  20,000. Zero `{{...}}`. Zero non-ASCII in the template, all mode-blocks,
+  and in fact every tracked file.
+- **(5) `.gitignore`:** post-fix, `git check-ignore -v` confirms `.env`,
+  `.forge-mode`, `.hermes.md`, `.hermes/`, `.claude/`, and `skills/` all
+  ignored; `skills-source/**` not ignored.
+- **(6) Secret scan:** `git rev-list --all` + `git grep` for `sk-ant-`,
+  `ghp_`, `github_pat_`, `AKIA` - only textual mentions of the pattern names
+  in these docs. `.env.example` = `your-key-here`; `provision-new-drive.ps1`
+  = `YOUR_TOKEN_HERE`. Clean.
+- **(7) Visibility:** `gh repo view` -> `"isPrivate": true`,
   `"visibility": "PRIVATE"`.
-- **Docs cross-check (item 8):** README / NEXT_STEPS / DEMO_PREP agree with
-  each other and the tree on: 8 tsc-only + 2 shared skills all built;
-  sales-assist FAQ still a placeholder; RESET mechanism + its 4 targets;
-  `setup-thumbdrive.ps1` superseded; repo private. Stale/incorrect bits
-  found: the "reserved sub-action" explanation (finding 1); NEXT_STEPS
-  L59-61's "README L37 still says placeholders" note (resolved by `0d6ef80`);
-  NEXT_STEPS QA sizes (superseded above); DEMO_PREP item numbering out of
-  order (1,2,3,7,4,5,6,8,11,9,10 - cosmetic, left alone).
-- **toggle-mode scripts (item 9):** fresh read of both. `.sh` - `case`
-  dispatch, 6/6 isolated-dir tests pass, `bash -n` clean, unchanged this
-  session. `.bat` - `goto`-label dispatch, 7/7 tests pass after the L6-7
-  fix. `git show c023a62` confirms the RESET rebuild left FULL/SALES logic
-  identical (same commands, moved to labels). RESET in both deletes exactly
-  `.env`, `.forge-mode`, `.hermes.md`, `.hermes/skills/` - matches README
+- **(8) Docs cross-check:** README / NEXT_STEPS / DEMO_PREP consistent on
+  skills built, RESET + its 4 targets, superseded setup script, private
+  repo. Corrected this cycle: the "reserved sub-action" story (finding 1).
+  Cosmetic-only: DEMO_PREP item numbering out of order (1,2,3,7,4,5,6,8,11,
+  9,10) - left alone.
+- **(9) toggle-mode scripts:** fresh read of both. `.sh` - `case` dispatch,
+  6/6 isolated-dir tests, `bash -n` clean, unchanged. `.bat` - `goto`-label
+  dispatch, 7/7 tests after the L6-7 fix. `git show c023a62` confirms the
+  RESET rebuild left FULL/SALES logic identical. RESET (both) deletes exactly
+  `.env` / `.forge-mode` / `.hermes.md` / `.hermes/skills/` - matches README
   L80.
+- **(10) hermes doctor / skills list:** doctor issues are all
+  environment-level and pre-existing - no anthropic API key on this drive
+  (Kenneth's next step, untouched), SQLite WAL advisory, install behind,
+  optional deps absent. `hermes skills list --source local` - now 10/10 incl.
+  `forge-audit` (see live verification).
 - **KYO KB HTML:** locked contact-block values all present - portal
   `https://kyocera.service-now.com`, downloads
   `https://mykyocera.kyoceradocumentsolutions.us`, TSC phone
   `1-800-255-6482`, TSC email `customer.service@da.kyocera.com`,
-  authorized-login note, `<!-- SUPPORT & RESOURCES -->` / "Support &
-  Resources", 128x64 logo slot. No `<script>`. One `<html>`/`</html>`.
-- **`hermes doctor` (item 10):** the only issues are environment-level and
-  pre-existing - `model.provider 'anthropic'` set but no API key on this
-  drive (Kenneth's own next step, NOT touched); SQLite 3.45.1 WAL-reset
-  advisory; hermes install 582 commits behind; optional Telegram/Discord/
-  Playwright deps absent. No repo or content problem.
-- **`hermes skills list --source local`:** 9 shown, all enabled -
-  assist-intake, draft-writer, escalation-packet, fault-logging,
-  hotline-ticket, kb-builder, sales-assist, training-guide, web-navigator.
-  `forge-audit` withheld - see finding 1.
+  authorized-login note, `<!-- SUPPORT & RESOURCES -->`, 128x64 logo slot.
+  No `<script>`. Well-formed.
 
 ## Commits made this session
 
-See `git log`. One commit for the three Zone A fixes + the two Zone C doc
-updates + this audit file (all auto-authorised: Zone A fixes, Zone C
-updates, Zone A audit record).
+- `4207e6f` - routine session-start check audit (earlier, before the task).
+- `8e1eb69` - full-repo evaluation: 3 Zone A fixes + Zone C findings.
+- `a49580f` - Zone B placement of the real-fix handoff (4 files).
+- Zone C follow-up (`NEXT_STEPS.md`) + this audit file - see `git log`.
 
 ## Uncertain / flagged for primary GPT review
 
-- **Finding 1 is the one to scrutinise.** The mechanism is verified against
-  engine source and reproduced both ways (token present -> dangerous ->
-  hidden; token removed -> safe -> listed), but the fix is Zone B and needs
-  the Blacksmith / Claude Project chat to reword `forge-audit/SKILL.md`
-  line 3 and correct `.hermes.template.md` L26 + `README.md` L42. Until
-  then, anyone running `hermes skills list` will see `/audit` as missing.
-- Whether `/audit` still *loads* in a live session despite being hidden
-  from the list is asserted by the package's own docs and by the "10 will
-  load" trust count, but has not been observed live (blocked on the API
-  key, same as QA parts 2/4).
-- The three Zone A fixes are message-string / ignore-rule only, each
-  re-tested, but a second look at the `toggle-mode.bat` L6-7 change
-  (`^(...^)` escaping) is reasonable since that file was already
-  restructured once this cycle.
-- web-navigator router-vs-menu asymmetry (finding 3) - judgement call for
-  the Blacksmith, not obviously a defect.
+- Finding 1's mechanism, fix, and live verification are all now closed: the
+  literal `CLAUDE.md` token was the cause; removing it flips the
+  `skills-guard` verdict to `safe`; `hermes skills list --source local` now
+  shows `forge-audit` as the 10th skill. Worth the primary GPT confirming
+  the CORRECTION wording in `.hermes.template.md` L26 and `README.md` L42
+  reads correctly, since those were placed as authored content.
+- `/audit` loading in a live session (not just listing) is still unproven -
+  needs the API key, same block as QA parts 2/4.
+- The `.hermes.template.md` CORRECTION text itself contains the string
+  `CLAUDE.md` (explaining the rule). That is the always-loaded context file,
+  not a skill file - `skills-guard` scans `skills-source/` / `.hermes/skills/`
+  only, so it does not trip the scanner. Noted in case a future change moves
+  that text into a skill.
+- The three Zone A fixes (message strings + one ignore rule) were each
+  re-tested; a second look at the `toggle-mode.bat` `^(...^)` escaping is
+  reasonable since that file was already restructured once this cycle.
 
 ## Status
 
-Needs primary GPT review - Zone B finding 1 (forge-audit misdiagnosis +
-non-working fix) needs a Blacksmith reword; finding 2 (sales-assist
-self-lock) and finding 3 (web-navigator router entry) are lower priority.
-Zone A fixes made and tested; Zone C updated; working tree clean after
-commit; repo private.
+Clean / resolved. All three evaluation findings fixed via the Zone B
+handoff; finding 1 (the headline) verified against a live `hermes skills
+list`. Zone A fixes made and tested. Working tree clean after commits. Repo
+private. Remaining open item is unrelated and pre-existing: no Anthropic key
+on this drive (blocks live mode exercise, QA parts 2/4).

@@ -110,29 +110,33 @@ read; both launchers exercised in isolated dirs; git history re-scanned;
   one line with escaped parens. Re-tested 7 cases (FULL/SALES/bogus/RESET x4)
   - all exit 0, no parse errors, RESET still wipes exactly the 4 targets.
 
-### Zone B / Zone C findings (reported, NOT changed by Claude Code)
+### Zone B / Zone C findings (all three RESOLVED 2026-08-29 - see below)
 - **forge-audit list-drop misdiagnosis** - see the CORRECTION under QA
   FINDING 1 above. Headline item. Real cause is the literal `CLAUDE.md`
   token in `forge-audit/SKILL.md` line 3 tripping Hermes's `skills-guard`
   `agent_config_mod` rule; the `audit/`->`forge-audit/` rename did not fix
-  it. Needs a Zone B reword of that one line + a docs correction in
-  `.hermes.template.md` L26 and `README.md` L42.
+  it. Needed a Zone B reword of that one line + a docs correction in
+  `.hermes.template.md` L26 and `README.md` L42. **RESOLVED - real-fix
+  handoff placed and verified, see "Real-fix placement" below.**
 - **`skills-source/shared/sales-assist/SKILL.md` has no "Never rewrite this
   skill file" self-lock line** - the other 9 skill files all do. It is a
   placeholder, but the line should be added when its real content is authored
-  (Zone B).
+  (Zone B). **RESOLVED - line added in the same handoff (`a49580f`).**
 - **web-navigator has no `assistant_router_rule` entry** in
   `.hermes.template.md` - it is the only skill with a `full-menu.md` line
   (`/web or /links`, present and correct in both menu files) but no router
   paragraph. Per commit `d414f81` this was deliberate (menu-only), and the
   skill's own trigger covers it, so this is a consistency note, not a break.
+  **RESOLVED - explicit web-navigator router entry added in `a49580f`.**
 - DEMO_PREP_BACKLOG item numbering is out of sequence (1,2,3,7,4,5,6,8,11,9,10).
   Cosmetic; left as-is to avoid breaking cross-references.
 
 ### Re-verified clean
 - Every tracked file maps to a Zone A/B/C list - nothing unzoned.
-- Assembled context (recomputed): **FULL 16,526 chars, SALES 16,520** - both
-  ~3,480 under the 20,000 limit; zero unreplaced `{{...}}`; zero non-ASCII in
+- Assembled context (recomputed): **FULL 16,526 chars, SALES 16,520** at the
+  time of the evaluation - then **FULL 17,209 / SALES 17,203** after the
+  2026-08-29 real-fix correction text (see "Real-fix placement" below); both
+  well under the 20,000 limit; zero unreplaced `{{...}}`; zero non-ASCII in
   the template, the mode-blocks, or in fact any tracked file. (Supersedes the
   earlier "16,076 / ~16,170" QA numbers.)
 - `.gitignore` (post-fix) excludes `.env`, `.forge-mode`, `.hermes.md`,
@@ -154,5 +158,39 @@ read; both launchers exercised in isolated dirs; git history re-scanned;
   (pre-`forge-audit` rename). A normal `launch-north-forge` run rebuilds
   both anyway.
 - With a real Anthropic key in place: exercise each mode live (QA parts 2/4,
-  still blocked on the key) and confirm `/audit` actually loads its skill in
-  a session even though `hermes skills list` hides it.
+  still blocked on the key).
+
+### Real-fix placement + live verification (2026-08-29, commit `a49580f`)
+
+Zone B handoff from the Claude Project chat - 4 files placed byte-for-byte
+(`forge-audit/SKILL.md`, `sales-assist/SKILL.md`, `.hermes.template.md`,
+`README.md`), not composed by Claude Code. Addresses all three findings
+above.
+
+- **Finding 1 - THE REAL FIX, now VERIFIED against a live list** (the thing
+  the first `audit/`->`forge-audit/` rename never did before being declared
+  done):
+  - `forge-audit/SKILL.md` line 3 no longer contains the literal string
+    `CLAUDE.md` ("a code-maintenance file such as CLAUDE.md" -> "a
+    code-maintenance or agent-configuration file"). `grep -rn "CLAUDE.md"
+    skills-source/` -> **0 hits**.
+  - Rebuilt `.hermes/skills/` for FULL, ran `hermes skills trust .`, ran
+    `hermes skills list --source local` -> **10 local skills, all enabled,
+    `forge-audit` now listed** (was 9, `forge-audit` hidden). `skills-guard`
+    scan cache for `forge-audit`: verdict `safe`, `rules=[]` (was
+    `dangerous` / `agent_config_mod`).
+  - `.hermes.template.md` L26 and `README.md` L42 now carry a CORRECTION
+    note describing the real `skills-guard` "CLAUDE.md" cause instead of the
+    wrong "reserved sub-action name collision" story.
+  - Still not observed: `/audit` loading in an actual live session (needs
+    the API key, same block as QA parts 2/4). The list now shows it, which
+    was the specific broken symptom.
+- **Finding 2** - `sales-assist/SKILL.md` now has the standard "Never
+  rewrite this skill file..." self-lock line (all 10 skill files now carry
+  it).
+- **Finding 3** - `.hermes.template.md` `<assistant_router_rule>` now has an
+  explicit web-navigator entry after escalation-packet, matching every
+  other mode's `(read .hermes/skills/X in full)` pattern.
+- Assembled context after the correction text: **FULL 17,209 chars, SALES
+  17,203** (matches the handoff's estimate; ~2,795 under the 20,000 limit).
+  Zero unreplaced `{{...}}`; all 4 placed files pure ASCII.
