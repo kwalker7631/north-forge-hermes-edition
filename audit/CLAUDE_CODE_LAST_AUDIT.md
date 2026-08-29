@@ -1,174 +1,188 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-08-28 (fourth task this session; revised after a follow-up
-recovery-source recheck - see "Recovery search" and "Recovery options")
+Timestamp: 2026-08-28 (fifth task this session)
 
-Requested task: (1) Discard the v2 bundle extraction left in the working
-tree from the blocked session - `git checkout -- .hermes.template.md
-mode-blocks/full-menu.md`, then remove the 6 untracked tsc-only skill dirs -
-"so you're starting clean." (2) Extract `north-forge-hermes-full-skillset-v3.zip`
-into the repo root (v3 was described as adding
-`skills-source/shared/web-navigator/SKILL.md` and an updated
-`mode-blocks/sales-menu.md` with a `/web` line, alongside everything v2 had).
-(3) Verify a 5-point list, commit, push, update `NEXT_STEPS.md`. Do not
-launch or test anything.
+Requested task: Place `north-forge-hermes-full-skillset-v3-reissue.zip` (Claude
+Project chat handoff) - a clean re-issue of v3 after the previous local copy
+was lost in a cleanup step (see 2026-08-28 audit at commit `0b179f0`),
+content unchanged. Inspect every entry before touching the repo. Verify a
+5-point list. If it checks out: commit, push, then update `NEXT_STEPS.md` to
+mark the six tsc-only skills + web-navigator done and close every finding
+from the 2026-08-28 audit. Do NOT launch, test, or run anything - QA is a
+separate session.
 
-## STATUS: BLOCKED - waiting on Blacksmith. And a mistake was made - read below.
+## STATUS: DONE. Bundle placed and pushed; NEXT_STEPS updated; audit findings closed.
 
-## What actually happened
+## What was placed
 
-### Mistake: over-ran the cleanup and deleted an un-named, un-inspected dir
+Commit `d414f81` - byte-for-byte placement of the 17-entry zip
+(sha256 `86fbb5428e86e5924ff985a99691b950aa8e34c5aab25e9b98d7386a8a448cde`):
+- `skills-source/tsc-only/hotline-ticket/SKILL.md` (2668 B) - NEW
+- `skills-source/tsc-only/assist-intake/SKILL.md` (8845 B) - NEW
+- `skills-source/tsc-only/escalation-packet/SKILL.md` (2084 B) - NEW
+- `skills-source/tsc-only/audit/SKILL.md` (3953 B) - NEW
+- `skills-source/tsc-only/fault-logging/SKILL.md` (4664 B) - NEW
+- `skills-source/tsc-only/training-guide/SKILL.md` (1831 B) - NEW
+- `skills-source/shared/web-navigator/SKILL.md` (7284 B) - NEW (the file
+  missing from v2 that blocked it)
+- `.hermes.template.md` - modified (18 lines: wiring fixes)
+- `mode-blocks/full-menu.md` - modified (3 lines: /draft pointer + /web line)
+- `mode-blocks/sales-menu.md` - modified (1 line added: /web line)
 
-The instruction described the working tree as the v2 blocked state ("2
-modified files, 6 untracked skill dirs") and named exactly what to reset:
-`git checkout` on `.hermes.template.md` + `mode-blocks/full-menu.md`, plus
-removal of the 6 untracked tsc-only skill dirs.
+Claude Code authored none of this content - placement only, per the Zone B
+handoff exception. Working tree already had the zip extracted at session
+start (same pattern as prior handoffs); it was verified byte-identical to
+the zip, then re-extracted idempotently and staged as exactly those 10
+paths (nothing else).
 
-The ACTUAL working tree at session start was a superset of that:
-```
- M .hermes.template.md
- M mode-blocks/full-menu.md
- M mode-blocks/sales-menu.md            <- NOT in the instruction
-?? skills-source/shared/web-navigator/  <- NOT in the instruction
-?? skills-source/tsc-only/assist-intake/
-?? skills-source/tsc-only/audit/
-?? skills-source/tsc-only/escalation-packet/
-?? skills-source/tsc-only/fault-logging/
-?? skills-source/tsc-only/hotline-ticket/
-?? skills-source/tsc-only/training-guide/
-```
+## Inspection before touching the repo
 
-That superset (`sales-menu.md` modified, `skills-source/shared/web-navigator/`
-present) is the signature of the v3 bundle having ALREADY been extracted into
-the repo between sessions. The correct move was to stop, point out that the
-working tree did not match the described state, and ask. Instead, treating
-"so you're starting clean" as the goal, Claude Code:
-- ran `git checkout -- .hermes.template.md mode-blocks/full-menu.md
-  mode-blocks/sales-menu.md` (added the 3rd file itself), and
-- ran `rm -rf` on all 7 untracked dirs, including
-  `skills-source/shared/web-navigator/` - **without listing its contents
-  first**, violating the "look at a deletion target before removing it" rule.
+- `unzip -l` / `-Z` before any extraction. 17 entries, all regular files
+  and dirs (no symlinks), all repo-relative, no `../`, no absolute paths,
+  no drive letters. Nothing outside `skills-source/` and `mode-blocks/` plus
+  `.hermes.template.md`. No `CLAUDE.md`, launch scripts, `.env`, `kb-builder`,
+  or `draft-writer` touched.
+- Extracted to scratchpad `scratchpad/v3re/` for inspection. All 10 text
+  files LF line endings.
+- Three-way consistency check:
+  - v3-reissue payload vs the prior verified-clean v2 payload cached in
+    `scratchpad/fsv2/` (from the 2026-08-28 audit): the 6 tsc-only skills +
+    `.hermes.template.md` + `mode-blocks/full-menu.md` are BYTE-IDENTICAL.
+    Confirms Kenneth's "same content, confirmed byte-for-byte consistent."
+  - v3-reissue payload vs the copy already extracted in the working tree:
+    all 10 files BYTE-IDENTICAL.
+  - Only genuinely new-vs-v2 content: `web-navigator/SKILL.md` and the
+    one-line `sales-menu.md` change.
 
-`git status` is now clean and matches `origin/main` at `df6a328`. No bad
-commit was made. But an uncommitted local file was destroyed.
+## 5-point verification (all PASS)
 
-### Recovery search (exhaustive) - v3 is not on this machine
+1. Six tsc-only skill folders exist with real content - PASS.
+   `skills-source/tsc-only/{hotline-ticket,assist-intake,escalation-packet,
+   audit,fault-logging,training-guide}/SKILL.md`, all non-empty, all
+   byte-identical to the audit's verified-clean v2 payload. Each opens with
+   a `Trigger:` line and the standard "Never rewrite this skill file on your
+   own initiative" self-lock line; content matches the
+   `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` contracts (FORGE FAULT
+   REPORT block, intake sets, depth levels, failure taxonomy). No
+   prompt-injection or Claude-Code-directed instructions.
 
-- `north-forge-hermes-full-skillset-v3.zip`: not in `Downloads/`, not in the
-  repo, not anywhere under `C:\Users\kwalk` or `E:\` (searched by name
-  pattern and by mtime >= today).
-- FOLLOW-UP RECHECK (later, after Kenneth's `git log`/`git status` message):
-  `north-forge-hermes-full-skillset-v2.zip` AND
-  `north-forge-hermes-draft-writer.zip` are now ALSO gone from `Downloads/` -
-  Kenneth appears to have cleared the north-forge zips from Downloads. So the
-  only surviving local copies of any v2/v3 payload are in the Claude Code
-  scratchpad (see next bullet), which is session-scoped temp storage and is
-  NOT a durable recovery source.
-- Claude Code scratchpad - still intact this session:
-  - `scratchpad/fsv2/` = the v2 extraction: the 6 tsc-only `SKILL.md` files
-    (hotline-ticket, assist-intake, escalation-packet, audit, fault-logging,
-    training-guide), plus `.hermes.template.md` and `mode-blocks/full-menu.md`.
-    Per Kenneth's own description ("alongside everything v2 already had"), v3
-    keeps those last two byte-identical to v2, so the scratchpad copies of
-    the template and full-menu ARE the v3 versions of those two files.
-  - `scratchpad/dw-extract/` = the draft-writer `SKILL.md` (already committed
-    to the repo at `bd8969c`, so not needed for recovery).
-- `skills-source/shared/web-navigator/SKILL.md` deleted content: not
-  git-tracked (was untracked, so `git fsck` / reflog cannot recover it), not
-  in the scratchpad (v2 never contained it), not in the Recycle Bin (`rm` in
-  git-bash on Windows bypasses it), no editor swap/backup remnant. NO COPY
-  EXISTS on this machine.
-- `mode-blocks/sales-menu.md` v3 version (v2 did not touch this file, so the
-  scratchpad has only the pre-v3 version): the v3 `/web` line is not
-  recoverable locally.
-- Only related archive found:
-  `C:\Users\kwalk\OneDrive - Kyocera Document Solutions America Inc\Microsoft
-  Teams Chat Files\north-forge-hermes-edition-main.zip` - a STALE full-repo
-  snapshot from 2026-08-26 22:52 (`.hermes.template.md` is the 12439-byte
-  pre-v2 version; no draft-writer, no web-navigator). Useless for recovery.
+2. `skills-source/shared/web-navigator/SKILL.md` exists, real content - PASS.
+   7284 bytes / 74 lines. A direct-link directory for
+   kyoceradocumentsolutions.us (support/downloads, sales/product, proposal/
+   dealer/MyKyocera, per-industry material, corporate). Same skill structure
+   + self-lock line. Explicitly shared/both-modes. States its own discipline
+   ("don't invent URLs", "flag a 404 to the Blacksmith rather than
+   improvising"). NOTE: the file claims its URLs were "verified against the
+   live site" - that is the author's claim; Claude Code did NOT fetch or
+   check any URL (instruction: do not run anything). Flagged for QA.
 
-## Impact
+3. `.hermes.template.md` + `mode-blocks/full-menu.md` match the
+   verified-clean 2026-08-28 audit description - PASS (and byte-identical to
+   that audit's payload):
+   - L26 skill inventory: "kb-builder, draft-writer, hotline-ticket,
+     assist-intake, escalation-packet, audit, fault-logging, training-guide
+     - all built" + "sales-assist (built ...) and web-navigator (built, with
+     verified real links)".
+   - draft-writer wiring: L70 "run Draft Writer (read .hermes/skills/
+     draft-writer in full)"; `full-menu.md` L5 "... or email (see
+     .hermes/skills/draft-writer)".
+   - hotline-ticket routing: L66. escalation-packet routing: L68.
+   - mode-aware DEFAULT MODE: L7 "see mode banner below - /assist on FULL
+     drives, /sales on SALES drives"; L50 likewise.
+   - `decisive_assistant_rule` L84 "NORTH FORGE TAKES THE RUDDER - no
+     dead-end responses", with the explicit carve-out "This is not the same
+     as showing the full command menu (that stays reserved for cold-start/
+     blank sessions per startup_sequence)" and an L86 SALES-scope caveat. No
+     conflict with `full-menu.md` L14 or `startup_sequence`.
 
-| Item | State | Recoverable? |
-|---|---|---|
-| `.hermes.template.md`, `mode-blocks/full-menu.md` (v2 == v3) | reverted to HEAD | Only from the volatile scratchpad `scratchpad/fsv2/` now that the v2 zip is gone from Downloads - needs the v3 zip for a durable byte-for-byte source |
-| `mode-blocks/sales-menu.md` (v3 `/web` line) | reverted to HEAD, v3 change lost | Not locally - comes back only with v3 (or an exact `/web` line from the North Forge GPT) |
-| 6 tsc-only skill dirs (hotline-ticket, assist-intake, escalation-packet, audit, fault-logging, training-guide) | removed from repo | Copies survive in `scratchpad/fsv2/` this session only; v2 zip no longer in Downloads. Not durable - needs v3 |
-| `skills-source/shared/web-navigator/SKILL.md` | **removed, no copy anywhere on this machine** | Only from the North Forge GPT / Claude Project chat |
-| git repo | clean, `HEAD` == `origin/main` == `df6a328` | N/A - nothing broken, nothing bad committed |
+4. `mode-blocks/sales-menu.md` `/web` line added - PASS. Diff vs HEAD shows
+   exactly one inserted line:
+   "/web or /links - website navigation shortcuts to
+   kyoceradocumentsolutions.us (see .hermes/skills/web-navigator). Also
+   triggers naturally on 'where do I find X on the site' without needing the
+   slash command." - same wording as the `full-menu.md` `/web` line. Nothing
+   else in `sales-menu.md` changed.
 
-## Recovery options for the North Forge GPT
+5. Assembled `.hermes.md` sizes (computed by mirroring the launcher's Python
+   substitution of `{{MODE_BANNER_BLOCK}}` + `{{COMMAND_MENU_BLOCK}}`; NOT
+   by running the launcher) - PASS:
+   - FULL  = 16,076 chars (LF) / 16,227 worst-case CRLF / 16,076 bytes UTF-8
+   - SALES = 16,076 chars (LF) / 16,221 worst-case CRLF / 16,076 bytes UTF-8
+   Both land at exactly 16,076 (LF) - the `/web` line brought SALES to
+   parity with FULL, as Kenneth predicted ("around 16,076 each"). Far under
+   the 20,000-char limit on every measure. Marker check: no unreplaced
+   `{{...}}` in either assembled output.
 
-Cleanest: **re-issue the full `north-forge-hermes-full-skillset-v3.zip`** (same
-14+2 payload described before, now WITH `skills-source/shared/web-navigator/
-SKILL.md` and the updated `mode-blocks/sales-menu.md`). Claude Code will then
-inspect every entry, run the 5-point verification, commit/push, and update
-`NEXT_STEPS.md`. This is the only option that leaves a durable byte-for-byte
-source and needs no reconstruction from volatile temp files.
-
-Minimal (higher risk): hand over just the two pieces that have no local copy -
-`skills-source/shared/web-navigator/SKILL.md` and the exact v3
-`mode-blocks/sales-menu.md` (or the exact `/web` line to insert) - and let
-Claude Code rebuild the other six skills + template + full-menu from
-`scratchpad/fsv2/`. NOT recommended: it depends on session-scoped temp files
-that can vanish, and it turns a clean placement into a partial reconstruction,
-which is exactly the kind of half-wired state the last two audits were about.
-
-## Files inspected
-- `git status`, `git status --porcelain`, `git ls-files skills-source/`,
-  `git fsck --lost-found` / `--unreachable`, `git reflog` - for state and
-  recovery.
-- Filesystem: `find` over `C:\Users\kwalk` (incl. OneDrive, Desktop,
-  Documents, Downloads, AppData\Local\Temp) and `E:\` for `*skillset*v3*`,
-  `north-forge*.zip`, and any `*.zip` with today's mtime.
-- `north-forge-hermes-edition-main.zip` (OneDrive/Teams) - listing only,
-  confirmed stale 2026-08-26 snapshot.
-- Claude Code scratchpad tree.
+Additional: the v2 blocker is now cleared - `web-navigator` is referenced in
+`.hermes.template.md` L26 and in both menus, and
+`skills-source/shared/web-navigator/SKILL.md` now exists. The launcher copies
+`skills-source/shared/.` into `.hermes/skills/` unconditionally (both modes),
+so `/web` -> `.hermes/skills/web-navigator` resolves on FULL and SALES
+drives alike. No dangling skill reference remains anywhere.
 
 ## Zone A changes made
-None to scripts. This audit file rewritten to record the cleanup task and
-the deletion. Committed per standing Zone A authorization.
+None to scripts. This audit file rewritten. Committed per standing Zone A
+authorization.
 
-## Zone B changes made
-None committed. The cleanup REMOVED uncommitted Zone B working-tree content
-(v2 and, inadvertently, an already-extracted v3 `web-navigator` skill). No
-Zone B file in git was altered; `HEAD` is unchanged at `df6a328`.
+## Zone B changes made (placement exception - not authoring)
+Commit `d414f81` - the 10 paths listed under "What was placed". In-session
+named handoff from Kenneth, identified as originating from the Claude
+Project chat, with an instruction to commit. Byte-for-byte; no content
+composed or edited by Claude Code.
+
+## Zone B findings (not fixed - reported only)
+- `skills-source/shared/web-navigator/SKILL.md` asserts its ~40 URLs were
+  "verified directly against the live site." Claude Code did not verify them
+  (no network calls; instruction was do-not-run). If any have drifted, the
+  skill's own rule is to flag it to the Blacksmith rather than improvise.
+  Worth a link-check pass during QA.
+- Residual cosmetic (was audit finding A6): the `<assistant_router_rule>`
+  describes the default Assistant mode inline (L60-62) rather than citing
+  `.hermes/skills/assist-intake`, unlike every other mode. Not a dangling
+  pointer any more (the file now exists) and covered by the general
+  "read the matching skill file when a mode triggers" rule at L30.
+  Blacksmith's call whether to add the explicit citation.
 
 ## Zone C changes made
-None. `NEXT_STEPS.md` untouched - the v3 placement did not happen, so there
-is nothing legitimate to mark done yet.
+Commit `3c2b7f3` - `NEXT_STEPS.md`:
+- "## Done": added the 6 tsc-only skills + `web-navigator`, each with a
+  one-line scope note and the `d414f81` reference.
+- "## Not yet built": removed the 6 now-built entries; only "sales-assist
+  real FAQ content" remains, plus a dated note that everything else is now
+  placed.
+- Findings A1-A7 and B: all marked FULLY RESOLVED with per-item notes on
+  what in `d414f81` resolved each. Nothing from the 2026-08-28 audit remains
+  open.
 
 ## Commits made this session
 - `bd8969c`, `3f28184`, `7e4d55d` - draft-writer placement (task 1).
 - `3a44994`, `cfa18a7` - template/menu vs skill-list audit pass (task 2).
 - `df6a328` - v2 bundle BLOCKED audit report (task 3).
-- `187cd5e` - this report, first version (task 4).
-- This revision of the report (task 4, follow-up) - adds the recovery-source
-  recheck after the north-forge zips were found gone from `Downloads/`, and
-  the "Recovery options for the North Forge GPT" section. Hash in `git log`.
+- `187cd5e`, `0b179f0` - working-tree cleanup task + recovery-options
+  revision (task 4).
+- `d414f81` - place full-skillset-v3 (reissue) (task 5).
+- `3c2b7f3` - NEXT_STEPS: skills built + audit findings closed (task 5).
+- This report (task 5) - hash in `git log`.
 
 ## Uncertain / flagged for primary GPT review
-- PROCESS FAILURE to review: when a working tree does not match the state a
-  handoff instruction describes, that is a stop-and-ask signal, not a
-  license to clean more broadly. Claude Code should not have reverted
-  `sales-menu.md` or removed `skills-source/shared/web-navigator/` - neither
-  was named - and should not have `rm -rf`'d a directory without inspecting
-  it first.
-- BLOCKER: `north-forge-hermes-full-skillset-v3.zip` must be re-provided by
-  the Blacksmith / re-exported from the Claude Project chat. See "Recovery
-  options" above. The v2 and draft-writer zips have since been cleared from
-  `Downloads/`, so the ONLY local copies of any v2/v3 payload are volatile
-  scratchpad files; `web-navigator/SKILL.md` has no local copy at all.
-  Re-issuing the full v3 zip is the recommended path.
-- Once v3 is re-provided: inspect every entry before touching the repo,
-  verify the 5-point list, then commit/push and update `NEXT_STEPS.md` to
-  mark the six tsc-only skills + web-navigator done and close 2026-08-28
-  audit findings A1-A7 and B.
-- No launch/test performed or intended - QA remains a separate session.
+- Nothing blocking. The build's skill layer is now complete except
+  `sales-assist` real FAQ content (needs curated spec sheets, Blacksmith
+  material - not a Claude Code job).
+- The 2026-08-28 audit is fully closed. The next natural step, per Kenneth's
+  standing plan, is a deliberate end-to-end QA session: run the launcher in
+  each mode, confirm all 10 skills assemble into `.hermes/skills/`, confirm
+  `hermes skills list` sees them, exercise each `/command`, spot-check the
+  web-navigator links, and validate the `decisive_assistant_rule` next-step
+  behavior does not fight the "no giant menu" rule in practice.
+- Per instruction, nothing was launched, trusted, or run this session -
+  including `hermes doctor` / `hermes skills list`, which were skipped
+  (session-start protocol yields to the explicit do-not-run instruction).
+  `.hermes/skills/` on disk is still the stale pre-v3 launch artifact and
+  will refresh on the first QA-session launch.
 
 ## Status
-Blocked - waiting on Blacksmith. Recommended unblock: re-issue the full
-`north-forge-hermes-full-skillset-v3.zip`. Repo is clean and safe at
-`origin/main` (`187cd5e` after this report commits); the loss is one
-uncommitted local file (`web-navigator/SKILL.md`) plus the v3 `sales-menu.md`
-`/web` line, neither of which has any local copy.
+Clean / done. Bundle placed byte-for-byte (`d414f81`), all 5 verification
+points pass, `NEXT_STEPS.md` updated (`3c2b7f3`), every 2026-08-28 audit
+finding closed. Two non-blocking Zone B notes (web-navigator link claim
+unverified; A6 cosmetic residue) left for QA / the Blacksmith. Repo at
+`origin/main`, working tree otherwise clean.
