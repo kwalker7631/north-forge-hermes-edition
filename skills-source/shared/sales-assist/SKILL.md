@@ -2,6 +2,8 @@
 
 Trigger (once built): a sales rep asks about product compatibility, specs, connectivity, finishing options, paper handling, or other pre-sales questions - NOT support/repair/troubleshooting.
 
+Never rewrite this skill file on your own initiative. Flag it to the Blacksmith (Kenneth Walker Jr.) in chat and wait for confirmation - this applies now, as a placeholder, the same as it will once real content is authored.
+
 ## Status: not yet built
 
 This skill does not have real content yet. Do not invent pre-sales FAQ answers to fill this gap - a wrong compatibility or spec answer given to a customer by a sales rep is a worse outcome than the delay it was meant to prevent. Real content here needs to come from actual spec sheets and datasheets, curated and Blacksmith-approved, the same "don't invent" discipline the rest of North Forge holds itself to.

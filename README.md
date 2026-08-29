@@ -39,7 +39,7 @@ skills-source/                <- the real, tracked skill content (one copy, neve
     hotline-ticket/SKILL.md      <- /hl, /ticket procedure - FULL mode only
     assist-intake/SKILL.md       <- /a, /assist procedure - FULL mode only
     escalation-packet/SKILL.md   <- /esc procedure - FULL mode only
-    forge-audit/SKILL.md         <- /audit, /chk procedure - FULL mode only. Named forge-audit, not audit - "audit" collides with a reserved sub-action name in Hermes's own `hermes skills audit` command and silently drops from `hermes skills list` if used. The user-facing command is still /audit or /chk.
+    forge-audit/SKILL.md         <- /audit, /chk procedure - FULL mode only. CORRECTION (2026-08-29): earlier named forge-audit on a wrong assumption that "audit" collided with a reserved Hermes command name - it doesn't. The real cause of it being hidden from `hermes skills list` was Hermes's security scanner flagging the literal string "CLAUDE.md" that used to appear in the skill's own text (now reworded). The folder name was never the actual issue, but is kept as forge-audit rather than reverted. The user-facing command is still /audit or /chk.
     fault-logging/SKILL.md       <- /log, /fault, /report procedure - FULL mode only
     training-guide/SKILL.md      <- /train procedure - FULL mode only
     (all 8 tsc-only skills built - see NEXT_STEPS.md for authorship history)
