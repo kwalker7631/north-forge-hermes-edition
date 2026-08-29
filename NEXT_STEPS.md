@@ -194,3 +194,33 @@ above.
 - Assembled context after the correction text: **FULL 17,209 chars, SALES
   17,203** (matches the handoff's estimate; ~2,795 under the 20,000 limit).
   Zero unreplaced `{{...}}`; all 4 placed files pure ASCII.
+
+## Blacksmith decisions (2026-08-29) - two open audit items closed
+
+Kenneth relayed these in-session after reviewing the last two audit reports
+(the `cfd618d` onboarding + custom-agent-name handoff, audit `59c6d13`; and
+the `5911c7d` CLAUDE.md STANDING RULE placement, audit `a72c1df`). Status
+update only - no code or content change was needed for either.
+
+1. **`.gitignore` `/skills/` guard - INTENTIONALLY KEPT.** The
+   onboarding-naming handoff's `.gitignore` was cut from a pre-`8e1eb69` base
+   and dropped the root-anchored `/skills/` legacy-folder guard;
+   Claude Code re-appended it verbatim when placing (commit `cfd618d`), so
+   the net change there was `+.agent-name` only. Blacksmith decision: the
+   re-append was correct, the `/skills/` guard stays. No further action;
+   future `.gitignore` handoffs should carry it.
+2. **`toggle-mode.sh` RESET-stripping working-tree edit - CLOSED as a
+   one-time anomaly.** At the start of the `cfd618d` session `git status`
+   showed `toggle-mode.sh` modified with the whole RESET branch deleted - not
+   from any handoff zip or instruction. Claude Code reverted it
+   (`git checkout -- toggle-mode.sh`, not committed); RESET is intact and
+   consistent with `toggle-mode.bat` and the README. Blacksmith decision:
+   correctly caught and reverted, no recurrence, not being investigated
+   further. Closed.
+
+Other carry-over flags from those two audits are unchanged by this update and
+remain open: the `launch-north-forge.bat` vs `.sh` `.hermes.md` CRLF byte
+divergence on `core.autocrlf=true` machines; `launch-north-forge.bat` not yet
+run end-to-end; no live model session against the current
+`.hermes.template.md` (blocked on a real Anthropic key on this drive, same as
+QA parts 2/4).
