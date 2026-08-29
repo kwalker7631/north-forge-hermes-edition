@@ -8,16 +8,56 @@
 - `skills-source/tsc-only/hotline-ticket/SKILL.md` - /hl, /ticket: clipboard-ready HL/ServiceNow ticket-note block. Placed 2026-08-28 from the full-skillset-v3 (reissue) handoff (commit `d414f81`)
 - `skills-source/tsc-only/assist-intake/SKILL.md` - /a, /assist (default mode): intake fact set, depth levels, minimum evidence packs, logs-first discipline, enterprise path discipline. Placed 2026-08-28 (`d414f81`)
 - `skills-source/tsc-only/escalation-packet/SKILL.md` - /esc: structured engineering hand-off packet. Placed 2026-08-28 (`d414f81`)
-- `skills-source/tsc-only/audit/SKILL.md` - /audit, /chk: finding format + failure taxonomy (Router / Context Handoff / Template / Output Contract / Source Discipline / Hallucination Risk). Placed 2026-08-28 (`d414f81`)
+- `skills-source/tsc-only/forge-audit/SKILL.md` - /audit, /chk: finding format + failure taxonomy (Router / Context Handoff / Template / Output Contract / Source Discipline / Hallucination Risk). Placed 2026-08-28 (`d414f81`); folder renamed from `audit/` to `forge-audit/` on 2026-08-28 (`8759d15`) - see QA Finding 1 below. User-facing command still `/audit` or `/chk`
 - `skills-source/tsc-only/fault-logging/SKILL.md` - /log, /fault, /report: FORGE FAULT REPORT / EVENT LOG / change-log blocks, persistence-reality rules. Placed 2026-08-28 (`d414f81`)
 - `skills-source/tsc-only/training-guide/SKILL.md` - /train, /t: slower guided-explanation mode, deliberate exception to the terse default. Placed 2026-08-28 (`d414f81`)
 - `skills-source/shared/web-navigator/SKILL.md` - /web, /links (both modes): direct-link directory for kyoceradocumentsolutions.us (support/downloads, sales/product, proposal/dealer, industry material). Placed 2026-08-28 (`d414f81`). Link accuracy is the author's claim ("verified against the live site") - not re-checked by Claude Code; confirm during QA
 - `skills-source/shared/sales-assist/SKILL.md` - scoped and boundary-defined, but NOT yet given real content (FAQ body still a placeholder pending real spec-sheet curation)
-- Mode toggle system (`.forge-mode`, `toggle-mode.bat`/`.sh`, launcher assembly logic) - built but not yet tested on a real Hermes session
+- Mode toggle system (`.forge-mode`, `toggle-mode.bat`/`.sh`, launcher assembly logic) - built AND exercised 2026-08-28 QA session: FULL assembles all 10 skills, SALES assembles only the 2 shared, `.hermes.md` banner/menu swap correct, `hermes skills trust` + skin activation work, all artifacts gitignored. See QA notes below.
 
 ## Not yet built (do not invent content for these - flag and wait)
 - `skills-source/shared/sales-assist/SKILL.md` real content - needs actual spec sheets/datasheets, curated and Blacksmith-approved, not written from general knowledge
-- (2026-08-28: the six tsc-only placeholders above - hotline-ticket, assist-intake, escalation-packet, audit, fault-logging, training-guide - plus web-navigator are now all built and placed from the full-skillset-v3 reissue handoff, commit `d414f81`. All 8 tsc-only skills + both shared skills now have real SKILL.md files on disk. Remaining unbuilt item is sales-assist's real FAQ content only.)
+- (2026-08-28: the six tsc-only placeholders above - hotline-ticket, assist-intake, escalation-packet, forge-audit, fault-logging, training-guide - plus web-navigator are now all built and placed from the full-skillset-v3 reissue handoff, commit `d414f81`. All 8 tsc-only skills + both shared skills now have real SKILL.md files on disk. Remaining unbuilt item is sales-assist's real FAQ content only.)
+
+## QA session (2026-08-28) - first real run of the built skills + mode toggle
+
+Ran `launch-north-forge.bat` headless in FULL and SALES (audit report at
+`audit/CLAUDE_CODE_LAST_AUDIT.md` from that session has the full command
+output). Results:
+
+- PASS - FULL assembly: `.hermes/skills/` builds all 10 (8 tsc-only +
+  sales-assist + web-navigator); `.hermes.md` ~16,170 chars, correct FULL
+  banner/menu, no stray markers.
+- PASS - SALES assembly: only the 2 shared skills; SALES banner + reject
+  list; `/web` present, FULL-only commands absent.
+- PASS - web-navigator URLs: 7 spot-checked (one per section group), all
+  HTTP 200, all land where the skill says.
+- ~~FINDING 1: the `audit` skill collided with Hermes's reserved
+  `hermes skills audit` sub-action and was dropped from `hermes skills list`
+  though it assembled/loaded.~~ FIXED 2026-08-28 (`8759d15`): renamed
+  `skills-source/tsc-only/audit/` -> `forge-audit/` (content byte-identical),
+  updated `.hermes.template.md` (inventory + router) and
+  `mode-blocks/full-menu.md` pointer. User-facing `/audit` / `/chk`
+  unchanged. Zone B placement from the Claude Project chat.
+- ~~FINDING 2: the launchers only checked that `.env` EXISTS, not that
+  `ANTHROPIC_API_KEY` was real - a placeholder passed and dropped the user
+  into a session that couldn't call a model.~~ FIXED 2026-08-28 (`8759d15`):
+  `launch-north-forge.bat` and `.sh` now also reject a missing or
+  under-30-char key and reopen the editor with a clear message. Zone A fix.
+
+STILL BLOCKED - QA parts 2 and 4 (exercise each mode live; observe
+`decisive_assistant_rule` live): Finding 2 is the reason. This specific fresh
+drive has no real Anthropic API key - the repo `.env` holds only the ~13-char
+placeholder and Hermes's own `.env` is empty, so `hermes doctor` reports the
+`anthropic` provider has no key and can't verify the API. **Kenneth needs to
+put a real (spend-capped) Anthropic key on this drive** before the live
+mode-exercise can run. After that: either run the 9 modes interactively and
+paste transcripts, or (with an explicit spend go-ahead) drive them with
+`hermes chat -q "..." -Q --max-turns 3 --run-budget 120` per mode.
+
+Zone B follow-up flagged, not changed: `README.md` L37 still lists the
+tsc-only skills as "placeholders" and now also carries the old `audit` name
+- a Claude Project chat handoff should refresh that inventory line.
 
 ## Also outstanding
 - ~~Upload `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` into this repo's root~~ - DONE: file is present at the repo root and tracked in git (commit `e7beb1f`). Confirmed 2026-08-26 audit.
