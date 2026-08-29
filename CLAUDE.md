@@ -106,6 +106,24 @@ sufficient trigger. This applies to CLAUDE.md the same as any other Zone B
 file. Audits do not need to keep re-flagging this as an open question unless
 the handoff mechanism itself changes.
 
+STANDING RULE (2026-08-29, added after two consecutive handoffs were cut
+from a stale base and would have silently reverted a real fix -
+`provision-new-drive.ps1`'s STOP-message wording, then `.gitignore`'s
+`/skills/` guard): before applying ANY Zone A fix or Zone B placement,
+diff the incoming content against current HEAD for that specific file, not
+just against what the handoff describes itself as changing. If the diff
+would remove, revert, or contradict something a previous audit report
+recorded as a deliberate fix, do NOT silently apply the handoff verbatim.
+Instead: preserve the previously-fixed content and apply only the genuinely
+new part of the handoff (as already done correctly, twice, before this rule
+existed), and say so explicitly in the audit report - name the specific
+prior commit/fix that would have been lost and confirm it was kept. This is
+not optional caution to apply when something looks suspicious; it is a
+required diff-before-placement step for every handoff, every time,
+specifically because the Claude Project chat's own sandbox has repeatedly
+drifted behind the real repo state and cannot be trusted to hand over a
+byte-for-byte-safe base on its own.
+
 ## Zone C - Operational docs (Claude Code MAY update and commit freely)
 
 Files:
