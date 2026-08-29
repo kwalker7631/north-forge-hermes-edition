@@ -49,7 +49,7 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 python3 - "$MODE" << 'PYEOF'
-import sys
+import sys, os
 mode = sys.argv[1]
 with open(".hermes.template.md", "r", encoding="utf-8") as f:
     tmpl = f.read()
@@ -57,7 +57,13 @@ with open(f"mode-blocks/{mode}-banner.md", "r", encoding="utf-8") as f:
     banner = f.read()
 with open(f"mode-blocks/{mode}-menu.md", "r", encoding="utf-8") as f:
     menu = f.read()
-tmpl = tmpl.replace("{{MODE_BANNER_BLOCK}}", banner).replace("{{COMMAND_MENU_BLOCK}}", menu)
+agent_name = "North Forge"
+if os.path.exists(".agent-name"):
+    with open(".agent-name", "r", encoding="utf-8") as f:
+        n = f.read().strip()
+        if n:
+            agent_name = n
+tmpl = tmpl.replace("{{MODE_BANNER_BLOCK}}", banner).replace("{{COMMAND_MENU_BLOCK}}", menu).replace("{{AGENT_NAME}}", agent_name)
 with open(".hermes.md", "w", encoding="utf-8") as f:
     f.write(tmpl)
 PYEOF

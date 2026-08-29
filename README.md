@@ -45,6 +45,7 @@ skills-source/                <- the real, tracked skill content (one copy, neve
     (all 8 tsc-only skills built - see NEXT_STEPS.md for authorship history)
 .hermes/skills/                 <- GENERATED at each launch from skills-source/ - the exact folder name Hermes scans for project-local skills (see note below) - never edit directly, never committed
 .forge-mode                    <- GENERATED per physical drive by toggle-mode - never committed, defaults to sales if absent
+.agent-name                    <- OPTIONAL, one line of text, per physical drive - a custom nickname for the agent (e.g. "Kyle"). Never committed. Defaults to "North Forge" if absent. Create it by hand (a plain text file containing just the name) - no toggle script for this yet.
 toggle-mode.bat / .sh          <- Kenneth-only: sets a drive's mode to FULL or SALES, or RESET to wipe a drive's personal setup before handing it to someone else
 skins/
   north-forge.yaml            <- Hermes skin: rebrands the CLI as "North Forge" using the KB visual palette
@@ -58,6 +59,7 @@ KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html  <- locked KB HTML template, requi
 fallback/
   NORTH_FORGE_v21.8_PASTE_VERSION.md  <- complete, original single-file prompt - paste into any chat AI if this whole Hermes setup is ever unavailable
 ATTRIBUTION.md                  <- required acknowledgment that this runs on the open-source Hermes Agent engine
+FIRST_TIME_README.txt           <- plain-language quickstart for a first-time team member receiving a drive - not for Kenneth, for whoever gets handed one
 CLAUDE.md                       <- Claude Code's working rules for this repo (Zone A/B/C authority model) - read by Claude Code automatically, not by Hermes itself
 NEXT_STEPS.md                   <- what's built vs. still to build
 DEMO_PREP_BACKLOG.md            <- running punch-list for demo prep, polish, and things flagged for later
@@ -80,6 +82,14 @@ There is no separate "sales version" to maintain. Every skill is authored exactl
 `toggle-mode.bat`/`.sh` also has a third option: **RESET**, which wipes a drive's personal setup (`.env` - the API key, `.forge-mode` - the toggle, and the generated `.hermes.md`/`.hermes/skills/` - safe to delete, they rebuild automatically) back to a clean first-use state. Use this before handing a physical drive to a different person, so your API key doesn't travel with it and the next person gets a genuine first-run experience. Requires typing `YES` to confirm - it's destructive and worth the extra step.
 
 On a Sales-mode drive, the TSC-only skill files are never copied into the live `.hermes/skills/` folder at all - not hidden, not disabled by a prompt instruction alone, physically absent from that session. The `.hermes.md` generated for that mode also tells the model plainly to redirect any support/repair/KB request to the normal TSC channel rather than attempt it from general knowledge.
+
+## Custom agent name (optional, per drive)
+
+By default the agent identifies itself as "North Forge." To give a specific drive a personal nickname instead (useful for demos to people who aren't already comfortable with AI - "call it Kyle" reframes it as "my assistant" rather than "a chatbot"), create a file named `.agent-name` in the repo root containing just the name, one line, nothing else. Missing the file at all defaults to "North Forge."
+
+The name is a cosmetic layer only - every rule and behavior in `.hermes.template.md` and every skill still applies exactly as written regardless of what the agent calls itself. This currently only changes how the model refers to itself in conversation; the CLI's own visible banner/label still says "North Forge" regardless (a further enhancement, not yet built - see `DEMO_PREP_BACKLOG.md`).
+
+There's no toggle script for this yet (unlike `.forge-mode`) - create/edit the file by hand for now.
 
 ## Branding
 

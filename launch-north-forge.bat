@@ -28,7 +28,8 @@ powershell -NoProfile -Command ^
     "$t=Get-Content '.hermes.template.md' -Raw;" ^
     "$b=Get-Content \"mode-blocks\$m-banner.md\" -Raw;" ^
     "$c=Get-Content \"mode-blocks\$m-menu.md\" -Raw;" ^
-    "$t=$t.Replace('{{MODE_BANNER_BLOCK}}',$b).Replace('{{COMMAND_MENU_BLOCK}}',$c);" ^
+    "$name='North Forge'; if (Test-Path '.agent-name') { $n=(Get-Content '.agent-name' -Raw).Trim(); if ($n) { $name=$n } };" ^
+    "$t=$t.Replace('{{MODE_BANNER_BLOCK}}',$b).Replace('{{COMMAND_MENU_BLOCK}}',$c).Replace('{{AGENT_NAME}}',$name);" ^
     "Set-Content -Path '.hermes.md' -Value $t -NoNewline"
 
 echo North Forge running in %MODE% mode.

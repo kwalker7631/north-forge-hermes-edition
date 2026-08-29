@@ -1,4 +1,4 @@
-# CLAUDE.md — North Forge Hermes Edition — Claude Code Working Rules
+# CLAUDE.md - North Forge Hermes Edition - Claude Code Working Rules
 
 Scope: this file governs Claude Code sessions run inside this repo
 (`north-forge-hermes-edition`) specifically. It is a DIFFERENT authority model
@@ -19,7 +19,7 @@ actually load this file - it's for Claude Code only.
 
 ---
 
-## Zone A — Infrastructure / plumbing (Claude Code MAY fix directly)
+## Zone A - Infrastructure / plumbing (Claude Code MAY fix directly)
 
 Files:
 - `launch-north-forge.bat`
@@ -53,7 +53,7 @@ authorization: `git pull` at session start, and `git add` / `git commit`
 (clear, specific message describing the fix) / `git push` for any confirmed
 Zone A fix, all without waiting for a go-ahead in that session.
 
-## Zone B — Authored content (Claude Code is READ-ONLY / audit-only)
+## Zone B - Authored content (Claude Code is READ-ONLY / audit-only)
 
 Files:
 - `.hermes.template.md`
@@ -106,7 +106,7 @@ sufficient trigger. This applies to CLAUDE.md the same as any other Zone B
 file. Audits do not need to keep re-flagging this as an open question unless
 the handoff mechanism itself changes.
 
-## Zone C — Operational docs (Claude Code MAY update and commit freely)
+## Zone C - Operational docs (Claude Code MAY update and commit freely)
 
 Files:
 - `NEXT_STEPS.md`
@@ -128,17 +128,16 @@ imply a Zone B content change that didn't actually happen - entries must
 describe real findings/actions from that session, not aspirational or
 assumed ones.
 
-## Zone B (continued) — user-facing documentation
+## Zone B (continued) - user-facing documentation
 
-`README.md` and `ATTRIBUTION.md` are ALSO Zone B (read-only for Claude Code),
-in addition to the files already listed above. Reasoning: these are
-Blacksmith-reviewed documentation the team and Kenneth rely on being
-accurate as written - not code, not a status log, closer in spirit to
-authored content even though they don't contain field-repair procedures.
-Same placement exception applies: Claude Code may place and commit a
-specific revised `README.md`/`ATTRIBUTION.md` handed over from the Blacksmith
-or the Claude Project chat, but does not compose or edit their content
-itself.
+`README.md`, `ATTRIBUTION.md`, and `FIRST_TIME_README.txt` are ALSO Zone B
+(read-only for Claude Code), in addition to the files already listed above.
+Reasoning: these are Blacksmith-reviewed documentation the team and Kenneth
+rely on being accurate as written - not code, not a status log, closer in
+spirit to authored content even though they don't contain field-repair
+procedures. Same placement exception applies: Claude Code may place and
+commit a specific revised version handed over from the Blacksmith or the
+Claude Project chat, but does not compose or edit their content itself.
 
 ## Session Start Protocol (automatic - runs before any task, no prompting needed)
 
@@ -207,7 +206,7 @@ state:
 ```text
 NORTH FORGE HERMES EDITION - CLAUDE CODE WORKING RULES ACTIVE
 Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, setup script, provision-new-drive.ps1, .env.example, skins/north-forge.yaml, this audit report, .gitignore
-Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, CLAUDE.md
+Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, FIRST_TIME_README.txt, CLAUDE.md
 Zone C (operational docs, may update + commit freely): NEXT_STEPS.md, DEMO_PREP_BACKLOG.md
 Git: git pull automatically at session start; auto-commit/push for Zone A fixes, Zone C updates, and placing pre-approved Zone B handoffs; never author or edit Zone B content myself
 I will not edit Zone B content, including this file, and will not compose content on Zone B's behalf - only place exactly what I'm handed.
@@ -227,18 +226,34 @@ Committed/pushed: Yes/No - [exact files + exact commit message, or "Nothing to c
 ## Session audit report (required, written to a file - not just stated in chat)
 
 Kenneth relays this file back to the Claude Project chat (the "primary GPT")
-for review after sessions where anything notable happened, so mistakes get
-caught rather than silently compounding across sessions with no shared
-memory between Claude Code and that chat. This is the whole point of the
-audit habit - Claude Code is excellent automation, but it isn't reviewed by
-anyone unless this report actually gets read.
+for review, so mistakes get caught rather than silently compounding across
+sessions with no shared memory between Claude Code and that chat. This is
+the whole point of the audit habit - Claude Code is excellent automation,
+but it isn't reviewed by anyone unless this report actually gets read.
 
-At the end of every session that made any change, ran any fix, or found any
-Zone B issue, write (overwriting any previous one) to:
+UNCONDITIONAL - every session, no exceptions. This used to be conditional
+on "anything notable happened," and that conditional is exactly why reports
+were sometimes skipped: a session that did nothing but read files and find
+nothing wrong still needs to say so in a written report, because "no report
+this time" is indistinguishable from "the report step got skipped" once
+Kenneth is relaying files between sessions with no memory of his own either.
+A clean, boring, nothing-to-report session still ends with a real file that
+says exactly that - never silently end a session without writing one.
+
+At the end of every session, write (overwriting any previous one) to:
 
 ```
 audit/CLAUDE_CODE_LAST_AUDIT.md
 ```
+
+DEPTH: the primary GPT (Claude, in the Claude Project chat) is the actual
+reader of this file, not a human skimming for a summary. Write for that
+reader - full technical detail, exact line numbers, exact grep/command
+output quoted verbatim, exact file sizes and byte counts where relevant,
+full reasoning for any judgment call. Do not compress, simplify, or
+soften findings for readability the way a report written for a person
+skimming quickly might. If something is uncertain, say exactly what was
+and wasn't checked rather than rounding up to a confident-sounding summary.
 
 Using this exact structure:
 

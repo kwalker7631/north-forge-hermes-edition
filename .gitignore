@@ -8,6 +8,7 @@ AGENTS.override.md
 # (a git pull overwriting a Sales drive's toggle back to a committed value
 # would be exactly the failure this whole system exists to prevent)
 .forge-mode
+.agent-name
 
 # Generated at each launch from skills-source/ + .hermes.template.md + mode-blocks/
 # - these are build artifacts, not source. Never edit them directly; edit the
