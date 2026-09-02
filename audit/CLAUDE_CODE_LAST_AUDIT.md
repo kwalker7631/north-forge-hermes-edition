@@ -1,458 +1,342 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-01, late session (work and commit ran past local midnight
-into 2026-09-02; the handoff zip and all inline NEXT_STEPS markers use
-2026-09-01, kept consistent here).
-Requested task: Extract `north-forge-hermes-COMPLETE-fix.zip` into the repo
-root. It replaces ALL of `skills-source/` (14 skill folders), plus
-`.hermes.template.md`, `mode-blocks/full-menu.md`, `mode-blocks/sales-menu.md`.
-Kenneth stated it "resolves every finding from the last audit" (Findings 1-5)
-and asked, explicitly: read every skill's frontmatter directly and confirm
-all 14 register correctly (hl, kb, esc, audit, log, train, draft, web,
-assist, sales, menu, flush, switch, kyocera-research); recompute both
-assembled sizes (expected ~19,101 FULL / ~19,096 SALES) and flag the sub-900
-margin plainly; confirm zero unreplaced markers; update `NEXT_STEPS.md` to
-say 14 skills not 10; then commit and push. Kenneth's own AppData flush +
-fresh repull happens AFTER this commit, not before - so no live rebuild of
-`.hermes/` or AppData was performed this session.
+Timestamp: 2026-09-02, afternoon session.
+Requested task: Check whether `skins/north-forge.yaml` at HEAD carries a
+`banner_logo:` field. Specifically run `grep -c "banner_logo:"
+skins/north-forge.yaml` and `git log --oneline -- skins/north-forge.yaml`.
+If `banner_logo` is missing OR the file's history shows it was never updated
+since scaffold: extract the attached `north-forge.yaml` (the untracked drop
+sitting in the repo root), overwrite `skins/north-forge.yaml` with it,
+commit and push. If `banner_logo` already exists and matches: report that
+instead and paste back the exact committed content of the `banner_logo`
+field for direct comparison.
+
+Outcome in one line: `banner_logo` was MISSING and the file had never been
+touched since the 2026-08-26 scaffold, so the "extract and overwrite" branch
+fired. Placed the attached file byte-for-byte, committed `1d43583`, pushed.
+The attached file also silently changes `branding.welcome:` - that is
+flagged below because it was outside the task's stated `banner_logo` scope.
+
+## Session Start Protocol results
+
+```text
+SESSION START CHECK
+Pulled: Already up to date (HEAD 96c40a4 at session start, = origin/main)
+Last audit read: Yes - 2026-09-01 late session, status "Needs primary GPT
+  review". Recorded the COMPLETE-fix handoff (commit 1fd6c1e): 14 skills +
+  name:/description: frontmatter on all 14, prior Findings 1-5 all resolved
+  and verified, assembled sizes 19,101 FULL / 19,096 SALES, and a standing
+  MARGIN WARNING that headroom to the 20,000-char ceiling is now only
+  ~900 chars (LF) / ~730 bytes (CRLF native Windows launch). No live
+  `hermes skills list` against the rebuilt 14-set had been run yet - that
+  was deferred to Kenneth's post-commit fresh launch.
+Uncommitted at start: One untracked file only - `north-forge.yaml` in the
+  repo root (the handoff drop for this task). No modified tracked files,
+  `git diff` and `git diff --cached` both empty.
+.gitignore: OK - not modified. Verified it still excludes `.env` (L2),
+  `.forge-mode` (L10), `.agent-name` (L11), `/.hermes/` (L18), `.hermes.md`
+  (L19), and carries the root-anchored `/skills/` legacy guard (L51).
+hermes doctor: Clean. Hermes Agent v0.21.0 (2026.8.31), Python 3.11.16,
+  SQLite 3.53.1, venv active, version files consistent (0.21.0), API key
+  configured, config v39, no deprecated keys, no active security advisories,
+  no suspicious MCP stdio commands, SSL CA bundle valid. Only two
+  optional packages absent (python-telegram-bot, discord.py) - expected,
+  unrelated to this repo. NOTE: the prior audit's carried "SQLite 3.45.1
+  WAL-reset-bug advisory" is GONE this session - SQLite is now 3.53.1 and
+  doctor raises no WAL advisory at all.
+Project skills: `hermes skills list --source local` shows exactly ONE local
+  skill - `hermes-windows-maintenance` (category devops, trust local,
+  enabled). This is the user's ambient/global local skill set, NOT this
+  repo's `.hermes/skills/`. The North Forge project skills are built from
+  `skills-source/` into a project-local `.hermes/skills/` only by a
+  launcher-driven Hermes launch inside the repo; this Claude Code session is
+  not such a launch, so the 14-skill set correctly does not appear here.
+  Not a finding.
+```
 
 ## Files inspected
 
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior session's report (443 lines,
-  timestamp "2026-09-01 (evening session)", status "Needs primary GPT
-  review"). Recorded the `pending-tonight` handoff committed as-is
-  (`1c66ab8`) per Kenneth's direction with Findings 1-5 left open. That
-  report's "Required follow-up" list is exactly what this handoff claims to
-  deliver.
-- `.gitignore` (52 lines) - Session Start Protocol step 4. Unchanged,
-  correct: `.env` L2, `.forge-mode` L10, `.agent-name` L11, `/.hermes/` L18,
-  `.hermes.md` L19, root-anchored `/skills/` legacy guard L51. No fix
-  required.
-- `NEXT_STEPS.md` - full read (260 lines incl. the still-uncommitted
-  2026-08-29 v21.8-drift append). Working tree vs HEAD diff at session start.
-- `north-forge-hermes-COMPLETE-fix.zip` (`C:\Users\kwalk\Downloads\`, 42,187
-  bytes, mtime 2026-09-01 23:52). Extracted to a scratch dir
-  (`...\scratchpad\zipextract\`) first, inspected in full there, then placed
-  into the repo. Archive contains exactly 17 files:
-  - `.hermes.template.md`
-  - `mode-blocks/full-menu.md`, `mode-blocks/sales-menu.md`
-  - `skills-source/` - 14 `SKILL.md` files (6 shared, 8 tsc-only), listed
-    below. No other files, no banners, no READMEs.
-- Every one of the 14 zip `SKILL.md` files - full read of `flush`, `menu`,
-  `switch`; frontmatter + first body lines + self-lock-line grep on all 14;
-  full-file diff (CR-insensitive) of each against its repo counterpart.
-- `.hermes.template.md` - full read of the repo copy (147 lines) and a
-  line-level diff repo-vs-zip.
-- `mode-blocks/full-menu.md`, `mode-blocks/sales-menu.md`,
-  `mode-blocks/full-banner.md`, `mode-blocks/sales-banner.md` - all read.
-- `launch-north-forge.sh` - full read, to reproduce the `.hermes.md`
-  assembly (template + `{{MODE_BANNER_BLOCK}}` + `{{COMMAND_MENU_BLOCK}}` +
-  `{{AGENT_NAME}}` -> `North Forge`, skills copied as separate files, NOT
-  concatenated).
-- Read-only git: `git pull` (already up to date), `git status`, `git diff`,
-  `git diff --cached`, `git diff --cached --ignore-cr-at-eol`, `git log
-  --all -- skills-source/shared/menu skills-source/shared/flush` (empty),
-  `git ls-tree -r HEAD`, `git ls-files --eol`, `git cat-file blob`,
-  `git show`, `git diff c6d6dee HEAD`.
-- `hermes doctor` and `hermes skills list --source local` - hermes IS
-  installed on this drive at
-  `C:\Users\kwalk\AppData\Local\hermes\bin\hermes` (v0.21.0). Doctor: no
-  security advisories, venv OK, API key configured, config v39, one
-  pre-existing unrelated warning (SQLite 3.45.1 WAL-reset-bug advisory,
-  not introduced by anything in this repo).
-- PyYAML parse of all 14 frontmatter blocks via the hermes venv
-  (`C:\Users\kwalk\AppData\Local\hermes\hermes-agent\.venv\Scripts\python.exe`).
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior session's report, full read
+  (459 lines, timestamp "2026-09-01, late session", status "Needs primary
+  GPT review").
+- `.gitignore` - full read (52 lines). Session Start Protocol step 4.
+  Correct, not modified.
+- `north-forge.yaml` (repo root, untracked, the handoff drop) - full read.
+  2910 bytes, 47 lines, pure LF (0 CR bytes), no BOM (first 4 bytes
+  `6e 61 6d 65` = "name"), trailing newline present. sha256
+  `a4d17081ec3bbf60d175965858c4ceab9d74cb79b631bc6ec40179c4ebcb61fb`.
+- `skins/north-forge.yaml` - full read of the pre-change working-tree copy
+  (39 lines shown; 38 LF-terminated lines; working-tree bytes 1401 with
+  CRLF, 38 CR bytes; sha256 of the CRLF working-tree file
+  `1e28f7042e216044f3e8db109b03155daf687e47b08694f9021b02f1538b7cad`).
+  HEAD blob short-hash `6004181`, pure LF (raw `git cat-file blob` CR count
+  0). Also read the `73a58a0:skins/north-forge.yaml` scaffold version.
+- Read-only git: `git pull`, `git status`, `git diff`, `git diff --cached`,
+  `git log --oneline -- skins/north-forge.yaml`,
+  `git log --date=short --pretty=... -- skins/north-forge.yaml`,
+  `git blame -L 34,39 -- skins/north-forge.yaml`,
+  `git show 73a58a0:skins/north-forge.yaml`,
+  `git log --oneline -- audit/ NEXT_STEPS.md DEMO_PREP_BACKLOG.md`,
+  `git ls-files --eol -- skins/north-forge.yaml`, `git config core.autocrlf`.
+- Repo-wide greps for prior mention of the change:
+  `grep -rn "banner_logo" --include=*.md .` (0 hits),
+  `grep -rn "north-forge.yaml\|/skin \|skin north-forge" --include=*.md .`,
+  `grep -rn "describe the issue\|describe your issue\|Type /menu\|Type a
+  command" --include=*.md --include=*.yaml .`.
+- `hermes doctor`, `hermes skills list --source local` - Session Start
+  Protocol step 5. Hermes installed at
+  `C:\Users\kwalk\AppData\Local\hermes\bin\hermes` (v0.21.0).
+- PyYAML `safe_load` of the placed file via the hermes venv python
+  (`C:\Users\kwalk\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe`
+  - note: the venv path is `venv\`, not `.venv\` as the prior audit wrote;
+  the `.venv` path the prior audit used no longer exists).
 
-## State of the working tree at session start
+## The two requested commands - verbatim output
+
+### 1. `grep -c "banner_logo:" skins/north-forge.yaml`
 
 ```
-On branch main, up to date with origin/main (HEAD c6d6dee)
- M NEXT_STEPS.md
+0
 ```
 
-The only uncommitted change was the 2026-08-29 "Drift audit vs v21.8 OneDrive
-source package" append (36 added lines), which the prior two audits recorded
-as deliberately left uncommitted and flagged for a primary-GPT decision on
-whether it should stay. See "Disposition of the v21.8-drift append" below.
-No other file was modified, no skill folder was missing or extra beyond the
-known 12.
+`banner_logo` is ABSENT from the committed skin. Zero matches.
 
-## What the zip contains vs. what was on disk
-
-ZIP `skills-source/` (14 folders):
+### 2. `git log --oneline -- skins/north-forge.yaml`
 
 ```
-shared/flush/SKILL.md              NEW  (1592 B in zip, CRLF)
-shared/menu/SKILL.md               NEW  (1227 B in zip, CRLF)
-shared/kyocera-research/SKILL.md   unchanged vs repo (CR-insensitive diff empty)
-shared/switch/SKILL.md             unchanged vs repo (CR-insensitive diff empty)
-shared/sales-assist/SKILL.md       +4 lines (frontmatter only)
-shared/web-navigator/SKILL.md      +4 lines (frontmatter only)
-tsc-only/assist-intake/SKILL.md    +4 lines (frontmatter only)
-tsc-only/draft-writer/SKILL.md     +4 lines (frontmatter only)
-tsc-only/escalation-packet/SKILL.md +4 lines (frontmatter only)
-tsc-only/fault-logging/SKILL.md    +4 lines (frontmatter only)
-tsc-only/forge-audit/SKILL.md      +4 lines (frontmatter only)
-tsc-only/hotline-ticket/SKILL.md   +4 lines (frontmatter only)
-tsc-only/kb-builder/SKILL.md       +4 lines (frontmatter only)
-tsc-only/training-guide/SKILL.md   +4 lines (frontmatter only)
+73a58a0 initial North Forge Hermes Edition scaffold with setup prerequisites
 ```
 
-The "+4 lines (frontmatter only)" was verified by
-`diff --strip-trailing-cr -u repo zip` on every file: in each case the ONLY
-hunk is a leading `@@ -1,3 +1,7 @@` inserting
+With dates:
 
 ```
----
-name: <cmd>
-description: <one line>
----
+73a58a0 2026-08-26 initial North Forge Hermes Edition scaffold with setup prerequisites
 ```
 
-above the existing `# <Name> Skill` heading. Zero changes to any body line
-of any of the 10 files. `switch` and `kyocera-research` produced no diff at
-all (they already carried frontmatter from `1c66ab8`).
+Exactly ONE commit in the entire history of `skins/north-forge.yaml`. The
+file has never been modified since it was first added on 2026-08-26.
+`git blame` confirms every line of the `branding:` block - including
+`welcome:` - traces to `73a58a0`, unmodified.
 
-ZIP doc files:
+### Decision
 
-- `.hermes.template.md` - exactly one changed line (hunk `@@ -139,7 +139,7 @@`),
-  `<hermes_specific_addendum>` item 3:
-  - OLD: `3. MEMORY MUST RESPECT /FLUSH. Treat a /flush or /clear the same
-    way for memory writes as for conversation: do not let specifics from
-    before the flush leak into memory entries written after it, and do not
-    let old memory entries surface facts into a new working issue package
-    unless the technician restates them.`
-  - NEW: `3. MEMORY MUST RESPECT /FLUSH AND /SWITCH. Treat either command
-    the same way for memory writes as for conversation: do not let specifics
-    from before the reset leak into memory entries written after it, and do
-    not let old memory entries surface facts into a new working issue
-    package unless the technician restates them. Never /clear or /reset for
-    this - see flush_clear_rule.`
-  No other line of the 147-line file differs (`git diff c6d6dee HEAD --
-  .hermes.template.md` = one hunk, +1/-1).
-- `mode-blocks/full-menu.md` - `diff --strip-trailing-cr` against the repo
-  copy is EMPTY. Byte-identical (CR-insensitive) to the version committed at
-  `1c66ab8`. Re-bundled, no change.
-- `mode-blocks/sales-menu.md` - same, `diff` EMPTY. No change.
+Both trigger conditions are satisfied (independently): `banner_logo` is
+missing AND the file's history shows it was never updated. Per the task, the
+"extract the attached `north-forge.yaml`, overwrite, commit and push" branch
+applies. (The "already exists and matches - paste it back" branch does not
+apply and no such paste-back is included here, because there is no committed
+`banner_logo` field to quote.)
 
-## STANDING RULE (2026-08-29) diff-vs-HEAD check
+## STANDING RULE (2026-08-29) diff-before-placement check
 
-Ran for every incoming file against current HEAD (`c6d6dee`), not just
-against the handoff's self-description. Result: CLEAN - no previously
-recorded deliberate fix is removed, reverted, or contradicted.
+Diffed the incoming `north-forge.yaml` against current HEAD
+(`git diff --cached` after staging, and `diff --strip-trailing-cr` before
+staging). The incoming file differs from HEAD in TWO places, not one:
 
-Specific prior fixes checked and confirmed still present after placement:
+```diff
+@@ -1,6 +1,15 @@
+ name: north-forge
+ description: North Forge - Kyocera Edition. Reuses the same palette as the KB visual standard for consistency.
 
-1. **`forge-audit/SKILL.md` - no literal `CLAUDE.md` token** (the REAL
-   `skills-guard` `agent_config_mod` fix, commit `a49580f`, after the
-   `audit/`->`forge-audit/` rename was found not to have fixed it).
-   - `grep -rn "CLAUDE\.md" <zip>/skills-source/` -> 0 hits.
-   - `git cat-file blob HEAD:skills-source/tsc-only/forge-audit/SKILL.md |
-     grep -c "CLAUDE\.md"` -> 0.
-   - The zip's frontmatter is inserted ABOVE line 1; the trigger sentence
-     that used to contain the token still reads "...unless a code-maintenance
-     or agent-configuration file is specifically requested..." - the
-     reworded form from `a49580f`, intact.
-2. **`sales-assist/SKILL.md` self-lock line** ("Never rewrite this skill
-   file on your own initiative. Flag it to the Blacksmith (Kenneth Walker
-   Jr.)...", added `a49580f`). Diff shows frontmatter added above the body
-   only; the self-lock line is untouched. Grep for the self-lock phrase
-   passes on all 14 files.
-3. **`.hermes.template.md` `<assistant_router_rule>` web-navigator entry**
-   (L78, added `a49580f`). The template diff touches only L142; L78 is
-   unchanged.
-4. **`.hermes.template.md` `<flush_clear_rule>` /flush-vs-/switch split +
-   "CRITICAL SAFETY CORRECTION (2026-08-29)"** (L107-121, placed `1c66ab8`).
-   Unchanged - the L142 edit is the follow-through that the prior audit's
-   "Required follow-up" list explicitly asked for ("Fix `.hermes.template.md`
-   L142 ('/flush or /clear') to match the L114 ban"), not a reversion.
-5. **`.hermes.template.md` forge-audit explanation relocation to "see
-   NEXT_STEPS.md"** (L34, placed `1c66ab8`). Unchanged.
-6. **`mode-blocks/*-menu.md` "NEVER /clear or /reset for either" lines**
-   (placed `1c66ab8`). Menu files are byte-identical to HEAD, lines intact.
-7. **`.gitignore` root-anchored `/skills/` guard**, **`provision-new-drive.ps1`
-   STOP message**, **`toggle-mode.bat`/`.sh` RESET branch** - none of these
-   files are in the handoff; untouched.
++
++banner_logo: |
++  [bold #D32F2F]███╗   ██╗ ██████╗ ██████╗ ████████╗██╗  ██╗    ███████╗ ██████╗ ██████╗  ██████╗ ███████╗[/]
++  [bold #D32F2F]████╗  ██║██╔═══██╗██╔══██╗╚══██╔══╝██║  ██║    ██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝[/]
++  [#B71C1C]██╔██╗ ██║██║   ██║██████╔╝   ██║   ███████║    █████╗  ██║   ██║██████╔╝██║  ███╗█████╗  [/]
++  [#B71C1C]██║╚██╗██║██║   ██║██╔══██╗   ██║   ██╔══██║    ██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  [/]
++  [#7A1010]██║ ╚████║╚██████╔╝██║  ██║   ██║   ██║  ██║    ██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗[/]
++  [#7A1010]╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝    ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝[/]
++
+ # Unknown keys are safely ignored and missing values inherit from the built-in
+ # default skin, so getting a field wrong here won't break anything - just
+ # won't look quite right until corrected. Verify with /skin north-forge on a
+@@ -33,6 +42,6 @@ spinner:
 
-`git log --all --oneline -- skills-source/shared/menu skills-source/shared/flush`
-is empty - the two new folders have no prior history to conflict with.
-
-## Pre-flush verification results
-
-### 1. All 14 skills' frontmatter - PASS
-
-Read directly from every committed blob (`git show HEAD:<path>`, line 2) and
-cross-checked with a PyYAML `safe_load` of each `---...---` block via the
-hermes venv python. All 14 parsed with no error; every block is a mapping
-with non-empty `name` and `description`.
-
-```
-skills-source/shared/flush/SKILL.md              name: flush
-skills-source/shared/kyocera-research/SKILL.md   name: kyocera-research
-skills-source/shared/menu/SKILL.md               name: menu
-skills-source/shared/sales-assist/SKILL.md       name: sales
-skills-source/shared/switch/SKILL.md             name: switch
-skills-source/shared/web-navigator/SKILL.md      name: web
-skills-source/tsc-only/assist-intake/SKILL.md    name: assist
-skills-source/tsc-only/draft-writer/SKILL.md     name: draft
-skills-source/tsc-only/escalation-packet/SKILL.md name: esc
-skills-source/tsc-only/fault-logging/SKILL.md    name: log
-skills-source/tsc-only/forge-audit/SKILL.md      name: audit
-skills-source/tsc-only/hotline-ticket/SKILL.md   name: hl
-skills-source/tsc-only/kb-builder/SKILL.md       name: kb
-skills-source/tsc-only/training-guide/SKILL.md   name: train
+ branding:
+   agent_name: "North Forge"
+-  welcome: "North Forge - Kyocera Edition. Type a command or describe the issue."
++  welcome: "North Forge - Kyocera Edition. Type /menu to see everything I can do, or just describe your issue - I'll take it from there."
+   response_label: " NORTH FORGE "
+   tool_prefix: "> "
 ```
 
-- 14 distinct `name:` values, no duplicates
-  (`{assist, audit, draft, esc, flush, hl, kb, kyocera-research, log, menu,
-  sales, switch, train, web}`).
-- Set equals the task's expected set EXACTLY: missing = none, extra = none.
-- Every `name:` matches the skill's intended slash command; folder name and
-  `name:` diverge on purpose for the 12 that use a short command
-  (`hotline-ticket`->`hl`, `kb-builder`->`kb`, `escalation-packet`->`esc`,
-  `forge-audit`->`audit`, `fault-logging`->`log`, `training-guide`->`train`,
-  `draft-writer`->`draft`, `web-navigator`->`web`, `assist-intake`->`assist`,
-  `sales-assist`->`sales`) and match for `menu`, `flush`, `switch`,
-  `kyocera-research`.
-- All 14 frontmatter blocks are well-formed: `---` line 1, `name:` line 2,
-  `description:` line 3, `---` line 4, no BOM, no embedded `": "` in any
-  `description:` value (would risk a nested-map parse), zero non-ASCII.
-- All 14 carry the "Never rewrite this skill file on your own initiative"
-  self-lock line.
+Change 1 - `banner_logo:` block: the intended change. A `|` literal
+block scalar, 6 lines of Rich console markup ASCII art spelling
+"NORTH FORGE" in a three-stop red gradient (`#D32F2F` bold on rows 1-2,
+`#B71C1C` on rows 3-4, `#7A1010` on rows 5-6 - all three already in the
+`colors:` palette below). The insertion also adds one extra blank line
+between `description:` and `banner_logo:` (HEAD had a single blank line
+after `description:`; the incoming file has two) and one blank line between
+the block scalar and the `# Unknown keys` comment. Cosmetic only, YAML
+parses fine either way.
 
-NOT done this session (deferred per Kenneth): a live `hermes skills list
---source local` after rebuilding `.hermes/skills/` from the new 14-set. The
-current live list still reflects the pre-handoff 12-set, registered by
-FOLDER name (all 12 show `enabled`). Re-registration under the new `name:`
-values will happen on Kenneth's post-commit fresh launch. The two skills
-that already had frontmatter (`switch`, `kyocera-research`) currently list
-under their `name:` value with no problem, which is direct evidence the
-frontmatter format Hermes expects is the one used here.
+Change 2 - `branding.welcome:`: NOT described anywhere in the task, which
+was entirely about `banner_logo`. This is a real wording change:
 
-### 2. Both assembled `.hermes.md` sizes - MATCH the task's targets
+- BEFORE (HEAD `73a58a0`, unmodified since 2026-08-26):
+  `"North Forge - Kyocera Edition. Type a command or describe the issue."`
+- AFTER (incoming file):
+  `"North Forge - Kyocera Edition. Type /menu to see everything I can do, or just describe your issue - I'll take it from there."`
 
-Reproduced the launcher's Python assembly from the COMMITTED HEAD blobs
-(`.hermes.template.md` + `mode-blocks/<mode>-banner.md` +
-`mode-blocks/<mode>-menu.md`, `{{AGENT_NAME}}` -> `North Forge`, no
-`.agent-name` present):
+Reversion check (the specific thing the STANDING RULE guards against): NOT a
+reversion. The only commit ever to touch `skins/north-forge.yaml` is
+`73a58a0` (the scaffold). No audit report, no `NEXT_STEPS.md` entry, no
+`DEMO_PREP_BACKLOG.md` entry records a deliberate setting of the `welcome:`
+line - `grep -rn` for the phrasing across `*.md`/`*.yaml` returns only:
+(a) `CLAUDE.md:240` - unrelated, the audit-template boilerplate
+"Zone B findings ... [describe the issue, do not fix]";
+(b) `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md:126` - the v21.8 paste
+fallback's bare-menu response line: `"North Forge - Kyocera Edition -
+v21.8 ready. Type a command or describe the issue."`.
 
-```
-mode    chars (LF)    bytes (LF)    bytes (CRLF, native Win launch)
-FULL      19,101        19,101        19,271
-SALES     19,096        19,096        19,258
-```
+So there is no recorded deliberate fix being reverted, and the STANDING
+RULE's "do NOT silently apply verbatim" trigger is not met. The change was
+applied as part of the task's explicit "overwrite the current one"
+instruction. It IS flagged below for primary GPT review, because (i) it was
+undescribed in the task, and (ii) it moves the skin's welcome text away
+from the phrasing that the v21.8 paste fallback still uses for its bare
+menu/help response - if those two are meant to stay parallel, the fallback
+doc (Zone B) would need a matching update, which is a Blacksmith / Claude
+Project chat decision, not a Claude Code one.
 
-- FULL 19,101 vs task's "~19,101" - exact.
-- SALES 19,096 vs task's "~19,096" - exact.
-- Delta from the prior handoff's assembled numbers (`1c66ab8`: 19,037 /
-  19,032 per the last audit): +64 each, all of it the L142 line-length
-  increase. Menus/banners unchanged, so nothing else moved.
-- Skills are copied as separate files into `.hermes/skills/`, NOT
-  concatenated into `.hermes.md`, so the 14-vs-12 skill count does not
-  change the assembled size - only template + banner + menu do.
+No other prior fix is in play: `skins/north-forge.yaml` is not referenced
+by any Zone A script fix, `.gitignore` guard, or skill/template placement
+recorded in earlier audits.
 
-### 3. Zero unreplaced markers - PASS
+## Placement performed
 
-Post-assembly scan for `{{MODE_BANNER_BLOCK}}`, `{{COMMAND_MENU_BLOCK}}`,
-`{{AGENT_NAME}}`, and a bare `{{` in both modes: NONE found. Non-ASCII char
-count in both assembled outputs: 0.
+1. Raw byte copy (`cp north-forge.yaml skins/north-forge.yaml`) - not a
+   re-typed or reformatted write, so the block-scalar art and every byte
+   land exactly as delivered. `Write`-tool avoided specifically because this
+   drive is `core.autocrlf=true` and a tool write risked injecting CRLF.
+2. Removed the now-redundant root-level `north-forge.yaml` (`rm`). It was an
+   untracked handoff drop containing the identical content now at
+   `skins/north-forge.yaml`; leaving it would have kept the working tree
+   dirty and risked an accidental future commit of a stray root yaml.
+3. `git add skins/north-forge.yaml`. The expected
+   "LF will be replaced by CRLF the next time Git touches it" autocrlf
+   warning fired - that is the checkout filter, not a blob change.
 
-### 4. Margin to the 20,000-char ceiling - FLAGGED, as requested
+### Verification of the placed / staged result
 
-```
-mode    margin (LF)    margin (CRLF, native Windows launch)
-FULL       899               729
-SALES      904               742
-```
+- Staged blob CR count (`git show :skins/north-forge.yaml | tr -cd '\r' |
+  wc -c`): `0`. Pure LF in the index, consistent with the old blob and
+  every other tracked file in the repo.
+- Staged blob is byte-identical to the delivered `north-forge.yaml`
+  (same 2910-byte pure-LF content; `git show :` output matches the file
+  read line-for-line, including the banner art and the new `welcome:`).
+- No BOM, zero unintended trailing whitespace changes elsewhere in the
+  file (the two `@@` hunks above are the ENTIRE diff - `git diff --cached
+  --stat` = "1 file changed, 10 insertions(+), 1 deletion(-)").
+- PyYAML `safe_load` (hermes venv python): parses with no error. Top-level
+  keys `['name', 'description', 'banner_logo', 'colors', 'spinner',
+  'branding']`. `banner_logo` is a `str`, 6 lines, ends with a newline
+  (expected for a `|` clip block scalar). `colors` has 14 keys. `spinner`
+  has `thinking_verbs`. `branding.welcome` =
+  `"North Forge - Kyocera Edition. Type /menu to see everything I can do,
+  or just describe your issue - I'll take it from there."`,
+  `branding.agent_name` = `"North Forge"`.
+- Blob hash change: `6004181..de081f3`.
+- Post-commit `git status`: "nothing to commit, working tree clean".
+- `git push`: `96c40a4..1d43583  main -> main`, exit 0. `origin/main` ==
+  local `main` == `1d43583`.
 
-Plainly: headroom is now about 900 characters on a Linux/Mac LF assembly
-and about 730-740 bytes on a native Windows launch (the `.bat`/`.sh` Python
-writes CRLF - carry-over flag (a)). This is tight. There is no automated
-guard on the assembled size anywhere in the launcher or the repo. Any
-further growth of `.hermes.template.md`, either `*-banner.md`, or either
-`*-menu.md` needs to be budgeted against this ceiling before it is written.
-The template's own line 32 still asserts it "stays under Hermes's
-context-file size limit on purpose" - that is still true, but the phrase now
-has very little slack behind it.
-
-### 5. git log / status clean - CLEAN
-
-After the commit, `git status` = "nothing to commit, working tree clean".
-`git push` succeeded; `origin/main` == local `main` == `1fd6c1e`.
-HEAD before session: `c6d6dee`. `git pull` at start: already up to date.
-Commit chain this session: `c6d6dee` -> `1fd6c1e` (handoff placement) ->
-(this audit commit, hash in the chat response).
-
-### 6. Line endings of the committed blobs - LF, correct
-
-`git ls-files --eol` reports `i/lf w/lf` for every placed file.
-`git cat-file blob HEAD:<path> | tr -cd '\r' | wc -c` = 0 for the sampled
-files (`.hermes.template.md`, `flush`, `menu`, `forge-audit`, `kb-builder`,
-`full-menu.md`). The zip's files are CRLF on disk; `git add` under this
-drive's `core.autocrlf=true` normalized them to LF in the blob (the
-"LF will be replaced by CRLF the next time Git touches it" warnings on
-`git add` are that normalization, expected, on record as carry-over flag
-(a)). Note: `git show HEAD:<path>` on this Git-for-Windows build re-applies
-the working-tree eol filter to its stdout and shows CR bytes - that is a
-display artifact of `git show`, NOT the blob; `git cat-file blob` is the
-authoritative raw view and shows pure LF.
+Not verified this session (cannot be, without a launcher-driven Hermes
+session): that the banner art actually renders correctly under `/skin
+north-forge` in a live North Forge CLI - width, wrapping, and Rich-markup
+parsing of the `[bold #D32F2F]...[/]` tags in a real terminal. The file's
+own line 13-16 comment explicitly says to verify that way. Each art row is
+~95 visible columns before markup; on a narrower terminal it will wrap.
+This is the same class of "no live model/CLI session has exercised it"
+carry-over the prior audit flagged for the template.
 
 ## Zone A changes made
 
-None. `.gitignore` inspected (Session Start Protocol step 4), found correct,
-not modified. The only files this session writes are (a) the Zone B/Zone C
-handoff placement, under the placement exception, and (b) this audit report.
+- `skins/north-forge.yaml` (Zone A per CLAUDE.md - explicitly listed under
+  "Infrastructure / plumbing (Claude Code MAY fix directly)").
+  - BEFORE: 38-line file, no `banner_logo:` key. `branding.welcome:` =
+    `"North Forge - Kyocera Edition. Type a command or describe the issue."`
+    HEAD blob `6004181`.
+  - AFTER: 47-line file. Adds a 6-line `banner_logo: |` Rich-markup ASCII
+    banner (red gradient `#D32F2F`/`#B71C1C`/`#7A1010`) plus surrounding
+    blank lines. `branding.welcome:` changed to
+    `"North Forge - Kyocera Edition. Type /menu to see everything I can do,
+    or just describe your issue - I'll take it from there."` New blob
+    `de081f3`.
+  - WHY: task instruction - `banner_logo` confirmed missing
+    (`grep -c` = 0) and file confirmed never updated since the 2026-08-26
+    scaffold (`git log --oneline` = single commit `73a58a0`), so the
+    "extract the attached file and overwrite" branch applied. Content
+    placed byte-for-byte from the handoff drop; Claude Code did not compose
+    or alter any of it.
+  - COMMIT: `1d43583`.
 
 ## Zone B findings (not fixed - reported only)
 
-None outstanding from this handoff. All five findings the prior audit left
-open are resolved by the placed content:
-
-- **Prior Finding 1** (`menu` and `flush` skill folders referenced by the
-  template, both menu blocks, and `switch/SKILL.md` but absent from the
-  repo) - RESOLVED. Both folders now exist with well-formed skills.
-  `switch/SKILL.md`'s three outbound references
-  (`skills-source/shared/flush` x2, "the menu skill" x1) now resolve.
-  `.hermes.template.md` L34 ("menu (registers /menu...)", "flush (registers
-  /flush...)") and L110 ("/flush (read .hermes/skills/flush in full when
-  triggered)") now point at real files.
-- **Prior Finding 2** (the template's "each skill registers its slash
-  command via `name:` frontmatter" claim was true for only 2 of 12) -
-  RESOLVED. True for all 14 now. Verified by direct blob read + PyYAML
-  parse.
-- **Prior Finding 3** ("14 skills" unreachable from the `pending-tonight`
-  handoff, which topped out at 12) - RESOLVED. 14 folders, 14 `SKILL.md`,
-  14 unique `name:` values matching the task's list.
-- **Prior Finding 4** (`.hermes.template.md` contradicted itself: L114
-  `flush_clear_rule` banned `/clear`, L142 addendum item 3 treated `/clear`
-  as a normal sibling of `/flush`) - RESOLVED. L142 now says "MEMORY MUST
-  RESPECT /FLUSH AND /SWITCH ... Never /clear or /reset for this - see
-  flush_clear_rule". Consistent with L114 and with L34.
-- **Prior Finding 5** (`sales-assist/SKILL.md` had no self-lock line, no
-  frontmatter) - RESOLVED. Self-lock line was already added in `a49580f`;
-  this handoff adds `name: sales` / `description:` frontmatter above it.
-  The file still opens (after the frontmatter) with "# Sales Assist Skill
-  (PLACEHOLDER - NOT YET AUTHORED)" and its FAQ body is still an
-  intentional placeholder pending real spec-sheet curation - that is a
-  known, tracked non-issue, not a regression.
-
-Minor pre-existing observation, NOT introduced or changed by this handoff
-and NOT a finding against it: `skills-source/shared/switch/SKILL.md` line 9
-refers to "the original (non-Hermes) North Forge v21.9" while the template
-header says v21.8. That file is byte-identical to what was committed at
-`1c66ab8`; the version-number wording is a Blacksmith/Claude-Project-chat
-content question, unchanged this session.
-
-## Disposition of the v21.8-drift append (NEXT_STEPS.md)
-
-The 2026-08-29 "Drift audit vs v21.8 OneDrive source package - PASS WITH
-EXCEPTIONS" append (36 lines) had sat uncommitted across the last two
-sessions, flagged for a primary-GPT decision. It is `NEXT_STEPS.md` content
-(Zone C), it records real findings from the 2026-08-29 drift-audit session,
-and leaving it as a floating working-tree diff across Kenneth's imminent
-AppData flush + fresh repull risked losing it. This session committed it as
-part of `NEXT_STEPS.md` (Zone C, freely committable) so the working tree is
-clean before the flush. Its four open sub-items (CONTACT_BLOCK header
-v21.5/v21.8; kb-builder PRIMARY SOURCE FORMAT block; kb-builder "do not ask
-to select research/Mermaid" line; firmware-box placeholder wording) are
-unchanged and still await Blacksmith sign-off - committing the text does not
-resolve them, it just stops the record from floating.
-
-## Zone C changes made (NEXT_STEPS.md)
-
-1. "## Done": added bullets for `skills-source/shared/flush/SKILL.md` and
-   `skills-source/shared/menu/SKILL.md` (placed 2026-09-01, byte-for-byte,
-   not composed by Claude Code); added a "YAML frontmatter pass" bullet
-   listing all 14 registered commands.
-2. "## Done" mode-toggle line: annotated "FULL assembles all 10 skills,
-   SALES ... 2 shared" with "[now **14** skills FULL / **6** shared SALES as
-   of 2026-09-01 - see section at bottom]". The 2026-08-28 dated wording
-   itself is left intact as a historical record.
-3. "## Not yet built": added a 2026-09-01 note that the shared set grew 2 ->
-   6 and the total is now 14 (8 tsc-only + 6 shared), `sales-assist` FAQ
-   content still the only unbuilt item.
-4. "## QA session (2026-08-28)" FULL/SALES assembly bullets: added bracketed
-   2026-09-01 updates (14 skills / 19,101 chars; 6 shared / 19,096).
-5. New section "## 14-skill completion + frontmatter pass (2026-09-01) -
-   COMPLETE-fix handoff placed": full breakdown of what changed, the
-   STANDING RULE result, assembled sizes, and an explicit MARGIN WARNING
-   about the ~900-char headroom.
-6. (Carried in the same commit) the previously-deferred v21.8-drift append,
-   as described above.
-
-No Zone C edit describes or implies a Zone B content change that did not
-actually happen this session - the 14-skill placement and the L142 template
-edit are both really in commit `1fd6c1e`.
+None. `skins/north-forge.yaml` is Zone A, not Zone B; no Zone B file was
+inspected for change this session beyond the read of
+`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md:126` for the reversion check
+described above. See "Uncertain / flagged" item 1 for the one cross-file
+consistency question that a Zone B decision (the fallback doc's bare-menu
+line) may hinge on.
 
 ## Commits made this session
 
-- `1fd6c1e` - "Place COMPLETE-fix handoff: 14 skills + name: frontmatter on
-  all of them". 14 files changed, +167/-2.
-  - `.hermes.template.md` (+1/-1, the L142 Finding-4 fix)
-  - `skills-source/shared/flush/SKILL.md` (new, 17 lines)
-  - `skills-source/shared/menu/SKILL.md` (new, 15 lines)
-  - `skills-source/shared/sales-assist/SKILL.md` (+4, frontmatter)
-  - `skills-source/shared/web-navigator/SKILL.md` (+4, frontmatter)
-  - `skills-source/tsc-only/{assist-intake,draft-writer,escalation-packet,
-    fault-logging,forge-audit,hotline-ticket,kb-builder,training-guide}/SKILL.md`
-    (+4 each, frontmatter)
-  - `NEXT_STEPS.md` (+95/-1: 14-skill updates, new 2026-09-01 section, plus
-    the previously-deferred v21.8-drift append)
-  - `skills-source/shared/switch/SKILL.md` and
-    `skills-source/shared/kyocera-research/SKILL.md` are NOT in the commit -
-    git saw the incoming copies as byte-identical to HEAD.
-  Placed under the Zone B placement exception (in-session named handoff from
-  Kenneth, content originating from the Claude Project chat, with an
-  instruction to commit). Pushed to `origin/main`.
+- `1d43583` - "skins/north-forge.yaml: add missing banner_logo block art".
+  1 file changed, +10/-1. Zone A fix, committed and pushed under standing
+  authorization. Commit body records both deltas (the `banner_logo`
+  addition and the `branding.welcome` change), the STANDING RULE
+  diff-vs-HEAD result, and the removal of the redundant root
+  `north-forge.yaml`.
 - (this audit report) - `audit/CLAUDE_CODE_LAST_AUDIT.md`, Zone A
-  operational record, committed and pushed as normal Zone A operation. Hash
-  in the chat response.
+  operational record, committed and pushed as normal Zone A operation.
+  Hash in the chat response.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **Live registration not yet observed.** All 14 `name:` values are
-   verified structurally correct and PyYAML-parseable, and the two
-   pre-existing frontmatter skills already register fine under their
-   `name:`, so there is strong indirect evidence the other 12 will too - but
-   `hermes skills list --source local` against a rebuilt 14-set has NOT been
-   run this session (deferred per Kenneth's "commit before the flush"
-   instruction). Kenneth's post-commit fresh launch is the real test. If any
-   of the 12 newly-frontmattered skills fails to appear in that list, the
-   most likely causes to check first are (a) a `name:` value colliding with
-   a Hermes reserved word, and (b) the `skills-guard` scanner flagging a
-   body - a full `grep -rn "CLAUDE\.md\|AGENTS\.md\|\.cursorrules\|\.clinerules"
-   skills-source/` this session returned 0 hits, so (b) looks clear.
-2. **Assembled-size margin (~900 chars / ~730 bytes CRLF).** Recorded in
-   NEXT_STEPS.md with a MARGIN WARNING. Flagging here too because it is a
-   real constraint on the next content revision and there is no automated
-   check. If the primary GPT plans any further template/menu/banner growth,
-   it needs a size budget, or the 20,000 ceiling needs to be re-confirmed as
-   the actual Hermes limit (it is treated as such in this repo's docs but I
-   did not re-verify it against Hermes source this session).
-3. **`switch/SKILL.md` "v21.9" vs template "v21.8".** Pre-existing, not
-   touched by this handoff. Content question for the Claude Project chat -
-   is the `switch` skill's reference to porting from "North Forge v21.9"
-   correct, or should it say v21.8 to match the template header?
-4. **v21.8-drift append now committed** (see its own section above). If the
-   primary GPT wants that text shaped differently or moved to a durable
-   location other than `NEXT_STEPS.md`, it is Zone C and freely editable -
-   this session committed it only to clear the working tree before the
-   flush, not to finalize its wording.
-5. **Three carry-over flags from prior audits, unchanged:**
-   (a) `.bat` vs `.sh` `.hermes.md` CRLF byte divergence on
-   `core.autocrlf=true` machines - still live, and now more pointed since
-   the CRLF assembled size (19,271 FULL) eats into the 20,000 ceiling
-   harder than the LF figure the docs quote;
-   (b) `launch-north-forge.bat` never exercised end-to-end;
-   (c) no live model session has been run against the current
-   `.hermes.template.md` - now includes the flush/switch split, the 14-skill
-   set, and the L142 memory rule, none of which have faced a running model.
+1. **Undescribed `branding.welcome:` change rode along with the
+   `banner_logo` fix.** The task was purely about `banner_logo`; the
+   attached file also rewrites `welcome:` from "Type a command or describe
+   the issue." to "Type /menu to see everything I can do, or just describe
+   your issue - I'll take it from there." It is NOT a reversion of any
+   recorded fix (verified: single-commit history, no doc mention), so it
+   was applied per the "overwrite the current one" instruction - but the
+   primary GPT should confirm this wording change is intended and not
+   sandbox drift. Related consistency point: the OLD skin wording matched
+   `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md:126` ("Type a command or
+   describe the issue."); the NEW wording no longer does. If the skin
+   welcome and the v21.8 paste fallback's bare-menu line are meant to stay
+   parallel, the fallback doc (Zone B) needs a matching Blacksmith-approved
+   update - Claude Code did not touch it.
+2. **Extra blank line in the placed file.** The incoming file has two blank
+   lines between `description:` and `banner_logo:` (HEAD had one). Harmless
+   to YAML, placed as delivered, noted only so it is not mistaken later for
+   a placement error.
+3. **Banner art not visually verified.** No launcher-driven Hermes session
+   was run, so `/skin north-forge` has not been exercised against the new
+   file. The `[bold #D32F2F]...[/]` Rich markup and the ~95-column art rows
+   are structurally fine and PyYAML-clean, but real-terminal rendering
+   (wrapping on narrow terminals, markup parse) is unconfirmed. The file's
+   own comment (lines 13-16) asks for exactly this check.
+4. **Environment observation, outside this repo, not a repo issue:**
+   `C:\Users\kwalk\AppData\Local\hermes\hermes-agent.broken-20260902-002507\`
+   exists alongside the live `hermes-agent\` - a Hermes install was moved
+   aside / repaired at ~00:25 on 2026-09-02. `hermes doctor` is fully clean
+   now (v0.21.0, no advisories), so whatever it was appears resolved.
+   Mentioned only because the prior audit's SQLite-3.45.1 WAL advisory has
+   also vanished this session (SQLite is now 3.53.1) - both are consistent
+   with a hermes reinstall having happened between sessions.
+5. **Prior audit's open item, unchanged and not addressed here:** the
+   ~900-char (LF) / ~730-byte (CRLF) headroom to the 20,000-char assembled
+   `.hermes.md` ceiling. Untouched this session - this change is to the
+   skin file, which is not part of the assembled `.hermes.md` - but it
+   remains the primary standing constraint for the next content revision.
 
 ## Status
 
-Needs primary GPT review. Handoff placed and committed clean (`1fd6c1e`,
-pushed). All five prior-audit findings resolved and verified. Working tree
-clean. The one substantive item for Kenneth's next action is the fresh
-launch + `hermes skills list` to confirm all 14 register live; the one
-substantive item for the primary GPT is the ~900-char assembled-size margin
-before any further content is added.
+Needs primary GPT review - specifically to confirm the `branding.welcome:`
+change in the attached `north-forge.yaml` was intended (it was outside the
+task's stated `banner_logo` scope) and to decide whether
+`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`'s bare-menu line should be
+updated to stay parallel with it. The `banner_logo` addition itself is
+placed, PyYAML-clean, committed (`1d43583`) and pushed; working tree clean.
