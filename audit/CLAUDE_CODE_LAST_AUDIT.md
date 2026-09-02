@@ -1,442 +1,458 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-01 (evening session)
-Requested task: Extract `north-forge-hermes-pending-tonight.zip` into the repo
-root, overwriting `.hermes.template.md`, `mode-blocks/full-menu.md`,
-`mode-blocks/sales-menu.md` and adding `skills-source/shared/switch/` and
-`skills-source/shared/kyocera-research/`. Kenneth described it as "everything
-from tonight's session in one consolidated handoff - verify each piece,
-commit, push," then run the full pre-flush verification (all 14 skills'
-frontmatter, both assembled sizes, `flush_clear_rule` correctness, git
-log/status clean).
-
-OUTCOME: Files extracted and byte-verified onto disk (they already matched
-the working tree). Verification found the handoff internally inconsistent and
-incomplete against its own content and against Kenneth's stated expectation
-of 14 skills (details below). Presented the findings and three options;
-**Kenneth directed "Commit all 5 as-is" with the gaps recorded as known**.
-Done - commit `1c66ab8`, pushed. This audit file was first committed
-(`45c1c6a`) saying "NOT committed", then updated to this version and
-re-committed after Kenneth's decision.
+Timestamp: 2026-09-01, late session (work and commit ran past local midnight
+into 2026-09-02; the handoff zip and all inline NEXT_STEPS markers use
+2026-09-01, kept consistent here).
+Requested task: Extract `north-forge-hermes-COMPLETE-fix.zip` into the repo
+root. It replaces ALL of `skills-source/` (14 skill folders), plus
+`.hermes.template.md`, `mode-blocks/full-menu.md`, `mode-blocks/sales-menu.md`.
+Kenneth stated it "resolves every finding from the last audit" (Findings 1-5)
+and asked, explicitly: read every skill's frontmatter directly and confirm
+all 14 register correctly (hl, kb, esc, audit, log, train, draft, web,
+assist, sales, menu, flush, switch, kyocera-research); recompute both
+assembled sizes (expected ~19,101 FULL / ~19,096 SALES) and flag the sub-900
+margin plainly; confirm zero unreplaced markers; update `NEXT_STEPS.md` to
+say 14 skills not 10; then commit and push. Kenneth's own AppData flush +
+fresh repull happens AFTER this commit, not before - so no live rebuild of
+`.hermes/` or AppData was performed this session.
 
 ## Files inspected
 
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior session's record (111 lines,
-  timestamp 2026-08-29, "session-start check only", status Clean). Note: its
-  prose refers to the repo being "at 095a111" but HEAD is now `75cfa19`
-  ("Audit: session-start check only, no task given"), whose sole change was
-  replacing that audit file (172 lines changed, +82/-90). The 2026-08-29
-  audit file content and the 75cfa19 commit that carries it are one and the
-  same session; the "095a111" in the prose is a stale internal reference.
-- `.gitignore` (52 lines) - Session Start Protocol step 4. Correct.
-- `north-forge-hermes-pending-tonight.zip` (`C:\Users\kwalk\Downloads\`) -
-  extracted to a scratch dir first, then into the repo. Archive contains
-  exactly 5 files, no more:
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior session's report (443 lines,
+  timestamp "2026-09-01 (evening session)", status "Needs primary GPT
+  review"). Recorded the `pending-tonight` handoff committed as-is
+  (`1c66ab8`) per Kenneth's direction with Findings 1-5 left open. That
+  report's "Required follow-up" list is exactly what this handoff claims to
+  deliver.
+- `.gitignore` (52 lines) - Session Start Protocol step 4. Unchanged,
+  correct: `.env` L2, `.forge-mode` L10, `.agent-name` L11, `/.hermes/` L18,
+  `.hermes.md` L19, root-anchored `/skills/` legacy guard L51. No fix
+  required.
+- `NEXT_STEPS.md` - full read (260 lines incl. the still-uncommitted
+  2026-08-29 v21.8-drift append). Working tree vs HEAD diff at session start.
+- `north-forge-hermes-COMPLETE-fix.zip` (`C:\Users\kwalk\Downloads\`, 42,187
+  bytes, mtime 2026-09-01 23:52). Extracted to a scratch dir
+  (`...\scratchpad\zipextract\`) first, inspected in full there, then placed
+  into the repo. Archive contains exactly 17 files:
   - `.hermes.template.md`
-  - `mode-blocks/full-menu.md`
-  - `mode-blocks/sales-menu.md`
-  - `skills-source/shared/switch/SKILL.md`
-  - `skills-source/shared/kyocera-research/SKILL.md`
-- `.hermes.template.md` - full read, working tree (147 lines, 17424 bytes)
-  and HEAD blob (16731 bytes).
-- `mode-blocks/full-menu.md` (1449 B WT / 1317 B HEAD),
-  `mode-blocks/sales-menu.md` (838 B WT / 705 B HEAD),
-  `mode-blocks/full-banner.md` (214 B), `mode-blocks/sales-banner.md`
-  (822 B) - all read.
-- `skills-source/shared/switch/SKILL.md` (2361 B, new) - full read.
-- `skills-source/shared/kyocera-research/SKILL.md` (3809 B, new) - full read.
-- Every `SKILL.md` under `skills-source/` (12 files total) - frontmatter and
-  first line inspected.
-- `NEXT_STEPS.md` - working tree vs HEAD diff, plus targeted content reads
-  (skill inventory, forge-audit rename explanation, QA session notes).
-- `launch-north-forge.sh` - full read, to reproduce the assembly step.
-- `.hermes.md` (18373 B, on-disk build artifact, git-ignored) - header +
-  `flush_clear_rule` region only; confirmed stale (pre-handoff content).
+  - `mode-blocks/full-menu.md`, `mode-blocks/sales-menu.md`
+  - `skills-source/` - 14 `SKILL.md` files (6 shared, 8 tsc-only), listed
+    below. No other files, no banners, no READMEs.
+- Every one of the 14 zip `SKILL.md` files - full read of `flush`, `menu`,
+  `switch`; frontmatter + first body lines + self-lock-line grep on all 14;
+  full-file diff (CR-insensitive) of each against its repo counterpart.
+- `.hermes.template.md` - full read of the repo copy (147 lines) and a
+  line-level diff repo-vs-zip.
+- `mode-blocks/full-menu.md`, `mode-blocks/sales-menu.md`,
+  `mode-blocks/full-banner.md`, `mode-blocks/sales-banner.md` - all read.
+- `launch-north-forge.sh` - full read, to reproduce the `.hermes.md`
+  assembly (template + `{{MODE_BANNER_BLOCK}}` + `{{COMMAND_MENU_BLOCK}}` +
+  `{{AGENT_NAME}}` -> `North Forge`, skills copied as separate files, NOT
+  concatenated).
 - Read-only git: `git pull` (already up to date), `git status`, `git diff`,
-  `git diff HEAD`, `git diff --ignore-cr-at-eol`, `git log`, `git show`,
-  `git check-ignore`, `git ls-files`.
-- `command -v hermes` - not installed on this drive (unchanged from every
-  prior audit).
+  `git diff --cached`, `git diff --cached --ignore-cr-at-eol`, `git log
+  --all -- skills-source/shared/menu skills-source/shared/flush` (empty),
+  `git ls-tree -r HEAD`, `git ls-files --eol`, `git cat-file blob`,
+  `git show`, `git diff c6d6dee HEAD`.
+- `hermes doctor` and `hermes skills list --source local` - hermes IS
+  installed on this drive at
+  `C:\Users\kwalk\AppData\Local\hermes\bin\hermes` (v0.21.0). Doctor: no
+  security advisories, venv OK, API key configured, config v39, one
+  pre-existing unrelated warning (SQLite 3.45.1 WAL-reset-bug advisory,
+  not introduced by anything in this repo).
+- PyYAML parse of all 14 frontmatter blocks via the hermes venv
+  (`C:\Users\kwalk\AppData\Local\hermes\hermes-agent\.venv\Scripts\python.exe`).
 
 ## State of the working tree at session start
 
-`git status` already showed the five target paths modified/untracked before
-this session touched anything:
-
 ```
- M .hermes.template.md
- M NEXT_STEPS.md
- M mode-blocks/full-menu.md
- M mode-blocks/sales-menu.md
-?? skills-source/shared/kyocera-research/
-?? skills-source/shared/switch/
-```
-
-The three tracked files on disk were already byte-for-byte identical to the
-zip's copies (verified with `cmp -s` against a separate extraction, and again
-after re-extracting into the repo). So "tonight's session" had already
-written these to the working tree in an earlier, uncommitted pass; the zip is
-the same content re-bundled. Re-extraction changed nothing.
-
-`NEXT_STEPS.md` also carries an **unrelated** uncommitted change (a 33-line
-append, "Drift audit vs v21.8 OneDrive source package (2026-08-29) - PASS
-WITH EXCEPTIONS") that is not part of tonight's switch/kyocera handoff and
-was not authored this session. It references "Full findings in
-`audit/CLAUDE_CODE_LAST_AUDIT.md`" and "all four findings" - but the
-currently committed audit file (75cfa19) contains no such findings, so that
-append points at an audit report that was overwritten. Left untouched and
-uncommitted this session; flagged below.
-
-## File integrity of the 5 handoff files (all pass)
-
-- Line endings: pure LF, zero CR bytes in all 5 (perl `/\r/` count = 0;
-  `cat -A` shows `$` line-ends, no `^M`; `od -c` on line 1 of the template
-  shows `] \n`). The `git` "LF will be replaced by CRLF the next time Git
-  touches it" warning is the pre-existing `core.autocrlf=true` on this
-  Windows drive (already on record as carry-over flag (a)); it does not
-  affect committed blobs and `git diff --ignore-cr-at-eol` is identical to
-  plain `git diff` (16 changed lines both ways for the template).
-- No BOM (`.hermes.template.md` first 3 bytes `5b 53 59` = `[SY`; the two new
-  SKILL.md files first 3 bytes `2d 2d 2d` = `---`).
-- `git diff HEAD` for the 3 tracked files is small and content-only:
-  `.hermes.template.md` +10/-4, `mode-blocks/full-menu.md` +16/-13,
-  `mode-blocks/sales-menu.md` +5/-4. No unintended collateral edits.
-- sha256 (on disk, this session):
-  - `.hermes.template.md` `6271a577a59eb3ffaa2663c9f5be108287403994f136967b5facef55df780b04`
-  - `mode-blocks/full-menu.md` `c599171cbef6ccf7e8abdc737c6d9038b844ad96e0dc30246d61132b19d9f961`
-  - `mode-blocks/sales-menu.md` `7a83e9ab56d015e552162f4ff2f800a27c729f6b60edcb6a2b4cb9deb0099d92`
-  - `skills-source/shared/switch/SKILL.md` `4848a56962aee5a577ddaf25ca93e7fe4ef2417ff3225f1131ed68a911fe1c57`
-  - `skills-source/shared/kyocera-research/SKILL.md` `d71b3468a9e373a6509692c1f5f39fbf5fd1404674c2722e9c5c22dd8b10d30d`
-
-## STANDING RULE diff-vs-HEAD check (2026-08-29 rule)
-
-Diffed each incoming tracked file against current HEAD, not just against the
-handoff's self-description.
-
-- **`.hermes.template.md` - `how_this_package_is_organized` paragraph.**
-  HEAD carries a long inline "CORRECTION (2026-08-29)" about the `forge-audit`
-  list-drop (real cause = the literal string `CLAUDE.md` in a skill tripping
-  Hermes's `skills-guard-v1` scanner, not a reserved-name collision). The
-  handoff removes that inline paragraph and replaces it with "The /audit
-  skill's folder is named forge-audit for historical reasons (see
-  NEXT_STEPS.md for why)." This is NOT a lost fix: the full explanation
-  already lives in `NEXT_STEPS.md` (working tree lines ~36-58 and ~171-184,
-  the "QA FINDING 1" correction and the verification notes), which the new
-  template text now points to. Cross-reference is satisfied. Recorded here
-  per the STANDING RULE so the primary GPT can confirm the relocation was
-  intentional.
-- **`.hermes.template.md` - `flush_clear_rule` block.** HEAD said "/flush and
-  /clear are the same command." The handoff replaces that with the
-  /flush-vs-/switch split plus a "CRITICAL SAFETY CORRECTION (2026-08-29)"
-  that `/clear` and `/reset` are destructive native Hermes commands a
-  technician must never be told to type. This CONTRADICTS the old HEAD text
-  by design - it is the safety correction, and it is consistent with the
-  "NEVER /clear or /reset" line the handoff also adds to both menu blocks and
-  with the security-hardening direction already recorded in NEXT_STEPS.md. Not
-  a reverted fix - a deliberate supersede. See Zone B finding 4 for the spot
-  the handoff missed while making this change.
-- **`mode-blocks/full-menu.md` / `sales-menu.md`.** Full rewrite of the
-  command list into "one real slash form + plain-word alternates" style, adds
-  a `/switch` line, points `/menu` at `.hermes/skills/menu`. No prior audit
-  recorded a deliberate fix in these two files that the rewrite reverts. See
-  Zone B findings 1-3.
-
-No previously-recorded deliberate fix is silently reverted by this handoff.
-
-## Pre-flush verification results (as requested)
-
-### 1. "All 14 skills' frontmatter" - FAILS
-
-Only **12** skill folders exist under `skills-source/` after this handoff,
-and only **2** of the 12 carry YAML frontmatter:
-
-```
-YAML-FM  skills-source/shared/kyocera-research/SKILL.md   name: kyocera-research
-YAML-FM  skills-source/shared/switch/SKILL.md             name: switch
-NO-FM    skills-source/shared/sales-assist/SKILL.md       (# Sales Assist Skill (PLACEHOLDER...))
-NO-FM    skills-source/shared/web-navigator/SKILL.md      (# Web Navigator Skill)
-NO-FM    skills-source/tsc-only/assist-intake/SKILL.md    (# Assist Intake Skill)
-NO-FM    skills-source/tsc-only/draft-writer/SKILL.md     (# Draft Writer Skill)
-NO-FM    skills-source/tsc-only/escalation-packet/SKILL.md
-NO-FM    skills-source/tsc-only/fault-logging/SKILL.md
-NO-FM    skills-source/tsc-only/forge-audit/SKILL.md      (# Audit Skill)
-NO-FM    skills-source/tsc-only/hotline-ticket/SKILL.md   (# Hotline Ticket Skill)
-NO-FM    skills-source/tsc-only/kb-builder/SKILL.md       (# KB Builder Skill)
-NO-FM    skills-source/tsc-only/training-guide/SKILL.md   (# Training Guide Skill)
-```
-
-Both new-skill frontmatter blocks are well-formed: `---` on line 1, `name:`
-line 2, `description:` line 3, `---` line 4, `name:` value matches the folder
-name in both cases.
-
-- `switch`: `name: switch`, `description: Hard reset the working issue package
-  AND reset to default mode, then show the command menu`
-- `kyocera-research`: `name: kyocera-research`, `description: Targeted
-  research pass over public Kyocera resources - firmware notes, known issues,
-  forums - logging only genuinely new findings`
-
-Why this fails the "14" bar and why it matters - see Zone B findings 1 and 2.
-
-### 2. Both assembled `.hermes.md` sizes
-
-Reproduced the launcher's Python assembly (`{{MODE_BANNER_BLOCK}}` ->
-`mode-blocks/<mode>-banner.md`, `{{COMMAND_MENU_BLOCK}}` ->
-`mode-blocks/<mode>-menu.md`, `{{AGENT_NAME}}` -> `North Forge` because no
-`.agent-name` file is present). `.forge-mode` on this drive = `full`.
-
-```
-mode    HEAD assembled    HANDOFF assembled    delta
-full        18212 B           19037 B          +825 B     (171 lines)
-sales       18206 B           19032 B          +826 B     (163 lines)
-```
-
-All three placeholder tokens resolve to zero leftovers in both modes. No
-size-limit concern (well under any Hermes context-file cap; template itself
-notes it "stays under Hermes's context-file size limit on purpose" and the
-delta is small).
-
-Note: skills are copied as separate files into `.hermes/skills/`; they are
-NOT concatenated into `.hermes.md`, so the assembled size reflects template +
-banner + menu only.
-
-### 3. `flush_clear_rule` correctness - MOSTLY CORRECT, one internal contradiction
-
-The new `<flush_clear_rule>` block (WT lines 107-121) is internally coherent
-with `switch/SKILL.md` and with both rewritten menu blocks:
-
-- /flush = soft (reset issue package, stay in mode); /switch = hard (reset
-  package + reset to default mode + show menu). Matches `switch/SKILL.md`
-  sections "What to do when this triggers" and "The two-command pair".
-- "CRITICAL SAFETY CORRECTION (2026-08-29): neither of these is '/clear' or
-  '/reset'... Never tell a technician to type '/clear' or '/reset'." Matches
-  the "NEVER /clear or /reset for either" line added to `full-menu.md` and
-  `sales-menu.md`.
-- Anti-leak "HARD RESET, NOT A SOFT SUMMARY" clause retained; memory-write
-  coverage retained; "There is no /initialize command" retained.
-
-Defect: see Zone B finding 4 - `<hermes_specific_addendum>` item 3 (WT line
-142) still reads "MEMORY MUST RESPECT /FLUSH. Treat a /flush or /clear the
-same way..." The handoff updated the `flush_clear_rule` block to ban `/clear`
-but left this second reference in the same file untouched, so the file now
-contradicts itself on whether `/clear` is a thing North Forge acknowledges.
-
-### 4. git log / status clean - CLEAN except one deliberately-excluded file
-
-After the handoff commit (`1c66ab8`) and the audit commits, `git status`
-shows only:
-
-```
+On branch main, up to date with origin/main (HEAD c6d6dee)
  M NEXT_STEPS.md
 ```
 
-That is the unrelated v21.8-drift append from a prior session, deliberately
-left out of tonight's commits (see "Commit decision"). Nothing else is
-uncommitted. `git push` succeeded on every commit; `origin/main` = local
-`main` = `1c66ab8` (before this final audit re-commit).
+The only uncommitted change was the 2026-08-29 "Drift audit vs v21.8 OneDrive
+source package" append (36 added lines), which the prior two audits recorded
+as deliberately left uncommitted and flagged for a primary-GPT decision on
+whether it should stay. See "Disposition of the v21.8-drift append" below.
+No other file was modified, no skill folder was missing or extra beyond the
+known 12.
 
-HEAD before this session: `75cfa19`. `git pull` at start = already up to
-date. Commit chain this session: `75cfa19` -> `45c1c6a` (audit v1) ->
-`1c66ab8` (handoff) -> this audit re-commit.
+## What the zip contains vs. what was on disk
+
+ZIP `skills-source/` (14 folders):
+
+```
+shared/flush/SKILL.md              NEW  (1592 B in zip, CRLF)
+shared/menu/SKILL.md               NEW  (1227 B in zip, CRLF)
+shared/kyocera-research/SKILL.md   unchanged vs repo (CR-insensitive diff empty)
+shared/switch/SKILL.md             unchanged vs repo (CR-insensitive diff empty)
+shared/sales-assist/SKILL.md       +4 lines (frontmatter only)
+shared/web-navigator/SKILL.md      +4 lines (frontmatter only)
+tsc-only/assist-intake/SKILL.md    +4 lines (frontmatter only)
+tsc-only/draft-writer/SKILL.md     +4 lines (frontmatter only)
+tsc-only/escalation-packet/SKILL.md +4 lines (frontmatter only)
+tsc-only/fault-logging/SKILL.md    +4 lines (frontmatter only)
+tsc-only/forge-audit/SKILL.md      +4 lines (frontmatter only)
+tsc-only/hotline-ticket/SKILL.md   +4 lines (frontmatter only)
+tsc-only/kb-builder/SKILL.md       +4 lines (frontmatter only)
+tsc-only/training-guide/SKILL.md   +4 lines (frontmatter only)
+```
+
+The "+4 lines (frontmatter only)" was verified by
+`diff --strip-trailing-cr -u repo zip` on every file: in each case the ONLY
+hunk is a leading `@@ -1,3 +1,7 @@` inserting
+
+```
+---
+name: <cmd>
+description: <one line>
+---
+```
+
+above the existing `# <Name> Skill` heading. Zero changes to any body line
+of any of the 10 files. `switch` and `kyocera-research` produced no diff at
+all (they already carried frontmatter from `1c66ab8`).
+
+ZIP doc files:
+
+- `.hermes.template.md` - exactly one changed line (hunk `@@ -139,7 +139,7 @@`),
+  `<hermes_specific_addendum>` item 3:
+  - OLD: `3. MEMORY MUST RESPECT /FLUSH. Treat a /flush or /clear the same
+    way for memory writes as for conversation: do not let specifics from
+    before the flush leak into memory entries written after it, and do not
+    let old memory entries surface facts into a new working issue package
+    unless the technician restates them.`
+  - NEW: `3. MEMORY MUST RESPECT /FLUSH AND /SWITCH. Treat either command
+    the same way for memory writes as for conversation: do not let specifics
+    from before the reset leak into memory entries written after it, and do
+    not let old memory entries surface facts into a new working issue
+    package unless the technician restates them. Never /clear or /reset for
+    this - see flush_clear_rule.`
+  No other line of the 147-line file differs (`git diff c6d6dee HEAD --
+  .hermes.template.md` = one hunk, +1/-1).
+- `mode-blocks/full-menu.md` - `diff --strip-trailing-cr` against the repo
+  copy is EMPTY. Byte-identical (CR-insensitive) to the version committed at
+  `1c66ab8`. Re-bundled, no change.
+- `mode-blocks/sales-menu.md` - same, `diff` EMPTY. No change.
+
+## STANDING RULE (2026-08-29) diff-vs-HEAD check
+
+Ran for every incoming file against current HEAD (`c6d6dee`), not just
+against the handoff's self-description. Result: CLEAN - no previously
+recorded deliberate fix is removed, reverted, or contradicted.
+
+Specific prior fixes checked and confirmed still present after placement:
+
+1. **`forge-audit/SKILL.md` - no literal `CLAUDE.md` token** (the REAL
+   `skills-guard` `agent_config_mod` fix, commit `a49580f`, after the
+   `audit/`->`forge-audit/` rename was found not to have fixed it).
+   - `grep -rn "CLAUDE\.md" <zip>/skills-source/` -> 0 hits.
+   - `git cat-file blob HEAD:skills-source/tsc-only/forge-audit/SKILL.md |
+     grep -c "CLAUDE\.md"` -> 0.
+   - The zip's frontmatter is inserted ABOVE line 1; the trigger sentence
+     that used to contain the token still reads "...unless a code-maintenance
+     or agent-configuration file is specifically requested..." - the
+     reworded form from `a49580f`, intact.
+2. **`sales-assist/SKILL.md` self-lock line** ("Never rewrite this skill
+   file on your own initiative. Flag it to the Blacksmith (Kenneth Walker
+   Jr.)...", added `a49580f`). Diff shows frontmatter added above the body
+   only; the self-lock line is untouched. Grep for the self-lock phrase
+   passes on all 14 files.
+3. **`.hermes.template.md` `<assistant_router_rule>` web-navigator entry**
+   (L78, added `a49580f`). The template diff touches only L142; L78 is
+   unchanged.
+4. **`.hermes.template.md` `<flush_clear_rule>` /flush-vs-/switch split +
+   "CRITICAL SAFETY CORRECTION (2026-08-29)"** (L107-121, placed `1c66ab8`).
+   Unchanged - the L142 edit is the follow-through that the prior audit's
+   "Required follow-up" list explicitly asked for ("Fix `.hermes.template.md`
+   L142 ('/flush or /clear') to match the L114 ban"), not a reversion.
+5. **`.hermes.template.md` forge-audit explanation relocation to "see
+   NEXT_STEPS.md"** (L34, placed `1c66ab8`). Unchanged.
+6. **`mode-blocks/*-menu.md` "NEVER /clear or /reset for either" lines**
+   (placed `1c66ab8`). Menu files are byte-identical to HEAD, lines intact.
+7. **`.gitignore` root-anchored `/skills/` guard**, **`provision-new-drive.ps1`
+   STOP message**, **`toggle-mode.bat`/`.sh` RESET branch** - none of these
+   files are in the handoff; untouched.
+
+`git log --all --oneline -- skills-source/shared/menu skills-source/shared/flush`
+is empty - the two new folders have no prior history to conflict with.
+
+## Pre-flush verification results
+
+### 1. All 14 skills' frontmatter - PASS
+
+Read directly from every committed blob (`git show HEAD:<path>`, line 2) and
+cross-checked with a PyYAML `safe_load` of each `---...---` block via the
+hermes venv python. All 14 parsed with no error; every block is a mapping
+with non-empty `name` and `description`.
+
+```
+skills-source/shared/flush/SKILL.md              name: flush
+skills-source/shared/kyocera-research/SKILL.md   name: kyocera-research
+skills-source/shared/menu/SKILL.md               name: menu
+skills-source/shared/sales-assist/SKILL.md       name: sales
+skills-source/shared/switch/SKILL.md             name: switch
+skills-source/shared/web-navigator/SKILL.md      name: web
+skills-source/tsc-only/assist-intake/SKILL.md    name: assist
+skills-source/tsc-only/draft-writer/SKILL.md     name: draft
+skills-source/tsc-only/escalation-packet/SKILL.md name: esc
+skills-source/tsc-only/fault-logging/SKILL.md    name: log
+skills-source/tsc-only/forge-audit/SKILL.md      name: audit
+skills-source/tsc-only/hotline-ticket/SKILL.md   name: hl
+skills-source/tsc-only/kb-builder/SKILL.md       name: kb
+skills-source/tsc-only/training-guide/SKILL.md   name: train
+```
+
+- 14 distinct `name:` values, no duplicates
+  (`{assist, audit, draft, esc, flush, hl, kb, kyocera-research, log, menu,
+  sales, switch, train, web}`).
+- Set equals the task's expected set EXACTLY: missing = none, extra = none.
+- Every `name:` matches the skill's intended slash command; folder name and
+  `name:` diverge on purpose for the 12 that use a short command
+  (`hotline-ticket`->`hl`, `kb-builder`->`kb`, `escalation-packet`->`esc`,
+  `forge-audit`->`audit`, `fault-logging`->`log`, `training-guide`->`train`,
+  `draft-writer`->`draft`, `web-navigator`->`web`, `assist-intake`->`assist`,
+  `sales-assist`->`sales`) and match for `menu`, `flush`, `switch`,
+  `kyocera-research`.
+- All 14 frontmatter blocks are well-formed: `---` line 1, `name:` line 2,
+  `description:` line 3, `---` line 4, no BOM, no embedded `": "` in any
+  `description:` value (would risk a nested-map parse), zero non-ASCII.
+- All 14 carry the "Never rewrite this skill file on your own initiative"
+  self-lock line.
+
+NOT done this session (deferred per Kenneth): a live `hermes skills list
+--source local` after rebuilding `.hermes/skills/` from the new 14-set. The
+current live list still reflects the pre-handoff 12-set, registered by
+FOLDER name (all 12 show `enabled`). Re-registration under the new `name:`
+values will happen on Kenneth's post-commit fresh launch. The two skills
+that already had frontmatter (`switch`, `kyocera-research`) currently list
+under their `name:` value with no problem, which is direct evidence the
+frontmatter format Hermes expects is the one used here.
+
+### 2. Both assembled `.hermes.md` sizes - MATCH the task's targets
+
+Reproduced the launcher's Python assembly from the COMMITTED HEAD blobs
+(`.hermes.template.md` + `mode-blocks/<mode>-banner.md` +
+`mode-blocks/<mode>-menu.md`, `{{AGENT_NAME}}` -> `North Forge`, no
+`.agent-name` present):
+
+```
+mode    chars (LF)    bytes (LF)    bytes (CRLF, native Win launch)
+FULL      19,101        19,101        19,271
+SALES     19,096        19,096        19,258
+```
+
+- FULL 19,101 vs task's "~19,101" - exact.
+- SALES 19,096 vs task's "~19,096" - exact.
+- Delta from the prior handoff's assembled numbers (`1c66ab8`: 19,037 /
+  19,032 per the last audit): +64 each, all of it the L142 line-length
+  increase. Menus/banners unchanged, so nothing else moved.
+- Skills are copied as separate files into `.hermes/skills/`, NOT
+  concatenated into `.hermes.md`, so the 14-vs-12 skill count does not
+  change the assembled size - only template + banner + menu do.
+
+### 3. Zero unreplaced markers - PASS
+
+Post-assembly scan for `{{MODE_BANNER_BLOCK}}`, `{{COMMAND_MENU_BLOCK}}`,
+`{{AGENT_NAME}}`, and a bare `{{` in both modes: NONE found. Non-ASCII char
+count in both assembled outputs: 0.
+
+### 4. Margin to the 20,000-char ceiling - FLAGGED, as requested
+
+```
+mode    margin (LF)    margin (CRLF, native Windows launch)
+FULL       899               729
+SALES      904               742
+```
+
+Plainly: headroom is now about 900 characters on a Linux/Mac LF assembly
+and about 730-740 bytes on a native Windows launch (the `.bat`/`.sh` Python
+writes CRLF - carry-over flag (a)). This is tight. There is no automated
+guard on the assembled size anywhere in the launcher or the repo. Any
+further growth of `.hermes.template.md`, either `*-banner.md`, or either
+`*-menu.md` needs to be budgeted against this ceiling before it is written.
+The template's own line 32 still asserts it "stays under Hermes's
+context-file size limit on purpose" - that is still true, but the phrase now
+has very little slack behind it.
+
+### 5. git log / status clean - CLEAN
+
+After the commit, `git status` = "nothing to commit, working tree clean".
+`git push` succeeded; `origin/main` == local `main` == `1fd6c1e`.
+HEAD before session: `c6d6dee`. `git pull` at start: already up to date.
+Commit chain this session: `c6d6dee` -> `1fd6c1e` (handoff placement) ->
+(this audit commit, hash in the chat response).
+
+### 6. Line endings of the committed blobs - LF, correct
+
+`git ls-files --eol` reports `i/lf w/lf` for every placed file.
+`git cat-file blob HEAD:<path> | tr -cd '\r' | wc -c` = 0 for the sampled
+files (`.hermes.template.md`, `flush`, `menu`, `forge-audit`, `kb-builder`,
+`full-menu.md`). The zip's files are CRLF on disk; `git add` under this
+drive's `core.autocrlf=true` normalized them to LF in the blob (the
+"LF will be replaced by CRLF the next time Git touches it" warnings on
+`git add` are that normalization, expected, on record as carry-over flag
+(a)). Note: `git show HEAD:<path>` on this Git-for-Windows build re-applies
+the working-tree eol filter to its stdout and shows CR bytes - that is a
+display artifact of `git show`, NOT the blob; `git cat-file blob` is the
+authoritative raw view and shows pure LF.
 
 ## Zone A changes made
 
-None. `.gitignore` inspected under Session Start Protocol step 4 and found
-correct (all four required entries present: `.env` L2, `.forge-mode` L10,
-`/.hermes/` L18, `.hermes.md` L19; plus `.agent-name` L11 and the
-root-anchored `/skills/` legacy guard L51, both consistent with prior
-audits). No fix required. The only file this session writes is this audit
-report (Zone A operational record).
+None. `.gitignore` inspected (Session Start Protocol step 4), found correct,
+not modified. The only files this session writes are (a) the Zone B/Zone C
+handoff placement, under the placement exception, and (b) this audit report.
 
 ## Zone B findings (not fixed - reported only)
 
-### Finding 1 - `menu` and `flush` skill folders are referenced everywhere but do not exist
+None outstanding from this handoff. All five findings the prior audit left
+open are resolved by the placed content:
 
-`skills-source/shared/menu/` and `skills-source/shared/flush/` are not in the
-handoff zip, not in the working tree, and never appeared in git history
-(`git log --all -- 'skills-source/shared/menu/*' 'skills-source/shared/flush/*'`
-is empty). Yet tonight's content references them as built, registered skills:
+- **Prior Finding 1** (`menu` and `flush` skill folders referenced by the
+  template, both menu blocks, and `switch/SKILL.md` but absent from the
+  repo) - RESOLVED. Both folders now exist with well-formed skills.
+  `switch/SKILL.md`'s three outbound references
+  (`skills-source/shared/flush` x2, "the menu skill" x1) now resolve.
+  `.hermes.template.md` L34 ("menu (registers /menu...)", "flush (registers
+  /flush...)") and L110 ("/flush (read .hermes/skills/flush in full when
+  triggered)") now point at real files.
+- **Prior Finding 2** (the template's "each skill registers its slash
+  command via `name:` frontmatter" claim was true for only 2 of 12) -
+  RESOLVED. True for all 14 now. Verified by direct blob read + PyYAML
+  parse.
+- **Prior Finding 3** ("14 skills" unreachable from the `pending-tonight`
+  handoff, which topped out at 12) - RESOLVED. 14 folders, 14 `SKILL.md`,
+  14 unique `name:` values matching the task's list.
+- **Prior Finding 4** (`.hermes.template.md` contradicted itself: L114
+  `flush_clear_rule` banned `/clear`, L142 addendum item 3 treated `/clear`
+  as a normal sibling of `/flush`) - RESOLVED. L142 now says "MEMORY MUST
+  RESPECT /FLUSH AND /SWITCH ... Never /clear or /reset for this - see
+  flush_clear_rule". Consistent with L114 and with L34.
+- **Prior Finding 5** (`sales-assist/SKILL.md` had no self-lock line, no
+  frontmatter) - RESOLVED. Self-lock line was already added in `a49580f`;
+  this handoff adds `name: sales` / `description:` frontmatter above it.
+  The file still opens (after the frontmatter) with "# Sales Assist Skill
+  (PLACEHOLDER - NOT YET AUTHORED)" and its FAQ body is still an
+  intentional placeholder pending real spec-sheet curation - that is a
+  known, tracked non-issue, not a regression.
 
-- `.hermes.template.md` L34: "skills-source/shared/ holds ... **menu**
-  (registers /menu as a real command), **flush** (registers /flush as a real
-  command), switch (...), and kyocera-research (...)".
-- `.hermes.template.md` L110: "/flush (**read .hermes/skills/flush in full
-  when triggered**)".
-- `mode-blocks/full-menu.md` L4 and `mode-blocks/sales-menu.md` L2: "/menu -
-  command menu (**.hermes/skills/menu**)".
-- `skills-source/shared/switch/SKILL.md` references
-  "**skills-source/shared/flush**" three times (lines 9, 21) and "the menu
-  skill" once (line 17).
+Minor pre-existing observation, NOT introduced or changed by this handoff
+and NOT a finding against it: `skills-source/shared/switch/SKILL.md` line 9
+refers to "the original (non-Hermes) North Forge v21.9" while the template
+header says v21.8. That file is byte-identical to what was committed at
+`1c66ab8`; the version-number wording is a Blacksmith/Claude-Project-chat
+content question, unchanged this session.
 
-Impact if committed and a FULL drive is launched: the assembled `.hermes.md`
-instructs the model to "read .hermes/skills/flush in full" and cites
-`.hermes/skills/menu`, but the launcher's `cp -r skills-source/shared/.`
-step will not create either folder, so both citations dangle. `<hermes_
-specific_addendum>` item 5 ("IF A SKILL FILE IS MISSING OR EMPTY... say so
-plainly and fall back") would be the only thing catching it at runtime.
+## Disposition of the v21.8-drift append (NEXT_STEPS.md)
 
-### Finding 2 - the "every skill registers its slash command via `name:` frontmatter" claim is true for only 2 of 12 skills
+The 2026-08-29 "Drift audit vs v21.8 OneDrive source package - PASS WITH
+EXCEPTIONS" append (36 lines) had sat uncommitted across the last two
+sessions, flagged for a primary-GPT decision. It is `NEXT_STEPS.md` content
+(Zone C), it records real findings from the 2026-08-29 drift-audit session,
+and leaving it as a floating working-tree diff across Kenneth's imminent
+AppData flush + fresh repull risked losing it. This session committed it as
+part of `NEXT_STEPS.md` (Zone C, freely committable) so the working tree is
+clean before the flush. Its four open sub-items (CONTACT_BLOCK header
+v21.5/v21.8; kb-builder PRIMARY SOURCE FORMAT block; kb-builder "do not ask
+to select research/Mermaid" line; firmware-box placeholder wording) are
+unchanged and still await Blacksmith sign-off - committing the text does not
+resolve them, it just stops the record from floating.
 
-`.hermes.template.md` L34 now asserts: "Each skill's SKILL.md declares its
-own slash-command name via YAML frontmatter (name: field) - this is what
-makes Hermes register e.g. **/hl or /kb** as real commands instead of falling
-back to the literal folder name, **which is what silently broke every slash
-command before this was added**."
+## Zone C changes made (NEXT_STEPS.md)
 
-But `hotline-ticket/SKILL.md` (`/hl`), `kb-builder/SKILL.md` (`/kb`),
-`forge-audit/SKILL.md` (`/audit`), `escalation-packet/SKILL.md` (`/esc`),
-`fault-logging/SKILL.md` (`/log`), `assist-intake/SKILL.md` (`/assist`),
-`draft-writer/SKILL.md` (`/draft`), `training-guide/SKILL.md` (`/train`),
-`web-navigator/SKILL.md` (`/web`), and `sales-assist/SKILL.md` (`/sales`)
-have **no frontmatter at all** - they still open with a `#` heading. Their
-folder names do not match their documented slash commands (folder
-`hotline-ticket` vs command `/hl`, folder `kb-builder` vs `/kb`, folder
-`forge-audit` vs `/audit`, etc.). So by the template's own stated mechanism,
-the handoff documents a fix ("added" `name:` frontmatter that "makes Hermes
-register /hl or /kb") that has only been applied to the two brand-new shared
-skills. If the mechanism description is accurate, /hl /kb /audit /esc /log
-/assist /draft /train /web /sales would all still be "silently broke" after
-this handoff.
+1. "## Done": added bullets for `skills-source/shared/flush/SKILL.md` and
+   `skills-source/shared/menu/SKILL.md` (placed 2026-09-01, byte-for-byte,
+   not composed by Claude Code); added a "YAML frontmatter pass" bullet
+   listing all 14 registered commands.
+2. "## Done" mode-toggle line: annotated "FULL assembles all 10 skills,
+   SALES ... 2 shared" with "[now **14** skills FULL / **6** shared SALES as
+   of 2026-09-01 - see section at bottom]". The 2026-08-28 dated wording
+   itself is left intact as a historical record.
+3. "## Not yet built": added a 2026-09-01 note that the shared set grew 2 ->
+   6 and the total is now 14 (8 tsc-only + 6 shared), `sales-assist` FAQ
+   content still the only unbuilt item.
+4. "## QA session (2026-08-28)" FULL/SALES assembly bullets: added bracketed
+   2026-09-01 updates (14 skills / 19,101 chars; 6 shared / 19,096).
+5. New section "## 14-skill completion + frontmatter pass (2026-09-01) -
+   COMPLETE-fix handoff placed": full breakdown of what changed, the
+   STANDING RULE result, assembled sizes, and an explicit MARGIN WARNING
+   about the ~900-char headroom.
+6. (Carried in the same commit) the previously-deferred v21.8-drift append,
+   as described above.
 
-Either the other 10 SKILL.md files were meant to gain `name:` (and
-`description:`) frontmatter in this same handoff and were left out, or the
-template paragraph is describing a target state that is not yet real. Cannot
-tell from the zip which. NEXT_STEPS.md has no "add frontmatter to skills"
-work item, and its skill inventory still says "all 10 skills" / "the other 9
-skill files" (working-tree lines 16, 29, ~122).
-
-### Finding 3 - "14 skills" is not reachable from this handoff
-
-Prior baseline, per NEXT_STEPS.md repeatedly ("FULL assembles all 10
-skills", "All 8 tsc-only skills + both shared skills", "the other 9 skill
-files all do"): **10 skills** (8 tsc-only + sales-assist + web-navigator).
-This handoff adds `switch` and `kyocera-research` -> **12**. Kenneth's task
-text expects **14** to verify. The gap is exactly `menu` + `flush` from
-Finding 1. The handoff as delivered cannot satisfy its own verification
-target.
-
-### Finding 4 - `.hermes.template.md` now contradicts itself on `/clear`
-
-`<flush_clear_rule>` L114 (new): "Never tell a technician to type '/clear' or
-'/reset'... if asked, correct them plainly."
-`<hermes_specific_addendum>` item 3, L142 (unchanged from HEAD L136):
-"MEMORY MUST RESPECT /FLUSH. Treat a /flush or /clear the same way for memory
-writes as for conversation..."
-The second reference treats `/clear` as a normal sibling of `/flush`, which
-the first reference now explicitly forbids. The handoff edited the block 30
-lines above but not this line. Small, but it is a genuine inconsistency
-introduced by an incomplete edit within a single locked file.
-
-### Finding 5 - `sales-assist/SKILL.md` still has no self-lock line and no frontmatter
-
-Pre-existing (already on NEXT_STEPS.md's flagged list, working-tree
-lines ~121-122): `sales-assist/SKILL.md` opens "# Sales Assist Skill
-(PLACEHOLDER - NOT YET AUTHORED)" and lacks the "Never rewrite this skill
-file on your own initiative" line every other skill carries. This handoff
-does not touch it. Noted for completeness since a frontmatter pass (Finding
-2) would be the natural time to fix it.
-
-### Not a finding - the two new skill files themselves
-
-`switch/SKILL.md` and `kyocera-research/SKILL.md` are internally well-formed:
-correct frontmatter, folder name matches `name:`, both carry the "Never
-rewrite this skill file on your own initiative. Flag it to the Blacksmith
-(Kenneth Walker Jr.)" self-lock line, both use the project's `field_claim_
-rule` vocabulary, `kyocera-research` includes a concrete `/cron add` setup
-line and a dedup-against-log-file discipline. Their only problem is the
-outbound reference to the missing `flush` skill (Finding 1). If `menu` +
-`flush` are added and the frontmatter pass is done, these two look ready.
-
-## Commit decision
-
-CLAUDE.md Zone B says a problem gets reported and flagged back rather than
-silently applied, so verification was run first and the four findings below
-were put to Kenneth with three options: (a) hold the whole handoff until
-`menu` + `flush` skill folders and the 10 missing frontmatter blocks are
-supplied, then commit the complete set; (b) commit `switch` +
-`kyocera-research` only, hold the 3 doc files; (c) commit all 5 as-is with
-the gaps recorded.
-
-Kenneth chose (c). As the Blacksmith giving an explicit in-session
-instruction on a named handoff, that is the placement-exception trigger
-(CLAUDE.md CONFIRMED 2026-08-26). The 5 files were committed byte-for-byte as
-handed over - `1c66ab8`, pushed. Findings 1-5 remain open and are recorded in
-the commit message and below so the history is honest about what was placed.
-
-`NEXT_STEPS.md`'s unrelated uncommitted v21.8-drift append was deliberately
-kept out of the commit (staged only the 5 handoff paths).
+No Zone C edit describes or implies a Zone B content change that did not
+actually happen this session - the 14-skill placement and the L142 template
+edit are both really in commit `1fd6c1e`.
 
 ## Commits made this session
 
-- `45c1c6a` - `audit/CLAUDE_CODE_LAST_AUDIT.md`, first version of this report
-  (stated "NOT committed", pre-decision). Zone A operational record.
-- `1c66ab8` - `.hermes.template.md`, `mode-blocks/full-menu.md`,
-  `mode-blocks/sales-menu.md`, `skills-source/shared/switch/SKILL.md`,
-  `skills-source/shared/kyocera-research/SKILL.md` - the consolidated
-  handoff, placed as-is per Kenneth's "commit all 5 as-is" direction, gaps
-  recorded in the message. 5 files changed, +115/-21.
-- (this updated report) - re-committed after the decision. Hash in the
-  session-ending chat response.
-
-The unrelated `NEXT_STEPS.md` v21.8-drift append remains uncommitted in the
-working tree.
+- `1fd6c1e` - "Place COMPLETE-fix handoff: 14 skills + name: frontmatter on
+  all of them". 14 files changed, +167/-2.
+  - `.hermes.template.md` (+1/-1, the L142 Finding-4 fix)
+  - `skills-source/shared/flush/SKILL.md` (new, 17 lines)
+  - `skills-source/shared/menu/SKILL.md` (new, 15 lines)
+  - `skills-source/shared/sales-assist/SKILL.md` (+4, frontmatter)
+  - `skills-source/shared/web-navigator/SKILL.md` (+4, frontmatter)
+  - `skills-source/tsc-only/{assist-intake,draft-writer,escalation-packet,
+    fault-logging,forge-audit,hotline-ticket,kb-builder,training-guide}/SKILL.md`
+    (+4 each, frontmatter)
+  - `NEXT_STEPS.md` (+95/-1: 14-skill updates, new 2026-09-01 section, plus
+    the previously-deferred v21.8-drift append)
+  - `skills-source/shared/switch/SKILL.md` and
+    `skills-source/shared/kyocera-research/SKILL.md` are NOT in the commit -
+    git saw the incoming copies as byte-identical to HEAD.
+  Placed under the Zone B placement exception (in-session named handoff from
+  Kenneth, content originating from the Claude Project chat, with an
+  instruction to commit). Pushed to `origin/main`.
+- (this audit report) - `audit/CLAUDE_CODE_LAST_AUDIT.md`, Zone A
+  operational record, committed and pushed as normal Zone A operation. Hash
+  in the chat response.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **Is the zip simply missing files?** Kenneth's "14 skills" expectation
-   plus the template/menu/switch references to `menu` and `flush` strongly
-   suggest `skills-source/shared/menu/SKILL.md` and
-   `skills-source/shared/flush/SKILL.md` were meant to be in tonight's bundle
-   (and possibly `name:` frontmatter added to the other 10 skills). If the
-   Claude Project chat authored those tonight, the bundle needs rebuilding to
-   include them. If it did not, the 3 doc files overshot and should be
-   revised down to current reality (12 skills, folder-name registration, no
-   `menu`/`flush` skill). Claude Code cannot compose either the missing skill
-   files or the frontmatter - Zone B.
-2. **`forge-audit` explanation relocation.** The handoff moves the
-   `skills-guard-v1` / literal-`CLAUDE.md` correction out of the template and
-   into a "see NEXT_STEPS.md" pointer. NEXT_STEPS.md does currently carry the
-   full explanation, so the pointer resolves - but confirm this relocation
-   was intended and that NEXT_STEPS.md is considered a durable enough home
-   for it (NEXT_STEPS.md is Zone C, which Claude Code may rewrite freely).
-3. **Unrelated uncommitted `NEXT_STEPS.md` append** ("Drift audit vs v21.8
-   OneDrive source package (2026-08-29) - PASS WITH EXCEPTIONS", 33 lines).
-   Not from this session, not part of tonight's handoff. It says "Full
-   findings in `audit/CLAUDE_CODE_LAST_AUDIT.md`" but the audit file that
-   held those findings was overwritten by commit `75cfa19`. This session did
-   not commit or revert it. Decide whether that append should stay (its four
-   listed open items - CONTACT_BLOCK header v21.5/v21.8, kb-builder PRIMARY
-   SOURCE FORMAT block, kb-builder "do not ask to select research/Mermaid"
-   line, firmware-box placeholder wording - may still be live), and whether
-   the v21.8 drift findings need to be re-captured somewhere durable.
-4. **Three carry-over flags from prior audits** remain open and unchanged:
-   (a) `.bat` vs `.sh` `.hermes.md` CRLF divergence on `core.autocrlf=true`
-   machines - directly relevant now that `.hermes.template.md` changed;
+1. **Live registration not yet observed.** All 14 `name:` values are
+   verified structurally correct and PyYAML-parseable, and the two
+   pre-existing frontmatter skills already register fine under their
+   `name:`, so there is strong indirect evidence the other 12 will too - but
+   `hermes skills list --source local` against a rebuilt 14-set has NOT been
+   run this session (deferred per Kenneth's "commit before the flush"
+   instruction). Kenneth's post-commit fresh launch is the real test. If any
+   of the 12 newly-frontmattered skills fails to appear in that list, the
+   most likely causes to check first are (a) a `name:` value colliding with
+   a Hermes reserved word, and (b) the `skills-guard` scanner flagging a
+   body - a full `grep -rn "CLAUDE\.md\|AGENTS\.md\|\.cursorrules\|\.clinerules"
+   skills-source/` this session returned 0 hits, so (b) looks clear.
+2. **Assembled-size margin (~900 chars / ~730 bytes CRLF).** Recorded in
+   NEXT_STEPS.md with a MARGIN WARNING. Flagging here too because it is a
+   real constraint on the next content revision and there is no automated
+   check. If the primary GPT plans any further template/menu/banner growth,
+   it needs a size budget, or the 20,000 ceiling needs to be re-confirmed as
+   the actual Hermes limit (it is treated as such in this repo's docs but I
+   did not re-verify it against Hermes source this session).
+3. **`switch/SKILL.md` "v21.9" vs template "v21.8".** Pre-existing, not
+   touched by this handoff. Content question for the Claude Project chat -
+   is the `switch` skill's reference to porting from "North Forge v21.9"
+   correct, or should it say v21.8 to match the template header?
+4. **v21.8-drift append now committed** (see its own section above). If the
+   primary GPT wants that text shaped differently or moved to a durable
+   location other than `NEXT_STEPS.md`, it is Zone C and freely editable -
+   this session committed it only to clear the working tree before the
+   flush, not to finalize its wording.
+5. **Three carry-over flags from prior audits, unchanged:**
+   (a) `.bat` vs `.sh` `.hermes.md` CRLF byte divergence on
+   `core.autocrlf=true` machines - still live, and now more pointed since
+   the CRLF assembled size (19,271 FULL) eats into the 20,000 ceiling
+   harder than the LF figure the docs quote;
    (b) `launch-north-forge.bat` never exercised end-to-end;
    (c) no live model session has been run against the current
-   `.hermes.template.md` (blocked on an Anthropic key on this drive). Flag
-   (c) is now more pointed: the flush/switch split and the missing skill
-   references have never been exercised against a running model.
+   `.hermes.template.md` - now includes the flush/switch split, the 14-skill
+   set, and the L142 memory rule, none of which have faced a running model.
 
 ## Status
 
-Needs primary GPT review. Handoff committed as-is (`1c66ab8`) per Kenneth's
-explicit direction, over the recommendation to hold. It is internally
-inconsistent (Findings 1-4) and does not meet its own "14 skills"
-verification target. Repo HEAD now `1c66ab8` (handoff) on top of `45c1c6a`
-(first audit) on top of `75cfa19`. Working tree holds only the unrelated
-`NEXT_STEPS.md` v21.8-drift append, still uncommitted.
-
-Required follow-up for the Claude Project chat, now that the docs are on
-`main` describing them:
-- Author `skills-source/shared/menu/SKILL.md` and
-  `skills-source/shared/flush/SKILL.md` (referenced by `.hermes.template.md`,
-  both menu blocks, and `switch/SKILL.md`).
-- Add `name:` / `description:` YAML frontmatter to the other 10 skills so the
-  template's "registers /hl or /kb as real commands" claim is actually true;
-  fold in the `sales-assist` self-lock line (Finding 5) while doing it.
-- Fix `.hermes.template.md` L142 ("/flush or /clear") to match the L114 ban.
-- Decide the fate of `NEXT_STEPS.md`'s uncommitted v21.8-drift append and
-  whether those v21.8 drift findings need re-capturing in a durable place.
-Until `menu` + `flush` exist, a FULL-mode `launch-north-forge` produces a
-`.hermes.md` that cites `.hermes/skills/flush` and `.hermes/skills/menu` with
-no such files on disk.
+Needs primary GPT review. Handoff placed and committed clean (`1fd6c1e`,
+pushed). All five prior-audit findings resolved and verified. Working tree
+clean. The one substantive item for Kenneth's next action is the fresh
+launch + `hermes skills list` to confirm all 14 register live; the one
+substantive item for the primary GPT is the ~900-char assembled-size margin
+before any further content is added.
