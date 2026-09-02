@@ -11,10 +11,13 @@ frontmatter, both assembled sizes, `flush_clear_rule` correctness, git
 log/status clean).
 
 OUTCOME: Files extracted and byte-verified onto disk (they already matched
-the working tree). NOT committed / NOT pushed. The handoff is internally
-inconsistent and incomplete against its own content and against Kenneth's
-stated expectation of 14 skills - details below. Held for Blacksmith / Claude
-Project chat decision. Only this audit file is committed this session.
+the working tree). Verification found the handoff internally inconsistent and
+incomplete against its own content and against Kenneth's stated expectation
+of 14 skills (details below). Presented the findings and three options;
+**Kenneth directed "Commit all 5 as-is" with the gaps recorded as known**.
+Done - commit `1c66ab8`, pushed. This audit file was first committed
+(`45c1c6a`) saying "NOT committed", then updated to this version and
+re-committed after Kenneth's decision.
 
 ## Files inspected
 
@@ -217,22 +220,23 @@ same way..." The handoff updated the `flush_clear_rule` block to ban `/clear`
 but left this second reference in the same file untouched, so the file now
 contradicts itself on whether `/clear` is a thing North Forge acknowledges.
 
-### 4. git log / status clean - NOT CLEAN (expected, mid-handoff)
+### 4. git log / status clean - CLEAN except one deliberately-excluded file
 
-Working tree at session end:
+After the handoff commit (`1c66ab8`) and the audit commits, `git status`
+shows only:
 
 ```
- M .hermes.template.md
  M NEXT_STEPS.md
- M mode-blocks/full-menu.md
- M mode-blocks/sales-menu.md
-?? skills-source/shared/kyocera-research/
-?? skills-source/shared/switch/
-(+ audit/CLAUDE_CODE_LAST_AUDIT.md staged/committed by this session)
 ```
 
-HEAD before this session: `75cfa19`. `git pull` = already up to date,
-`origin/main` = local `main`.
+That is the unrelated v21.8-drift append from a prior session, deliberately
+left out of tonight's commits (see "Commit decision"). Nothing else is
+uncommitted. `git push` succeeded on every commit; `origin/main` = local
+`main` = `1c66ab8` (before this final audit re-commit).
+
+HEAD before this session: `75cfa19`. `git pull` at start = already up to
+date. Commit chain this session: `75cfa19` -> `45c1c6a` (audit v1) ->
+`1c66ab8` (handoff) -> this audit re-commit.
 
 ## Zone A changes made
 
@@ -342,37 +346,39 @@ line and a dedup-against-log-file discipline. Their only problem is the
 outbound reference to the missing `flush` skill (Finding 1). If `menu` +
 `flush` are added and the frontmatter pass is done, these two look ready.
 
-## Why nothing was committed
+## Commit decision
 
-CLAUDE.md Zone B: "if something there looks wrong, describe why in the report
-and stop. Flag it back to the Blacksmith or to the Claude Project chat where
-this content is authored." The placement exception authorises placing and
-committing a specific pre-approved file, but Kenneth's own instruction was
-"verify each piece" - and verification shows the pieces do not cohere: two
-referenced skills are absent (Finding 1), the frontmatter mechanism the
-template now describes is 2/12 done (Finding 2), the stated "14 skills" bar
-is unreachable (Finding 3), and the template contradicts itself on `/clear`
-(Finding 4). Committing would publish, to `main`, documentation describing
-skills and a registration mechanism that are not present, on a demo-prep
-branch.
+CLAUDE.md Zone B says a problem gets reported and flagged back rather than
+silently applied, so verification was run first and the four findings below
+were put to Kenneth with three options: (a) hold the whole handoff until
+`menu` + `flush` skill folders and the 10 missing frontmatter blocks are
+supplied, then commit the complete set; (b) commit `switch` +
+`kyocera-research` only, hold the 3 doc files; (c) commit all 5 as-is with
+the gaps recorded.
 
-The 5 files ARE placed on disk (byte-verified, LF, no BOM, clean content-only
-diff) so no work is lost and a follow-up bundle can be diffed against them.
-Awaiting a decision: (a) hold the whole handoff until `menu` + `flush` skill
-folders and the 10 missing frontmatter blocks are supplied, then commit the
-complete set; (b) commit `switch` + `kyocera-research` skill folders only
-(complete and correct on their own, apart from `switch`'s reference to the
-absent `flush`), hold the 3 doc files; (c) Blacksmith directs commit as-is
-with the gaps recorded.
+Kenneth chose (c). As the Blacksmith giving an explicit in-session
+instruction on a named handoff, that is the placement-exception trigger
+(CLAUDE.md CONFIRMED 2026-08-26). The 5 files were committed byte-for-byte as
+handed over - `1c66ab8`, pushed. Findings 1-5 remain open and are recorded in
+the commit message and below so the history is honest about what was placed.
+
+`NEXT_STEPS.md`'s unrelated uncommitted v21.8-drift append was deliberately
+kept out of the commit (staged only the 5 handoff paths).
 
 ## Commits made this session
 
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` - this report (Zone A operational record),
-  committed and pushed per standing authorization. Hash in the session-ending
-  chat response.
+- `45c1c6a` - `audit/CLAUDE_CODE_LAST_AUDIT.md`, first version of this report
+  (stated "NOT committed", pre-decision). Zone A operational record.
+- `1c66ab8` - `.hermes.template.md`, `mode-blocks/full-menu.md`,
+  `mode-blocks/sales-menu.md`, `skills-source/shared/switch/SKILL.md`,
+  `skills-source/shared/kyocera-research/SKILL.md` - the consolidated
+  handoff, placed as-is per Kenneth's "commit all 5 as-is" direction, gaps
+  recorded in the message. 5 files changed, +115/-21.
+- (this updated report) - re-committed after the decision. Hash in the
+  session-ending chat response.
 
-No other commit. The 5 handoff files remain uncommitted in the working tree,
-as does the unrelated `NEXT_STEPS.md` v21.8-drift append.
+The unrelated `NEXT_STEPS.md` v21.8-drift append remains uncommitted in the
+working tree.
 
 ## Uncertain / flagged for primary GPT review
 
@@ -413,12 +419,24 @@ as does the unrelated `NEXT_STEPS.md` v21.8-drift append.
 
 ## Status
 
-Needs primary GPT review. Handoff extracted and byte-verified onto disk but
-NOT committed - it is internally inconsistent (Findings 1-4) and cannot meet
-its own "14 skills" verification target. Repo HEAD unchanged at `75cfa19`
-plus this audit commit. Working tree holds the 5 handoff files and one
-unrelated `NEXT_STEPS.md` append, all uncommitted. Recommended next step:
-Claude Project chat supplies `menu` + `flush` skill folders and `name:`/
-`description:` frontmatter for the other 10 skills (or revises the 3 doc
-files down to current reality), then a clean single commit of the complete
-set.
+Needs primary GPT review. Handoff committed as-is (`1c66ab8`) per Kenneth's
+explicit direction, over the recommendation to hold. It is internally
+inconsistent (Findings 1-4) and does not meet its own "14 skills"
+verification target. Repo HEAD now `1c66ab8` (handoff) on top of `45c1c6a`
+(first audit) on top of `75cfa19`. Working tree holds only the unrelated
+`NEXT_STEPS.md` v21.8-drift append, still uncommitted.
+
+Required follow-up for the Claude Project chat, now that the docs are on
+`main` describing them:
+- Author `skills-source/shared/menu/SKILL.md` and
+  `skills-source/shared/flush/SKILL.md` (referenced by `.hermes.template.md`,
+  both menu blocks, and `switch/SKILL.md`).
+- Add `name:` / `description:` YAML frontmatter to the other 10 skills so the
+  template's "registers /hl or /kb as real commands" claim is actually true;
+  fold in the `sales-assist` self-lock line (Finding 5) while doing it.
+- Fix `.hermes.template.md` L142 ("/flush or /clear") to match the L114 ban.
+- Decide the fate of `NEXT_STEPS.md`'s uncommitted v21.8-drift append and
+  whether those v21.8 drift findings need re-capturing in a durable place.
+Until `menu` + `flush` exist, a FULL-mode `launch-north-forge` produces a
+`.hermes.md` that cites `.hermes/skills/flush` and `.hermes/skills/menu` with
+no such files on disk.
