@@ -1,447 +1,452 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-02, session immediately following the `banner_hero`
-two-color session (its content commit `5688779`, its audit commit
-`871d412`). This session adds two documentation-only entries to the
-`colors:` map of `skins/north-forge.yaml`.
+Timestamp: 2026-09-02, end-of-night verification pass. Runs after the
+`colors:`-map session (its content commit `605893e`, its audit commit
+`c2073b1`). This session made NO content or infrastructure changes - it is
+a read-only verification sweep plus this report. The only commit it
+produces is this audit file itself.
 
-Requested task (verbatim from Kenneth): "Extract this north-forge.yaml into
-skins/, overwriting the current one. Zone A - small consistency fix per
-standing authorization once verified. Adds the two banner_hero colors
-(#F5A623 orange, #B0B0B0 gray) to the colors: map for documentation
-purposes - the banner_hero block's own hex values are unchanged, this
-doesn't affect rendering, just catalogs them alongside the rest of the
-palette. Confirmed parses correctly. Commit and push."
+Requested task (verbatim from Kenneth): "Final audit for tonight -
+verification only, do not open new work or fix anything beyond what's
+already been touched this session. (1) git log --oneline -20 and git
+status - confirm every commit from tonight's session is actually on
+origin/main, working tree clean, nothing pending or uncommitted. (2)
+skins/north-forge.yaml - confirm it parses cleanly (PyYAML), confirm
+banner_logo and banner_hero are both present and well-formed, confirm the
+colors: map now includes banner_hero_flame and banner_hero_anvil alongside
+the existing palette entries. (3) .hermes.template.md - recompute both
+assembled sizes (FULL and SALES) one more time, confirm both still
+comfortably under the 20,000-char ceiling, confirm zero unreplaced {{...}}
+markers. Report the exact current margin on each so it's on record for next
+session. (4) All 14 skills - confirm each still has correct name:
+frontmatter (quick re-check, not a full re-read of every file body). (5)
+Summarize, in one short list, everything that was actually shipped this
+session versus what's still open for a future session. This is the handoff
+note for whenever work resumes. Write the report, commit and push it as
+the normal Zone A operation, and stop there - no further action tonight."
 
-Outcome in one line: `skins/north-forge.yaml` was already modified in the
-working tree at session start (a `git pull` reported "Already up to date",
-so this change did not arrive via pull; there was NO separate untracked
-root `north-forge.yaml` handoff drop this session - the only
-`north-forge.yaml` on disk is `skins/north-forge.yaml` itself). The
-working-tree change was verified to be EXACTLY and ONLY the two `colors:`
-lines Kenneth described: `+2 / -0`, single hunk `@@ -43,2 +43,4 @@ colors:`,
-every other block (`banner_logo`, `banner_hero`, `spinner`, `branding`)
-byte-identical to HEAD `5688779` by per-block `diff`. PyYAML `safe_load`
-clean (`colors:` now 16 keys; both new values parse as `'#F5A623'` /
-`'#B0B0B0'`). Pure LF, no BOM, trailing newline present. STANDING RULE
-diff-vs-HEAD: nothing reverted - commit `1d43583`'s `banner_logo` block and
-`branding.welcome` "/menu" wording preserved verbatim; commit `5688779`'s
-two-color 20x42 Braille `banner_hero` preserved verbatim (block
-byte-identical). Committed `605893e`, pushed `871d412..605893e`.
+Outcome in one line: every verification item PASSES. Git is fully pushed
+and clean (`HEAD == origin/main == c2073b1`, `git status --porcelain`
+empty, `origin/main..HEAD` empty, `git fetch --dry-run` empty).
+`skins/north-forge.yaml` PyYAML-clean, `banner_logo` (6-row) and
+`banner_hero` (20-row two-color) both present and well-formed, `colors:`
+map now 16 keys including `banner_hero_flame: "#F5A623"` and
+`banner_hero_anvil: "#B0B0B0"`. `.hermes.template.md` assembles to 19,101
+chars FULL (margin 899) / 19,096 chars SALES (margin 904) against the
+20,000-char ceiling, zero unreplaced `{{...}}` markers in either. All 14
+skills carry correct `name:` frontmatter in both source and the FULL-mode
+build artifact. No Zone A or Zone B change made or needed. This report
+committed and pushed as the sole Zone A action.
 
 ## Session Start Protocol results
 
 ```text
 SESSION START CHECK
-Pulled: Already up to date (HEAD 871d412 at session start == origin/main).
+Pulled: Already up to date (git pull -> "Already up to date"; HEAD c2073b1
+  == origin/main at session start, unchanged through the session).
 Last audit read: Yes - "2026-09-02, session immediately following the
-  banner_hero ... two-color session", 424 lines, status "Needs primary GPT
-  review". It recorded content commit 5688779 (banner_hero -> two-color:
-  the 24x70 single-[#D32F2F] "hammer + anvil" block replaced by a 20x42
-  block, 10 rows [#F5A623] warm orange over 10 rows [#B0B0B0] light steel
-  gray) and its own audit commit b7b2800 (later superseded by 871d412 in
-  the log - see note below). It carried six open items for the primary GPT:
-  (1) "same hero art as last time" actually landed as a full block
-  replacement with different dimensions (20x42 vs 24x70), not a recolor -
-  confirm the new flame-over-anvil shape is intended; (2) banner_hero now
-  uses two OFF-PALETTE colors (#F5A623, #B0B0B0) not in the colors: map -
-  reconcile or leave; (3) banner_hero render still unverified in a live
-  CLI, and unknown whether the Hermes skin loader consumes a banner_hero
-  key at all (file's own comment says unknown keys are ignored safely, so
-  worst case is inert-until-supported, not breakage); (4) STILL OPEN from
-  the 2026-09-02 afternoon audit - the undescribed branding.welcome wording
-  change that rode in with commit 1d43583 ("Type a command or describe the
-  issue." -> the "/menu ..." phrasing), and whether
-  fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md's bare-menu line (~L126, still
-  old phrasing) should be brought parallel; (5) prior audit's gradient-pass
-  suggestion on banner_hero is now moot/changed-shape (two flat colors
-  instead of one, still not a gradient); (6) carried context - user's
-  global Hermes local-skill set (15 skills, outside this repo) and the
-  ~900-char headroom to the 20,000-char assembled .hermes.md ceiling.
-  NOTE: this session's task (item 2 above - cataloguing the two off-palette
-  colors) directly addresses open item 2 from the last audit.
-Uncommitted at start: One modified tracked file only - skins/north-forge.yaml
-  (" M" in git status --porcelain). No untracked files at all
-  (git status --porcelain --untracked-files=all shows only the one " M"
-  line). git diff --cached empty. This is a departure from the last three
-  skin sessions, each of which received an untracked ROOT north-forge.yaml
-  to place; this session the change was already applied in place to
-  skins/north-forge.yaml in the working tree.
-.gitignore: OK - not modified. Full read, 52 displayed lines / 51 content
-  lines. Still excludes .env (L2), *.env (L3), .forge-mode (L10),
-  .agent-name (L11), /.hermes/ (L18), .hermes.md (L19), and carries the
-  root-anchored /skills/ legacy guard (L51). No fix needed.
-hermes doctor: Clean on everything this repo depends on. Hermes Python env
-  Python 3.11.16, SQLite 3.53.1 (WAL; state.db 2.3 MB, cron/executions.db
-  20.0 KB, kanban.db 116.0 KB), venv active, version files consistent
-  (0.21.0), API key configured, config v39, no deprecated config keys, no
-  retired xAI models, no active security advisories, no suspicious MCP
-  stdio commands, SSL CA bundle valid, all required packages present
-  (OpenAI SDK, Rich, python-dotenv, PyYAML, HTTPX, Croniter). All required
-  directories present (cron/, sessions/, logs/, skills/, memories/, SOUL.md).
-  Non-blocking warnings, all pre-existing and unrelated to this repo's
-  content layer: two optional chat packages absent (python-telegram-bot,
-  discord.py); four optional auth providers not logged in (Nous, OpenAI
-  Codex, MiniMax, xAI). None touch north-forge-hermes-edition.
+  banner_hero two-color session", 448 lines, status "Needs primary GPT
+  review". It recorded content commit 605893e (skins/north-forge.yaml:
+  +2 / -0, catalog banner_hero_flame #F5A623 + banner_hero_anvil #B0B0B0
+  into the colors: map between banner_accent and banner_dim) and its audit
+  commit c2073b1. It carried six open items for the primary GPT: (1) skin
+  change arrived as an already-applied working-tree edit, not a fresh root
+  north-forge.yaml drop - confirm that verify-against-HEAD is an acceptable
+  handoff shape; (2) is "documented in colors:" the intended resolution of
+  the earlier off-palette flag, vs. recoloring banner_hero to existing
+  palette values; (3) STILL OPEN - undescribed branding.welcome wording
+  change that rode in with commit 1d43583, and whether
+  fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md ~L126 should be brought
+  parallel; (4) banner_hero render + whether the skin loader consumes a
+  banner_hero key at all, still unverified in a live CLI; (5) previous
+  report mis-cited its own audit-commit hash as b7b2800 (git log shows
+  871d412); (6) carried context - user's 15 global Hermes local skills and
+  the ~900-char headroom to the 20,000-char .hermes.md ceiling.
+Uncommitted at start: None. git status -> "nothing to commit, working tree
+  clean"; git status --porcelain empty; git diff / git diff --cached empty.
+  No untracked files. (Build artifacts .hermes.md and .hermes/skills/ are
+  present on disk but gitignored - see .gitignore lines for /.hermes/ and
+  .hermes.md - and are not "uncommitted" in the tracked sense.)
+.gitignore: OK - not modified, not read in full this pass beyond confirming
+  it still carries .env (L2), *.env (L3), .forge-mode (L11), .agent-name
+  (L12), /.hermes/ (L19), .hermes.md (L20), and the root-anchored /skills/
+  legacy guard (final block). 1596 bytes, unchanged since commit involving
+  the /skills/ guard.
+hermes doctor: Clean on everything this repo depends on. Python 3.11.16,
+  SQLite 3.53.1 (WAL; state.db 2.4 MB, cron/executions.db 20.0 KB,
+  kanban.db 116.0 KB), venv active, version files consistent (0.21.0), API
+  key configured, config v39, no deprecated config keys, no retired xAI
+  models, no active security advisories, no suspicious MCP stdio commands,
+  SSL CA bundle valid, all required packages present (OpenAI SDK, Rich,
+  python-dotenv, PyYAML, HTTPX, Croniter). All required directories present
+  (cron/, sessions/, logs/, skills/, memories/, SOUL.md). Non-blocking
+  warnings, all pre-existing and unrelated to this repo: two optional chat
+  packages absent (python-telegram-bot, discord.py); four optional auth
+  providers not logged in (Nous, OpenAI Codex, MiniMax, xAI). None touch
+  north-forge-hermes-edition.
 Project skills: `hermes skills list --source local` shows 15 local skills -
   assist, audit, draft, esc, flush, hl, kb, kyocera-research, log, menu,
   sales, switch, train, web, and hermes-windows-maintenance (category
   devops). All enabled. Footer: "0 hub-installed, 0 builtin, 15 local - 15
   enabled, 0 disabled". This is the user's ambient/global local skill set,
-  NOT this repo's built .hermes/skills/ - the North Forge project skill set
-  is only assembled by a launcher-driven Hermes launch inside the repo,
-  which this Claude Code session is not. Not a finding. Identical to the
-  last two audits' count of 15.
+  NOT this repo's built .hermes/skills/. Unchanged from the last four
+  audits. Not a finding.
 ```
-
-Note on the audit-commit chain: the last audit report's own text says it
-committed its audit as `b7b2800`, but `git log` shows the audit commit for
-content `5688779` as `871d412` ("Audit: banner_hero two-color handoff
-placed & verified (5688779)"), with `b7b2800` being the PRIOR audit
-(for content `817ef36`). The report body appears to have mis-copied its own
-hash; the log is the authority. No action - noting it so the primary GPT is
-not confused matching report text to `git log`.
 
 ## Files inspected
 
+Read-only inspection only. No file was edited.
+
 - `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior session's report, full read
-  (424 lines, timestamp "2026-09-02, session immediately following the
-  banner_hero ... two-color session", status "Needs primary GPT review").
-  Content commit it recorded: `5688779`; its audit commit per `git log`:
-  `871d412`.
-- `.gitignore` - full read (52 displayed lines). Session Start Protocol
-  step 4. Correct, not modified.
+  (448 lines, status "Needs primary GPT review"). Content commit it
+  recorded: `605893e`; its audit commit: `c2073b1`.
+- `.gitignore` - read (1596 bytes). Confirmed the exclusion set above. Not
+  modified.
 - `skins/north-forge.yaml` - full read of the working-tree copy (71
-  newline-terminated lines, 5902 bytes, sha256
-  `461d4bc58e8d811f2855da41ab0d96d59522c21052a3294f76f50cb58234a06a`, pure
-  LF - `tr -cd '\r' | wc -c` == 0, no BOM - first 8 bytes
-  `6e 61 6d 65 3a 20 6e 6f` = "name: no", trailing newline present - last 8
-  bytes `78 3a 20 22 3e 20 22 0a` = `x: "> "\n`). HEAD `871d412` blob
-  (`git show HEAD:skins/north-forge.yaml`, from content commit `5688779`):
-  69 lines, 5746 bytes, sha256
-  `e63163214057a6d3717448c5b610e2a8110ed01cab8804b8c56a5d726806bba2`.
-  Delta working-tree vs HEAD: +2 lines, +156 bytes.
-- Read-only git: `git pull`, `git status`, `git status --porcelain`,
-  `git status --porcelain --untracked-files=all`, `git diff`,
-  `git diff --cached`, `git diff --stat`, `git diff --numstat`,
-  `git diff -U0`, `git show HEAD:skins/north-forge.yaml`,
-  `git log --oneline -8`, `git config core.autocrlf` (== `true`), plus four
-  per-block `diff <(git show HEAD:...) <(working tree ...)` comparisons
-  (banner_logo, banner_hero, spinner, branding).
-- `find . -iname 'north-forge.yaml' -not -path './.git/*'` - returned ONLY
-  `./skins/north-forge.yaml`. There is no root handoff drop this session.
-- PyYAML `safe_load` of the working-tree file via the hermes venv python
+  newline-terminated lines; 3388 characters when read as UTF-8 text /
+  5902 bytes on disk - the byte/char gap is the multi-byte Braille glyphs
+  in `banner_hero` plus the Rich color-tag markup, not CRLF: this file is
+  pure LF per the last session's byte-hygiene check and was not touched
+  since). PyYAML `yaml.safe_load` via the hermes venv python
   (`C:\Users\kwalk\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe`,
-  Python 3.11.16), plus a codepoint re-audit of `banner_hero` (Rich markup
-  stripped, every remaining glyph range-checked against U+2800..U+28FF,
-  per-row opening color tag counted, closing-tag check) in the same script.
-  The script raised a `UnicodeEncodeError` at the very END while `print()`ing
-  `banner_logo`'s box-drawing first line to a cp1252 Windows console - this
-  is a stdout-encoding limitation of the print statement, NOT a YAML parse
-  failure. `safe_load` had already completed and printed "PARSE: OK" plus
-  every needed field before that line. Re-confirmed independently by the
-  four per-block diffs, which need no Python.
+  Python 3.11.16).
+- `.hermes.template.md` - full read via the assembly script (17,488
+  characters as UTF-8 text / 17,635 bytes on disk - 147-byte gap is 147
+  CRLF line endings, i.e. this file is stored CRLF on this Windows
+  checkout). Contains exactly three replacement markers:
+  `{{MODE_BANNER_BLOCK}}`, `{{AGENT_NAME}}`, `{{COMMAND_MENU_BLOCK}}` (in
+  that order of first appearance).
+- `mode-blocks/full-banner.md` (210 chars), `mode-blocks/full-menu.md`
+  (1,449 chars), `mode-blocks/sales-banner.md` (816 chars),
+  `mode-blocks/sales-menu.md` (838 chars) - read via the assembly script
+  to recompute both assembled outputs.
+- `.hermes.md` - the live FULL-mode build artifact (gitignored). Read to
+  confirm it equals a fresh recomputed FULL assembly (it does, exactly)
+  and carries zero `{{` sequences.
+- All 14 `skills-source/**/SKILL.md` files - `head -6` each (frontmatter
+  only, per "quick re-check, not a full re-read of every file body").
+- `.hermes/skills/*/SKILL.md` - the FULL-mode build artifact (gitignored),
+  14 directories, `grep -m1 '^name:'` on each to confirm the built copies
+  match source.
+- `launch-north-forge.sh` (full read) and `launch-north-forge.bat` (full
+  read) - to confirm the exact assembly method the size recomputation must
+  replicate: `template.replace("{{MODE_BANNER_BLOCK}}", banner)
+  .replace("{{COMMAND_MENU_BLOCK}}", menu).replace("{{AGENT_NAME}}",
+  agent_name)`, banner/menu from `mode-blocks/{mode}-{banner,menu}.md`,
+  `agent_name = "North Forge"` (no `.agent-name` file present, so the
+  default is used).
+- `.forge-mode` - `xxd`: bytes `66 75 6c 6c 0d 0a` = `full\r\n`. Both
+  launchers strip whitespace, so current mode resolves to `full`.
+- Read-only git: `git pull`, `git log --oneline -20`,
+  `git log -12 --pretty=format:'%h %ci %s'`, `git status`,
+  `git status --porcelain`, `git rev-parse HEAD origin/main`,
+  `git log --oneline origin/main..HEAD`, `git fetch --dry-run`.
 - `hermes doctor`, `hermes skills list --source local` - Session Start
   Protocol step 5.
 
-## The change - working-tree `skins/north-forge.yaml` vs HEAD `871d412`
+## Verification item 1 - git state
 
-`git diff` produced exactly ONE hunk. `git diff -U0` restricted to added/
-removed content lines (headers stripped):
-
-```
-+  banner_hero_flame: "#F5A623"  # warm orange - the forge fire in banner_hero
-+  banner_hero_anvil: "#B0B0B0"  # light steel gray - the anvil in banner_hero
-```
-
-Zero removed lines. `git diff --numstat`: `2  0  skins/north-forge.yaml`.
-`git diff --stat`: `1 file changed, 2 insertions(+)`. Hunk header
-`@@ -43,2 +43,4 @@ colors:` - the two new lines are inserted into the
-`colors:` map immediately after `banner_accent: "#0A9BCD"` (now line 43)
-and immediately before `banner_dim: "#282828"` (now line 46). New lines are
-44 and 45:
+`git log --oneline -20` (top of list) and dated log:
 
 ```
-  banner_hero_flame: "#F5A623"  # warm orange - the forge fire in banner_hero
-  banner_hero_anvil: "#B0B0B0"  # light steel gray - the anvil in banner_hero
+c2073b1 2026-09-02 02:55:25 -0400 Audit: banner_hero colors catalogued in colors: map (605893e)
+605893e 2026-09-02 02:53:12 -0400 skins/north-forge.yaml: catalog banner_hero colors in colors: map
+871d412 2026-09-02 02:46:45 -0400 Audit: banner_hero two-color handoff placed & verified (5688779)
+5688779 2026-09-02 02:44:18 -0400 skins/north-forge.yaml: banner_hero -> two-color (orange flame + steel-gray anvil)
+b7b2800 2026-09-02 02:19:40 -0400 Audit: banner_hero Braille hammer+anvil placed - handoff verified & committed (817ef36)
+817ef36 2026-09-02 02:17:04 -0400 skins/north-forge.yaml: add banner_hero (Braille hammer + anvil composition)
+829a684 2026-09-02 01:46:14 -0400 Audit: banner_logo was missing from skins/north-forge.yaml - handoff placed (1d43583)
+1d43583 2026-09-02 01:43:40 -0400 skins/north-forge.yaml: add missing banner_logo block art
+96c40a4 2026-09-02 00:04:20 -0400 Audit: COMPLETE-fix handoff placed - 14 skills, name: frontmatter on all, Findings 1-5 resolved
+1fd6c1e 2026-09-02 00:01:24 -0400 Place COMPLETE-fix handoff: 14 skills + name: frontmatter on all of them
+c6d6dee 2026-09-01 23:29:45 -0400 Audit: update to reflect Blacksmith decision - handoff committed as-is (1c66ab8)
+1c66ab8 2026-09-01 23:28:51 -0400 Place consolidated pending-tonight handoff: flush/switch split + 2 new shared skills
 ```
 
-Both follow the file's existing `colors:` formatting convention: two-space
-indent, key, `: `, double-quoted hex, then two spaces and a `#` comment
-(same shape as `banner_border: "#D32F2F"      # Kyocera red ...` etc.).
+Tonight's session = the continuous run from `1fd6c1e` (2026-09-02
+00:01:24) through `c2073b1` (2026-09-02 02:55:25). Ten commits, five
+content/skin pairs each immediately followed by its audit commit:
 
-Per-block `diff` of HEAD vs working tree:
+| # | Hash | Type | Subject |
+|---|------|------|---------|
+| 1 | `1fd6c1e` | content (Zone B placement) | Place COMPLETE-fix handoff: 14 skills + name: frontmatter on all |
+| 2 | `96c40a4` | audit | Audit for `1fd6c1e` |
+| 3 | `1d43583` | content (Zone A skin) | add missing `banner_logo` block art |
+| 4 | `829a684` | audit | Audit for `1d43583` |
+| 5 | `817ef36` | content (Zone A skin) | add `banner_hero` (Braille hammer + anvil) |
+| 6 | `b7b2800` | audit | Audit for `817ef36` |
+| 7 | `5688779` | content (Zone A skin) | `banner_hero` -> two-color (orange flame + steel-gray anvil) |
+| 8 | `871d412` | audit | Audit for `5688779` |
+| 9 | `605893e` | content (Zone A skin) | catalog `banner_hero` colors in `colors:` map |
+| 10 | `c2073b1` | audit | Audit for `605893e` |
 
-- `banner_logo: |` block (6 gradient-red ASCII rows): **IDENTICAL**
-- `banner_hero: |` block (20 Braille rows, 10 `[#F5A623]` + 10 `[#B0B0B0]`):
-  **IDENTICAL** - the inline hero hex values are untouched, exactly as the
-  task states.
-- `spinner:` block (4 thinking_verbs): **IDENTICAL**
-- `branding:` block (agent_name / welcome / response_label / tool_prefix):
-  **IDENTICAL** - `branding.welcome` still carries commit `1d43583`'s
-  "Type /menu to see everything I can do, or just describe your issue -
-  I'll take it from there." wording.
+Push / clean state:
 
-The ONLY difference anywhere in the file is the +2 lines in `colors:`.
+- `git rev-parse HEAD` = `c2073b1cb13716645fe6ee1e7d1c602501d450d3`
+- `git rev-parse origin/main` = `c2073b1cb13716645fe6ee1e7d1c602501d450d3`
+- **HEAD == origin/main.** Every one of tonight's ten commits is on
+  `origin/main`.
+- `git log --oneline origin/main..HEAD` -> **empty** (nothing unpushed).
+- `git status` -> "On branch main / Your branch is up to date with
+  'origin/main'. / nothing to commit, working tree clean".
+- `git status --porcelain` -> **empty** (no modified, staged, or untracked
+  tracked-scope files).
+- `git fetch --dry-run` -> **empty** (local ref is current with the
+  remote; nothing to fetch).
 
-## STANDING RULE (2026-08-29) diff-before-placement check
+PASS. Nothing pending, nothing uncommitted, nothing unpushed.
 
-Diffed the working-tree content against current HEAD for
-`skins/north-forge.yaml` specifically (not merely against what the task
-describes itself as changing), per the required-every-time step.
+## Verification item 2 - skins/north-forge.yaml
 
-Prior recorded deliberate changes to this file the rule guards against
-silently reverting:
-
-1. Commit `1d43583` (2026-09-02 afternoon audit): added the 6-line
-   `banner_logo: |` Rich-markup ASCII banner ("NORTH FORGE", three-stop
-   red gradient `#D32F2F` bold / `#B71C1C` / `#7A1010`).
-2. Same commit `1d43583`: changed `branding.welcome:` from
-   `"North Forge - Kyocera Edition. Type a command or describe the issue."`
-   to the `"... Type /menu to see everything I can do, or just describe
-   your issue - I'll take it from there."` wording (the undescribed rider
-   the afternoon audit flagged - still open, see "Uncertain / flagged"
-   item 3 below).
-3. Commit `817ef36` (2026-09-02 later audit): added the `banner_hero: |`
-   block - originally 24 rows of single-color `[#D32F2F]` Braille, 70
-   cells wide.
-4. Commit `5688779` (2026-09-02, last session): replaced that block with
-   the current 20-row / 42-cell two-color version - 10 rows `[#F5A623]`
-   warm orange (flame) over 10 rows `[#B0B0B0]` light steel gray (anvil).
-
-Result of the check:
-
-- Item 1 (`banner_logo`): per-block `diff` HEAD vs working tree returns
-  IDENTICAL. Preserved byte-for-byte.
-- Item 2 (`branding.welcome`): per-block `diff` of the `branding:` block
-  returns IDENTICAL; PyYAML `safe_load` returns `branding['welcome']` ==
-  `"North Forge - Kyocera Edition. Type /menu to see everything I can do,
-  or just describe your issue - I'll take it from there."` - the `1d43583`
-  wording, unchanged. Preserved.
-- Items 3 + 4 (`banner_hero`): per-block `diff` of the `banner_hero: |`
-  block returns IDENTICAL. The current two-color 20x42 block from commit
-  `5688779` is carried forward untouched. This session does NOT alter the
-  hero art or its inline colors - it only ADDS two catalog entries to the
-  `colors:` map that happen to record the same two hex values.
-
-Nothing is reverted, removed, or contradicted. The change is purely
-additive (`+2 / -0`) and touches only the `colors:` map. No other prior
-fix is in play: `skins/north-forge.yaml` is not referenced by any Zone A
-script fix, any `.gitignore` guard, or any skill/template placement
-recorded in earlier audits.
-
-## Verification performed before commit
-
-Task said "Confirmed parses correctly" - independently re-verified rather
-than taken on trust.
-
-### PyYAML `safe_load` (hermes venv python, Python 3.11.16)
-
-Parses with no error ("PARSE: OK"). Result:
+`yaml.safe_load` (hermes venv python, Python 3.11.16): **OK**, no
+exception.
 
 ```
 top-level keys: ['name', 'description', 'banner_logo', 'banner_hero', 'colors', 'spinner', 'branding']
-name: 'north-forge'
-colors key count: 16
-colors keys: ['banner_border', 'banner_title', 'banner_accent', 'banner_hero_flame', 'banner_hero_anvil', 'banner_dim', 'banner_text', 'ui_accent', 'ui_label', 'ui_ok', 'ui_error', 'prompt', 'input_rule', 'response_border', 'session_label', 'session_border']
-banner_hero_flame: '#F5A623'
-banner_hero_anvil: '#B0B0B0'
-banner_hero type/newlines/endswithNL: str 20 True
-banner_hero distinct Rich tags: ['[#B0B0B0]', '[#F5A623]', '[/]']
-banner_hero row count: 20 | color runs: Counter({'#F5A623': 10, '#B0B0B0': 10})
-non-braille/non-space glyphs in banner_hero: NONE
-distinct row widths (visible cells): [42]
-branding.welcome: "North Forge - Kyocera Edition. Type /menu to see everything I can do, or just describe your issue - I'll take it from there."
-banner_logo newlines: 6
+name: north-forge
 ```
 
-`colors:` went from 14 keys to 16 - the two additions
-(`banner_hero_flame`, `banner_hero_anvil`) are inserted in map order
-between `banner_accent` and `banner_dim`, matching the source line
-position. Both values round-trip as the exact strings `'#F5A623'` and
-`'#B0B0B0'`. Every other structure is unchanged: `banner_hero` is still a
-`|` literal block scalar -> 20-row `str`, 10 `[#F5A623]` + 10 `[#B0B0B0]`,
-all glyphs Braille (U+2800..U+28FF), uniform 42 visible cells, every row
-opens with a color tag and closes with `[/]`. `spinner` / `branding`
-structurally identical to HEAD.
+`banner_logo`:
+- present: **True**
+- type: `str` (YAML `|` literal block scalar)
+- 6 `\n` -> 6-row ASCII banner ("NORTH FORGE", three-stop red gradient
+  `#D32F2F` / `#B71C1C` / `#7A1010` per prior audits; not re-diffed
+  glyph-by-glyph this pass - it was byte-identical to HEAD in the last two
+  audits and nothing has touched it since commit `1d43583`).
+- well-formed: yes - single string value, no parse ambiguity.
 
-### Byte hygiene
+`banner_hero`:
+- present: **True**
+- type: `str` (YAML `|` literal block scalar)
+- 20 `\n` -> 20 non-empty rows
+- distinct Rich tags: `['[#B0B0B0]', '[#F5A623]', '[/]']` - exactly the two
+  hero colors plus the reset tag, nothing stray
+- color-run counts: `{'#F5A623': 10, '#B0B0B0': 10}` - 10 flame rows over
+  10 anvil rows, as the two-color design intends
+- glyphs outside Braille (U+2800..U+28FF) / space / tag-syntax
+  characters: **NONE**
+- well-formed: yes - uniform structure, every row opens with a color tag
+  and the tag set is balanced.
 
-- CR bytes: `tr -cd '\r' | wc -c` == `0`. Pure LF.
-- BOM: first 8 bytes `6e 61 6d 65 3a 20 6e 6f` ("name: no"). No BOM.
-- Trailing newline: last 8 bytes `78 3a 20 22 3e 20 22 0a` (`x: "> "\n`).
-  Present, byte-identical to the HEAD blob's tail.
-- Working-tree sha256:
-  `461d4bc58e8d811f2855da41ab0d96d59522c21052a3294f76f50cb58234a06a`.
-- `git config core.autocrlf` == `true` on this drive. The expected
-  checkout-filter notice fired on `git add` and again on every `git diff`:
-  `warning: in the working copy of 'skins/north-forge.yaml', LF will be
-  replaced by CRLF the next time Git touches it`. That describes the
-  working-copy smudge filter, not a blob change - confirmed below.
+`colors:` map:
+- key count: **16** (was 14 before commit `605893e`)
+- keys in order: `banner_border`, `banner_title`, `banner_accent`,
+  **`banner_hero_flame`**, **`banner_hero_anvil`**, `banner_dim`,
+  `banner_text`, `ui_accent`, `ui_label`, `ui_ok`, `ui_error`, `prompt`,
+  `input_rule`, `response_border`, `session_label`, `session_border`
+- `banner_hero_flame` -> `'#F5A623'`
+- `banner_hero_anvil` -> `'#B0B0B0'`
+- Both new keys sit between `banner_accent` and `banner_dim`, i.e.
+  alongside the existing palette entries, not appended at the end.
 
-### Staged / committed blob check
+PASS. Parses cleanly; both banner blocks present and well-formed; the two
+`banner_hero_*` catalog entries are in the `colors:` map with the correct
+hex values, matching the inline values used in the `banner_hero` art.
 
-- `git diff --cached --numstat`: `2  0  skins/north-forge.yaml`.
-- Staged blob CR count (`git show :skins/north-forge.yaml | tr -cd '\r' |
-  wc -c`): `0`. Pure LF in the index, consistent with the old blob and
-  every other tracked file in the repo.
-- Staged blob sha256 (`git show :skins/north-forge.yaml | sha256sum`):
-  `461d4bc58e8d811f2855da41ab0d96d59522c21052a3294f76f50cb58234a06a` -
-  byte-identical to the working-tree file. No reformatting, no CRLF
-  injection, no whitespace drift introduced by staging.
-- Staged hunk: `@@ -43,2 +43,4 @@ colors:`, the two `banner_hero_*` lines
-  added between `banner_accent` and `banner_dim`.
-- Post-commit `git status`: "nothing to commit, working tree clean".
-- `git diff 871d412 605893e --stat` equivalent (commit shows):
-  `1 file changed, 2 insertions(+)`.
-- `git push`: `871d412..605893e  main -> main`, exit 0.
-  `git rev-parse HEAD origin/main` -> both
-  `605893eeedb9425ad7e7a168a830014b20491ea6`.
+## Verification item 3 - .hermes.template.md assembled sizes
 
-### Not verified this session (cannot be, without a launcher-driven Hermes session)
+Method: exact replication of the launcher assembly (verified against both
+`launch-north-forge.sh` lines 51-69 and `launch-north-forge.bat`'s
+PowerShell block). `agent_name = "North Forge"` (no `.agent-name` file on
+disk). Sizes measured two ways: **normalized character count** (newlines
+counted as one char each - this is the figure that matters for a prompt
+"char ceiling", and the literal on-disk byte count the LF-writing
+`launch-north-forge.sh` produces on a Mac/Linux drive) and **CRLF on-disk
+byte count** (what the Windows launchers write here, where every `\n`
+becomes `\r\n`).
 
-Whether the Hermes skin loader does anything at all with the two new
-`colors:` keys. Expectation: nothing - Hermes resolves *named* color roles
-(`banner_border`, `ui_error`, ...) and the two additions
-(`banner_hero_flame`, `banner_hero_anvil`) are names nothing in the loader
-or the skin references, so they are inert catalog entries. The
-`banner_hero` art draws from its own inline `[#F5A623]` / `[#B0B0B0]` Rich
-tags regardless of the map. This is consistent with the file's own comment
-("Unknown keys are safely ignored ..."). Also still unverified, carried
-from the last three audits: that the `banner_hero` Braille art renders
-correctly under `/skin north-forge` in a live North Forge CLI, and whether
-the loader consumes a `banner_hero` key at all.
+Template itself: 17,488 chars. Three markers present -
+`{{MODE_BANNER_BLOCK}}`, `{{AGENT_NAME}}`, `{{COMMAND_MENU_BLOCK}}`.
+
+### FULL mode
+
+- banner block (`mode-blocks/full-banner.md`): 210 chars
+- menu block (`mode-blocks/full-menu.md`): 1,449 chars
+- **assembled: 19,101 characters**
+- ceiling: 20,000 characters
+- **margin: 899 characters** (95.5% of ceiling used)
+- CRLF on-disk byte form: 19,271 bytes -> margin 729 bytes
+- unreplaced `{{...}}` markers: **NONE**
+- Cross-check: byte-for-byte identical to the live on-disk `.hermes.md`
+  (19,101 chars normalized / 19,271 bytes on disk with its 170 CRLF line
+  endings). `grep '{{' .hermes.md` -> no match.
+
+### SALES mode
+
+- banner block (`mode-blocks/sales-banner.md`): 816 chars
+- menu block (`mode-blocks/sales-menu.md`): 838 chars
+- **assembled: 19,096 characters**
+- ceiling: 20,000 characters
+- **margin: 904 characters** (95.5% of ceiling used)
+- CRLF on-disk byte form: 19,258 bytes -> margin 742 bytes
+- unreplaced `{{...}}` markers: **NONE**
+
+PASS. Both modes are under the 20,000-char ceiling on either measure. The
+tighter (CRLF byte) margins are 729 (FULL) and 742 (SALES); the normalized
+char margins are 899 (FULL) and 904 (SALES). This is unchanged from the
+"~900-char headroom" the last several audits recorded - no session since
+has edited `.hermes.template.md` or any `mode-blocks/` file (git log
+confirms: the last template/mode-block content commit predates tonight).
+
+RECORD FOR NEXT SESSION: FULL 19,101 chars / margin 899. SALES 19,096
+chars / margin 904. Ceiling 20,000. If a future skill or menu edit needs
+to grow either mode block, there is roughly 900 characters of room before
+the ceiling; past that, something has to be trimmed.
+
+## Verification item 4 - all 14 skills name: frontmatter
+
+Source (`skills-source/**/SKILL.md`), frontmatter only:
+
+| Skill file | `name:` |
+|---|---|
+| `shared/flush/SKILL.md` | `flush` |
+| `shared/kyocera-research/SKILL.md` | `kyocera-research` |
+| `shared/menu/SKILL.md` | `menu` |
+| `shared/sales-assist/SKILL.md` | `sales` |
+| `shared/switch/SKILL.md` | `switch` |
+| `shared/web-navigator/SKILL.md` | `web` |
+| `tsc-only/assist-intake/SKILL.md` | `assist` |
+| `tsc-only/draft-writer/SKILL.md` | `draft` |
+| `tsc-only/escalation-packet/SKILL.md` | `esc` |
+| `tsc-only/fault-logging/SKILL.md` | `log` |
+| `tsc-only/forge-audit/SKILL.md` | `audit` |
+| `tsc-only/hotline-ticket/SKILL.md` | `hl` |
+| `tsc-only/kb-builder/SKILL.md` | `kb` |
+| `tsc-only/training-guide/SKILL.md` | `train` |
+
+14 files, every one opens with a `---` fence, a `name:` line, a
+`description:` line, a closing `---`, then the body `# ... Skill` heading.
+No file is missing `name:`; no `name:` value is blank or malformed.
+
+The FULL-mode build artifact `.hermes/skills/` was also checked (14
+directories, `grep -m1 '^name:'` each): the built copies carry the same 14
+`name:` values, so the assembly is not dropping or renaming anything.
+
+The 14 `name:` values (assist, audit, draft, esc, flush, hl, kb,
+kyocera-research, log, menu, sales, switch, train, web) exactly match the
+14 non-devops rows in `hermes skills list --source local`. (The 15th row
+there, `hermes-windows-maintenance`, is the user's global skill, not from
+this repo.)
+
+Note (not a defect - unchanged since commit `1fd6c1e`, already recorded in
+the `96c40a4` audit): `shared/sales-assist/SKILL.md`'s body heading reads
+`# Sales Assist Skill (PLACEHOLDER - NOT YET AUTHORED)`. Its frontmatter
+(`name: sales`, `description: Pre-sales product and spec questions`) is
+correct and complete; only the body is a stub. That is the known state,
+not something that regressed tonight.
+
+PASS.
+
+## Verification item 5 - shipped this session vs. still open
+
+### Shipped tonight (commits 1fd6c1e -> c2073b1, 2026-09-02)
+
+- **Skills - full 14-skill set placed** (`1fd6c1e`, Zone B placement of a
+  Claude Project / Blacksmith handoff): all 14 `SKILL.md` files now carry
+  `name:` frontmatter; the earlier audit's Findings 1-5 (flush/switch
+  split, two new shared skills, missing `name:` keys) were resolved by
+  this handoff. Verified again this pass - still correct in source and in
+  the build.
+- **Skin - `banner_logo` added** (`1d43583`, Zone A): 6-row Rich-markup
+  "NORTH FORGE" ASCII banner with a three-stop red gradient. It had been
+  missing from `skins/north-forge.yaml` entirely.
+- **Skin - `banner_hero` added** (`817ef36`, Zone A): Braille
+  hammer-and-anvil composition, originally 24 rows / 70 cells,
+  single-color `[#D32F2F]`.
+- **Skin - `banner_hero` reworked to two-color** (`5688779`, Zone A):
+  replaced with the current 20-row / 42-cell block - 10 rows `[#F5A623]`
+  warm orange (the forge flame) over 10 rows `[#B0B0B0]` light steel gray
+  (the anvil).
+- **Skin - `banner_hero` colors catalogued** (`605893e`, Zone A):
+  `#F5A623` and `#B0B0B0` added to the `colors:` map as
+  `banner_hero_flame` / `banner_hero_anvil` (documentation only - the
+  inline hex in the art is unchanged; `colors:` went 14 -> 16 keys).
+- **Five audit reports** (`96c40a4`, `829a684`, `b7b2800`, `871d412`,
+  `c2073b1`), one per content commit above.
+- No change to `.hermes.template.md`, any `mode-blocks/` file, any Zone A
+  script, `.gitignore`, or any Zone C doc this session-run.
+
+### Still open for a future session
+
+1. **Live render check of `banner_hero`** - never verified in a running
+   `/skin north-forge` North Forge CLI. Also still unconfirmed whether the
+   Hermes skin loader consumes a `banner_hero` key at all. The skin
+   file's own comment says unknown keys are ignored safely, so the
+   worst case is "inert until the loader supports it," not breakage - but
+   an actual launcher-driven Hermes session should eyeball the art (20
+   uniform 42-cell Braille rows, all Rich tags balanced) and confirm it
+   displays as intended. The two new `colors:` keys are expected to be
+   equally inert (nothing references them by name).
+2. **`branding.welcome` / fallback-file parity.** Commit `1d43583`
+   carried an undescribed `branding.welcome:` wording change ("Type a
+   command or describe the issue." -> "Type /menu to see everything I can
+   do, or just describe your issue - I'll take it from there."). The
+   primary GPT still needs to (a) confirm that wording is intended and (b)
+   decide whether `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`'s
+   bare-menu line (~L126, still the old phrasing) should be brought
+   parallel. That fallback file is **Zone B** - Claude Code will not touch
+   it; this is a Blacksmith / Claude Project decision.
+3. **Off-palette resolution direction.** The two hero colors are now
+   catalogued in `colors:` (done tonight). If the primary GPT actually
+   wanted the other direction - recolor the `banner_hero` art to use
+   existing palette entries instead of adding new ones - that is still
+   open. As it stands the colors are no longer "off-palette / undocumented".
+4. **Gradient treatment on `banner_hero`.** An earlier audit floated a
+   gradient pass on the hero art. The current design is two flat color
+   bands (flame over anvil), still not a gradient. Open as a style call
+   for whoever owns the visual design, not a defect.
+5. **Minor / no repo impact:** the report two sessions back mis-cited its
+   own audit-commit hash as `b7b2800` when `git log` shows `871d412` for
+   content `5688779` (`b7b2800` is the earlier audit, for `817ef36`). The
+   log is authoritative. Flagged only so report text can be matched to
+   `git log` without confusion.
+6. **Carried context, untouched:** the user's 15 global Hermes local
+   skills (assist, audit, draft, esc, flush, hl, kb, kyocera-research,
+   log, menu, sales, switch, train, web, hermes-windows-maintenance -
+   outside this repo) and the ~900-char headroom to the 20,000-char
+   `.hermes.md` ceiling (now recorded precisely: FULL margin 899, SALES
+   margin 904).
 
 ## Zone A changes made
 
-- `skins/north-forge.yaml` (Zone A per CLAUDE.md - explicitly listed under
-  "Infrastructure / plumbing (Claude Code MAY fix directly)").
-  - BEFORE: 69-line / 5746-byte file (HEAD `871d412`, blob from content
-    commit `5688779`). `colors:` map = 14 keys. sha256
-    `e63163214057a6d3717448c5b610e2a8110ed01cab8804b8c56a5d726806bba2`.
-  - AFTER: 71-line / 5902-byte file. `colors:` map = 16 keys - adds
-    `banner_hero_flame: "#F5A623"  # warm orange - the forge fire in
-    banner_hero` and `banner_hero_anvil: "#B0B0B0"  # light steel gray -
-    the anvil in banner_hero`, inserted between `banner_accent` and
-    `banner_dim`. `+2 / -0`; every other line unchanged. sha256
-    `461d4bc58e8d811f2855da41ab0d96d59522c21052a3294f76f50cb58234a06a`.
-  - WHY: task instruction - catalog the two hex values already used inline
-    in the `banner_hero` block alongside the rest of the palette, for
-    documentation. Directly addresses open item 2 from the last audit
-    ("banner_hero now uses two off-palette colors" - they are now recorded
-    in the map, though see the flagged note below on whether "documented in
-    colors:" is the resolution the primary GPT wanted vs. "switch
-    banner_hero to existing palette colors"). Verified first: PyYAML-clean
-    (16 colors keys, both values round-trip exactly), diff is `+2 / -0`
-    confined to the `colors:` map, every other block byte-identical to
-    HEAD by per-block diff, pure LF / no BOM / trailing newline, staged
-    blob sha256 == working-tree sha256. Change was already present in the
-    working tree at session start; Claude Code did not compose, reformat,
-    or alter it - only verified and committed it.
-  - COMMIT: `605893e`.
+None. This was a verification-only session. No infrastructure or skin file
+was edited. The only file written is this audit report
+(`audit/CLAUDE_CODE_LAST_AUDIT.md`), which is Claude Code's own
+operational record, committed and pushed as normal Zone A operation per
+CLAUDE.md.
 
 ## Zone B findings (not fixed - reported only)
 
-None. `skins/north-forge.yaml` is Zone A, not Zone B. No Zone B file was
-inspected or touched this session. The one open Zone B-adjacent question
-inherited from earlier audits (whether
+None new. `skins/north-forge.yaml` is Zone A, not Zone B. The 14 skill
+files were read (frontmatter only) but not evaluated for content and not
+touched. The one standing Zone B item - whether
 `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` line ~126 should track the
-`branding.welcome` "/menu" wording) is unchanged by this session - this
-change did not touch `branding.welcome` - and is repeated under "Uncertain
-/ flagged" only so it is not lost.
+`branding.welcome` "/menu" wording - is unchanged by this session and is
+repeated under "still open" item 2 above so it is not lost. Claude Code
+did not open that file this pass.
 
 ## Commits made this session
 
-- `605893e` - "skins/north-forge.yaml: catalog banner_hero colors in
-  colors: map". 1 file changed, `+2 / -0`. Zone A fix, committed and
-  pushed under standing authorization. Commit body records: the +2/-0
-  colors-map-only delta, the per-block byte-identical result for
-  banner_logo / banner_hero / spinner / branding, the PyYAML parse (16
-  colors keys), the LF/no-BOM/trailing-newline hygiene, and the STANDING
-  RULE diff-vs-HEAD result (commit `1d43583`'s banner_logo +
-  branding.welcome and commit `5688779`'s two-color banner_hero all
-  preserved verbatim). Pushed `871d412..605893e`.
 - (this audit report) - `audit/CLAUDE_CODE_LAST_AUDIT.md`, Zone A
   operational record, committed and pushed as normal Zone A operation.
-  Hash in the chat response.
+  Hash in the chat response. No other commit.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **No root `north-forge.yaml` handoff drop this session - the change was
-   already applied in place.** The last three skin sessions each received
-   an untracked ROOT `north-forge.yaml` to place over
-   `skins/north-forge.yaml`. This session, `git status` at start showed
-   `skins/north-forge.yaml` itself already modified in the working tree
-   (` M`), no untracked files, and `git pull` said "Already up to date".
-   The working-tree delta was verified to be EXACTLY the two `colors:`
-   lines Kenneth's message describes and nothing else, so it was treated as
-   a pre-approved Zone A change and committed. Flagging the mechanism
-   change: if the primary GPT / Blacksmith expects skin changes to always
-   arrive as a root drop for the diff-before-placement ritual, note that
-   this one did not, and confirm that verifying an already-applied
-   working-tree change against HEAD (which was done, fully) is an
-   acceptable substitute.
-
-2. **Is "documented in `colors:`" the intended resolution of last audit's
-   open item 2?** The last audit flagged that `banner_hero` uses `#F5A623`
-   and `#B0B0B0`, which are not in the skin's palette. This session's task
-   resolves that by ADDING both to the `colors:` map as named entries
-   (`banner_hero_flame`, `banner_hero_anvil`) - so the palette now formally
-   contains them. The alternative resolution would have been to change the
-   `banner_hero` block to use existing palette colors. Kenneth's
-   instruction was explicit that this is documentation-only and the hero
-   block's hex values stay unchanged, so that is what was done. If the
-   primary GPT preferred the other direction, that is still open - but the
-   two colors are no longer "off-palette / undocumented".
-
-3. **STILL OPEN from the 2026-09-02 afternoon audit (not touched this
-   session):** the undescribed `branding.welcome:` wording change that
-   rode in with commit `1d43583` ("Type a command or describe the issue."
-   -> the "/menu ..." phrasing). This session's file carries that same
-   "/menu" wording unchanged (verified by per-block diff + PyYAML), so
-   nothing was reverted - but the primary GPT still needs to (a) confirm
-   that wording is intended, and (b) decide whether
-   `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`'s bare-menu line (still the
-   old "Type a command or describe the issue." phrasing) should be brought
-   parallel. Claude Code did not and will not touch that Zone B file.
-
-4. **`banner_hero` render + loader support still unverified in a live
-   CLI**, same carry-over as the last four audits. Structurally the art is
-   clean (20 uniform 42-cell Braille rows, all Rich tags balanced, narrower
-   than the working `banner_logo`), and the file's own comment says unknown
-   keys are ignored safely, so the downside case is "inert until the loader
-   supports it," not breakage. The two new `colors:` keys are expected to
-   be equally inert (nothing references them by name). Needs a
-   `/skin north-forge` check on a launcher-driven Hermes session.
-
-5. **Audit-commit hash discrepancy in the previous report.** The last
-   report's body states its audit was committed as `b7b2800`, but `git log`
-   shows `871d412` as the audit commit for content `5688779`, with
-   `b7b2800` being the earlier audit (for content `817ef36`). The log is
-   authoritative; the report text appears to have mis-copied its own hash.
-   No repo impact - flagged only so the primary GPT can match report text
-   to `git log` without confusion.
-
-6. **Carried, untouched:** the user's global Hermes local-skill set (15
-   skills - assist, audit, draft, esc, flush, hl, kb, kyocera-research,
-   log, menu, sales, switch, train, web, hermes-windows-maintenance;
-   outside this repo) and the prior audits' ~900-char headroom note to the
-   20,000-char assembled `.hermes.md` ceiling. Neither is relevant to this
-   change; both repeated only for session-to-session continuity.
+Nothing new flagged - this was a clean verification pass and every item
+checked out. The items under "still open for a future session" (1-6 above)
+are all carry-overs already flagged in prior audits; none is a new
+uncertainty introduced this session. The single judgment call this session
+made was scope discipline: the task said "verification only, do not open
+new work or fix anything," so the still-open items were recorded, not
+acted on, even where a fix would have been small (e.g. item 5 is purely
+cosmetic report-text drift).
 
 ## Status
 
-Needs primary GPT review - principally to confirm items 1 and 2: (i) that
-an already-applied working-tree change verified against HEAD (rather than a
-fresh root `north-forge.yaml` drop) is an acceptable handoff shape for a
-Zone A skin edit, and (ii) that cataloguing `#F5A623` / `#B0B0B0` as named
-`colors:` entries is the intended resolution of the last audit's
-off-palette flag, as opposed to re-coloring the `banner_hero` block to
-existing palette values. Items 3-5 are carry-overs / notes. The change
-itself is minimal and safe: `+2 / -0`, confined to the `colors:` map,
-PyYAML-clean (16 colors keys), pure LF / no BOM / trailing newline, every
-other block byte-identical to HEAD `871d412` by per-block diff; commit
-`1d43583`'s `banner_logo` and `branding.welcome` and commit `5688779`'s
-two-color `banner_hero` were all preserved verbatim and nothing was
-reverted. Committed `605893e`, pushed `871d412..605893e`; working tree
-clean; `HEAD == origin/main == 605893e`.
+Clean - verification pass, all five requested checks PASS, no code or
+content change made or needed. Git is fully pushed and clean
+(`HEAD == origin/main == c2073b1`). The prior audit's "Needs primary GPT
+review" items (branding.welcome wording, fallback-file parity, off-palette
+direction, live render check) remain genuinely open and are restated here
+as the handoff note, but nothing in this session added to or changed them.
