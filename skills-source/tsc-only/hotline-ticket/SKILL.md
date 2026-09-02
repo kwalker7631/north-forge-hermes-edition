@@ -1,3 +1,7 @@
+---
+name: hl
+description: Hotline ticket update - clipboard-ready ticket note
+---
 # Hotline Ticket Skill
 
 Trigger: the user asks for a hotline ticket update, uses /hl or /ticket, or asks for a ServiceNow/HL session-history note.

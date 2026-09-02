@@ -1,3 +1,7 @@
+---
+name: sales
+description: Pre-sales product and spec questions
+---
 # Sales Assist Skill (PLACEHOLDER - NOT YET AUTHORED)
 
 Trigger (once built): a sales rep asks about product compatibility, specs, connectivity, finishing options, paper handling, or other pre-sales questions - NOT support/repair/troubleshooting.

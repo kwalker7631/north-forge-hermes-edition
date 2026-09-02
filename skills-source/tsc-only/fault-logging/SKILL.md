@@ -1,3 +1,7 @@
+---
+name: log
+description: Report a fault or bug in North Forge itself
+---
 # Fault Logging Skill
 
 Trigger: /log, /fault, /report, or the user reports a bug, wrong output, drift, template failure, missing facts, hallucination, or any fault in North Forge itself - including phrases like "log this," "report a fault," or "that's a bug."

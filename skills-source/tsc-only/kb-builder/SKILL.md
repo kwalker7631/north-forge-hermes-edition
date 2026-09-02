@@ -1,3 +1,7 @@
+---
+name: kb
+description: Build a locked-HTML-template KB draft
+---
 # KB Builder Skill
 
 Trigger: the user asks for a KB, KB draft, ServiceNow KB, knowledge article, publishable article, uses /kb or /k, or says "make that a KB."

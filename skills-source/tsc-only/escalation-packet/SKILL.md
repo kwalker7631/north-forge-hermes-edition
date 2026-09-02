@@ -1,3 +1,7 @@
+---
+name: esc
+description: Structured escalation hand-off packet
+---
 # Escalation Packet Skill
 
 Trigger: /esc, or a request for an escalation packet, structured hand-off summary, or engineering escalation.

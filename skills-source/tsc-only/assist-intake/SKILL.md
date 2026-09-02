@@ -1,3 +1,7 @@
+---
+name: assist
+description: Fast support-call assist mode
+---
 # Assist Intake Skill
 
 Trigger: /a or /assist, or any raw technical issue/symptom/error described without an explicit mode request - this is the default mode. Also covers plain technical questions and vague symptom reports on a first message.

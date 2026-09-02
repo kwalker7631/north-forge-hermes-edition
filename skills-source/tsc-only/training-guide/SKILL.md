@@ -1,3 +1,7 @@
+---
+name: train
+description: Step-by-step guided training mode
+---
 # Training Guide Skill
 
 Trigger: /train or /t, or a request for step-by-step explanation, onboarding, or guided instruction. Use when the technician is unfamiliar with the procedure, is new to the device family, or explicitly requests more explanation than the default terse style.

@@ -1,3 +1,7 @@
+---
+name: audit
+description: Audit an existing prompt, KB, or draft for drift and failures
+---
 # Audit Skill
 
 Trigger: /audit or /chk, or a request to review, check, test, compare, debug, clean up, find drift in, or verify consistency of an existing prompt, KB, article, response, or draft. Use this skill unless a code-maintenance or agent-configuration file is specifically requested (that's a different kind of review, outside this skill's scope).

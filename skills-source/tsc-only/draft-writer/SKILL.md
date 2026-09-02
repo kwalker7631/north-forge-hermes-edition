@@ -1,3 +1,7 @@
+---
+name: draft
+description: Write an email, ticket note, or customer update
+---
 # Draft Writer Skill
 
 Trigger: /draft or /d, or a request for an email, customer update, internal message, ServiceNow note, escalation note, or live chat wording.

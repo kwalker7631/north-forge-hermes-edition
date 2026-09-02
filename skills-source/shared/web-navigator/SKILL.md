@@ -1,3 +1,7 @@
+---
+name: web
+description: Website navigation shortcuts to kyoceradocumentsolutions.us
+---
 # Web Navigator Skill
 
 Trigger: someone asks where to find something on kyoceradocumentsolutions.us, asks for a link to a specific resource (downloads, support, dealer locator, proposal request, product info, sales/industry materials), or says something like "where on the site do I find X" or "send me the link for Y."

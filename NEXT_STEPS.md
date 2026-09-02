@@ -13,12 +13,16 @@
 - `skills-source/tsc-only/training-guide/SKILL.md` - /train, /t: slower guided-explanation mode, deliberate exception to the terse default. Placed 2026-08-28 (`d414f81`)
 - `skills-source/shared/web-navigator/SKILL.md` - /web, /links (both modes): direct-link directory for kyoceradocumentsolutions.us (support/downloads, sales/product, proposal/dealer, industry material). Placed 2026-08-28 (`d414f81`). Link accuracy is the author's claim ("verified against the live site") - not re-checked by Claude Code; confirm during QA
 - `skills-source/shared/sales-assist/SKILL.md` - scoped and boundary-defined, but NOT yet given real content (FAQ body still a placeholder pending real spec-sheet curation)
-- Mode toggle system (`.forge-mode`, `toggle-mode.bat`/`.sh`, launcher assembly logic) - built AND exercised 2026-08-28 QA session: FULL assembles all 10 skills, SALES assembles only the 2 shared, `.hermes.md` banner/menu swap correct, `hermes skills trust` + skin activation work, all artifacts gitignored. See QA notes below.
+- `skills-source/shared/flush/SKILL.md` - thin routing skill that registers `/flush` (soft reset: clear working issue package, stay in mode). Placed 2026-09-01 from the north-forge-hermes-COMPLETE-fix handoff (Claude Project chat, byte-for-byte placement, not composed by Claude Code)
+- `skills-source/shared/menu/SKILL.md` - thin routing skill that registers `/menu` (show the mode's command menu). Placed 2026-09-01 from the same handoff
+- YAML frontmatter pass (2026-09-01, same handoff): all 14 skill files now open with a `name:` / `description:` frontmatter block so Hermes registers the intended slash command (`/hl`, `/kb`, `/esc`, `/audit`, `/log`, `/train`, `/draft`, `/web`, `/assist`, `/sales`, `/menu`, `/flush`, `/switch`, `/kyocera-research`) instead of the literal folder name. Previously only `switch` and `kyocera-research` carried frontmatter. See the 2026-09-01 section at the bottom of this file.
+- Mode toggle system (`.forge-mode`, `toggle-mode.bat`/`.sh`, launcher assembly logic) - built AND exercised 2026-08-28 QA session: FULL assembles all 10 skills, SALES assembles only the 2 shared [now **14** skills FULL / **6** shared SALES as of 2026-09-01 - see section at bottom], `.hermes.md` banner/menu swap correct, `hermes skills trust` + skin activation work, all artifacts gitignored. See QA notes below.
 - `toggle-mode.bat`/`.sh` RESET option - built 2026-08-28 (`c023a62`) to match the README (`0d6ef80`). Third choice alongside FULL/SALES; requires typing `YES` (exact); wipes `.env`, `.forge-mode`, `.hermes.md`, `.hermes/skills/` back to first-use state, leaves tracked content alone. This is the `.env`-scrub-before-handoff mechanism `DEMO_PREP_BACKLOG.md` item 9 asked for. Tested in an isolated dir (all four targets wiped on YES, nothing wiped on `yes`/blank/other, `.env.example` + `skills-source/` untouched).
 
 ## Not yet built (do not invent content for these - flag and wait)
 - `skills-source/shared/sales-assist/SKILL.md` real content - needs actual spec sheets/datasheets, curated and Blacksmith-approved, not written from general knowledge
 - (2026-08-28: the six tsc-only placeholders above - hotline-ticket, assist-intake, escalation-packet, forge-audit, fault-logging, training-guide - plus web-navigator are now all built and placed from the full-skillset-v3 reissue handoff, commit `d414f81`. All 8 tsc-only skills + both shared skills now have real SKILL.md files on disk. Remaining unbuilt item is sales-assist's real FAQ content only.)
+- (2026-09-01: the shared set grew from 2 to 6 - `sales-assist`, `web-navigator`, `switch`, `kyocera-research`, `flush`, `menu`. Total skill count is now **14** (8 tsc-only + 6 shared). `sales-assist`'s real FAQ content is still the only unbuilt item.)
 
 ## QA session (2026-08-28) - first real run of the built skills + mode toggle
 
@@ -29,8 +33,11 @@ output). Results:
 - PASS - FULL assembly: `.hermes/skills/` builds all 10 (8 tsc-only +
   sales-assist + web-navigator); `.hermes.md` ~16,170 chars, correct FULL
   banner/menu, no stray markers.
+  [2026-09-01: now 14 skills FULL; `.hermes.md` assembles to 19,101 chars -
+  see section at bottom of this file.]
 - PASS - SALES assembly: only the 2 shared skills; SALES banner + reject
   list; `/web` present, FULL-only commands absent.
+  [2026-09-01: now 6 shared skills SALES; `.hermes.md` assembles to 19,096.]
 - PASS - web-navigator URLs: 7 spot-checked (one per section group), all
   HTTP 200, all land where the skill says.
 - ~~FINDING 1: the `audit` skill collided with Hermes's reserved
@@ -224,3 +231,89 @@ divergence on `core.autocrlf=true` machines; `launch-north-forge.bat` not yet
 run end-to-end; no live model session against the current
 `.hermes.template.md` (blocked on a real Anthropic key on this drive, same as
 QA parts 2/4).
+
+## Drift audit vs v21.8 OneDrive source package (2026-08-29) - PASS WITH EXCEPTIONS
+
+Kenneth supplied the 12-file v21.8 source package (OneDrive,
+`KB_PROJECT_2026/FORGE SYSTEM - NORTH FORGE - KYOCERA EDITION - v21.8/`) and
+asked for a repo drift audit. Full findings in
+`audit/CLAUDE_CODE_LAST_AUDIT.md`. Nothing was changed - all four findings
+target Zone B / locked skill files and await Blacksmith sign-off.
+
+Passed: EDIT_9 flush/clear rule (incl. hard-reset clause + /log hook),
+EDIT_10 (Mermaid mandatory, firmware unconditional, QA source-image
+flagging), EDIT_11 writing standards (all five bullets), Contact Block Lock
+byte-identical, fault-report block field-for-field, skills-source in sync
+with live .hermes/skills, CLAUDE.md and command-menu deltas confirmed
+by-design.
+
+Open items awaiting Blacksmith approval:
+1. [Medium/Template] Repo `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html`
+   header comments still say "v21.5" pairing (2 lines); source says v21.8.
+   Body/contact block identical. Fix = update 2 header lines (Zone B).
+2. [Medium/Context Handoff] EDIT_11's PRIMARY SOURCE FORMAT block (HL Case
+   Details + Knowledge Details export pair as standard /kb input; QA/SB
+   supplementary; note missing case export in Deep Search Notes) is in the
+   source master (L928) and repo fallback paste version, but absent from
+   kb-builder SKILL.md (live + skills-source). Fix = add block (locked
+   skill, needs sign-off).
+3. [Low/Output Contract] "Do not ask the user to select research, Mermaid,
+   multimedia... separately" line in master + fallback, absent from
+   kb-builder skill. Fold in with item 2.
+4. [Note/Template, source-side] Both template copies' firmware-box
+   placeholder still says "[ONE OR TWO SENTENCES...]" while EDIT_10 allows
+   2-3 bullets. Not repo drift - source-package decision for a future
+   v12.12 template rev.
+
+## 14-skill completion + frontmatter pass (2026-09-01) - COMPLETE-fix handoff placed
+
+Handoff `north-forge-hermes-COMPLETE-fix.zip` (Claude Project chat, via
+Kenneth in-session) placed and committed. It replaces all of `skills-source/`
+plus `.hermes.template.md`, `mode-blocks/full-menu.md`,
+`mode-blocks/sales-menu.md`. Full detail in
+`audit/CLAUDE_CODE_LAST_AUDIT.md`. This closes every open item from the
+previous audit's Findings 1-5.
+
+What changed:
+- **Skill count 10 -> 14.** New shared skills `flush` (registers `/flush`,
+  soft reset) and `menu` (registers `/menu`). Set is now 8 tsc-only + 6
+  shared. This resolves prior Findings 1 (menu/flush referenced everywhere
+  but absent) and 3 ("14 skills" was unreachable).
+- **YAML frontmatter on all 14.** Every SKILL.md now opens with
+  `name:` / `description:`. Registered commands: `/hl` `/kb` `/esc` `/audit`
+  `/log` `/train` `/draft` `/web` `/assist` `/sales` `/menu` `/flush`
+  `/switch` `/kyocera-research`. All 14 `name:` values are unique, parse
+  clean under PyYAML, and match the folder's intended command. Resolves
+  prior Finding 2 (only 2 of 12 had frontmatter).
+- **`.hermes.template.md`** - one line changed: `<hermes_specific_addendum>`
+  item 3 now reads "MEMORY MUST RESPECT /FLUSH AND /SWITCH ... Never /clear
+  or /reset for this - see flush_clear_rule" (was "/flush or /clear").
+  Resolves prior Finding 4 (the file contradicted its own `flush_clear_rule`
+  ban on `/clear`).
+- **`sales-assist/SKILL.md`** - frontmatter added above the existing body;
+  its self-lock line (added in `a49580f`) is untouched. Prior Finding 5
+  (no self-lock line) was already resolved; still true here.
+- **`mode-blocks/full-menu.md` / `sales-menu.md`** - byte-identical to what
+  was already committed at `1c66ab8`; re-bundled, no change.
+
+STANDING RULE diff-vs-HEAD: clean. No previously-recorded deliberate fix is
+reverted. Specifically preserved: `forge-audit/SKILL.md` has no literal
+`CLAUDE.md` token (the real `a49580f` skills-guard fix); the web-navigator
+`<assistant_router_rule>` entry and the `flush_clear_rule` /flush-vs-/switch
+split both stay intact in the template.
+
+Assembled `.hermes.md` (template + banner + menu; skills are separate files,
+not concatenated): **FULL 19,101 chars / SALES 19,096 chars** (LF). Zero
+unreplaced `{{...}}` markers, zero non-ASCII. On a native Windows launch the
+Python writes CRLF: 19,271 / 19,258 bytes.
+
+**MARGIN WARNING (flag for the next content change):** headroom against the
+20,000-char context-file ceiling is now only ~900 chars (899 FULL / 904
+SALES on LF; 729 / 742 on CRLF). Any further template, banner, or menu
+growth needs to budget against this - the assembled file is close to the
+limit and there is no automated guard on it.
+
+Not exercised this session (deferred, per Kenneth's instruction to commit
+before the AppData flush + fresh repull): a live `hermes skills list`
+re-registration against the 14-skill set, and any live model run. Kenneth's
+post-commit fresh launch is what exercises those.
