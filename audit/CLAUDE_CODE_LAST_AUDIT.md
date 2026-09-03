@@ -1,316 +1,197 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-03, ~00:05-00:30 EDT. One session, several exchanges.
-Session-start HEAD `f389c38`. Commits this session: `c4bfecb` (task 2),
-`45ecef3` (an interim copy of this report, now superseded), `b14b40d`
-(task 1 via handoff), and this report on top.
+Timestamp: 2026-09-03, ~afternoon EDT. Single session, one exchange.
+Session-start HEAD `d75a32c`. Commits this session: this report only.
 
-Requested tasks:
-
-1. (initial framing) "Add machine-reset.bat to CLAUDE.md's Zone A file list
-   explicitly ... Small addition, Zone A change, standing authorization
-   applies." Then, after Claude Code declined that as a self-composed Zone B
-   edit and asked for the authored file, it was re-issued as a named Zone B
-   placement: "Extract CLAUDE-md-fix.zip into this repo's root, overwriting
-   the current CLAUDE.md. Diff against HEAD first per the standing rule -
-   the only change should be 'machine-reset.bat' added to the Zone A file
-   list in the Required-first-response block. Commit and push once
-   confirmed."
-2. "toggle-mode.bat and toggle-mode.sh: the menu prompt currently only
-   mentions 'EXIT' even though Q/quit also work. Update the prompt text to
-   read '...RESET, EXIT, or Q' (or equivalent) so the working shortcut is
-   actually advertised. Commit and push."
-
-Outcome in one line: both tasks complete and pushed. Task 2 =
-one-line prompt-string change per file (`c4bfecb`). Task 1 was first
-declined in its "just add the line" form (no file was handed over - a
-prose description is not a placement), then completed when the authored
-file arrived as `CLAUDE-md-fix.zip`: diffed against HEAD, verified to be a
-single-line insertion and byte-for-byte identical to the handoff after
-LF-normalization, placed, committed (`b14b40d`), pushed.
+Requested task: Kenneth reported "lost power" and asked whether everything
+"check[s] out properly" - i.e. a post-power-loss integrity/health check of
+the repo and the Hermes install. No repair or content task was given, so
+per `CLAUDE.md` ("If none was given, a clean session-start check IS the
+whole task - write the audit report and stop rather than inventing work to
+do") this session is the Session Start Protocol plus a power-loss-specific
+corruption check, and nothing else.
 
 ## Session Start Protocol results
 
 ```text
 SESSION START CHECK
 Pulled: Already up to date. `git pull` -> "Already up to date." Session-start
-  HEAD f389c38 == origin/main.
-Last audit read: Yes - "2026-09-02 into 2026-09-03", status "Needs primary
-  GPT review". Prior session created machine-reset.bat (af8fc97) and looped
-  the toggle-mode menu (c486dff). Its flagged items 2 (machine-reset.bat is
-  a new Zone A file not named in CLAUDE.md's Zone A list) and 4 (Q accepted
-  but only EXIT advertised in the prompt) are exactly this session's two
-  tasks.
+  local HEAD d75a32c88eed097b6cd8b8e826f22e02dc7ee5b9 == origin/main.
+  `git rev-list --left-right --count origin/main...HEAD` -> "0    0" (neither
+  ahead nor behind).
+Last audit read: Yes - prior report timestamped "2026-09-03, ~00:05-00:30
+  EDT", status "Needs primary GPT review". Prior session completed two tasks:
+  the toggle-mode Q-shortcut prompt fix (`c4bfecb`) and a Zone B handoff
+  placement of `CLAUDE.md` adding `machine-reset.bat` to the Required-first-
+  response recital's Zone A list (`b14b40d`), plus its audit commit
+  (`d75a32c`). Its open flags (unchanged this session): (1) `CLAUDE.md`'s two
+  Zone A enumerations now differ - the bulleted canonical list still omits
+  `machine-reset.bat`, only the recital was updated; (2) whether a prose-only
+  named instruction should count as a handoff without a file; (3) placement
+  was done with Edit not cp/unzip (harness blocked the shell paths), verified
+  sha256-equal; (4) toggle-mode "Didn't recognize" error string still omits
+  Q; (5) toggle-mode.bat not exercised in a real interactive console;
+  (6) carried older items.
 Uncommitted at start: None. `git status` -> "nothing to commit, working tree
-  clean". `git diff` empty. No untracked files.
-.gitignore: OK - full read (51 lines). Still excludes .env, *.env,
+  clean". `git diff` empty, `git diff --cached` empty, `git diff HEAD --stat`
+  empty. `git status --porcelain --untracked-files=all` -> no output (no
+  untracked files outside .gitignore).
+.gitignore: OK - full read (51 lines / 1596 bytes). Excludes .env, *.env,
   .hermes.override.md, AGENTS.override.md, .forge-mode, .agent-name,
-  /.hermes/, .hermes.md, config.yaml, state.db*, sessions/, memories/,
-  cron/, logs/, *.log, OS/editor noise, node_modules/, .claude/, and the
-  root-anchored /skills/ legacy guard (lines 46-51). Not modified.
-hermes doctor: Clean on everything this repo depends on. Python 3.11.16,
-  SQLite 3.53.1, venv active, version files consistent (0.21.0),
-  ~/AppData/Local/hermes/.env + config.yaml present, config v39, no
-  deprecated keys, no retired xAI models, no security advisories, no
-  suspicious MCP stdio, SSL bundle valid, all required packages + dirs
-  present. Non-blocking pre-existing warnings only (optional telegram/
-  discord pkgs; optional Nous/Codex/MiniMax/xAI/OpenRouter auth not logged
-  in; Playwright Chromium absent; npm build-tool advisories in agent-browser
-  and the web workspace). None touches this repo.
-Project skills: `hermes skills list --source local` -> 15 local, all
-  enabled: assist, audit, draft, esc, flush, hl, kb, kyocera-research, log,
-  menu, sales, switch, train, web, hermes-windows-maintenance (devops).
-  User's global set, not this repo's built skills-source/ output. Unchanged.
+  /.hermes/, .hermes.md, config.yaml, state.db / state.db-*, sessions/,
+  memories/, cron/, logs/, *.log, OS/editor noise, __pycache__/, *.pyc,
+  node_modules/, .claude/, and the root-anchored legacy /skills/ guard
+  (lines 46-51). All four Session-Start-Protocol-required entries present:
+  .env (line 2), .forge-mode (line 10), .hermes.md (line 19), /.hermes/
+  (line 18). Not modified.
+hermes doctor: Clean on everything this repo depends on. No active security
+  advisories, no suspicious MCP stdio. Python 3.11.16, SQLite 3.53.1, venv
+  active, version files consistent (0.21.0). state.db / cron/executions.db /
+  kanban.db all WAL mode, no integrity error reported. ~/AppData/Local/
+  hermes/.env + config.yaml present, config v39, no deprecated keys, no
+  retired xAI models. All required Python packages present. All required
+  directories present. External tools git / rg / node / docker all found.
+  Only NON-BLOCKING pre-existing warnings, none touching this repo: optional
+  telegram/discord pkgs not installed; optional Nous/Codex/MiniMax/xAI/
+  OpenRouter auth not logged in; Playwright Chromium absent (browser_* tools
+  hidden); 1 high npm advisory in agent-browser deps and 1 high + 1 moderate
+  in the web workspace (both build-time tooling, clears via lockfile bump);
+  no GITHUB_TOKEN (rate-limit only). "Update available: 503 commits behind"
+  - informational, same standing state as prior sessions, not this repo's
+  concern.
+Project skills: `hermes skills list --source local` -> 15 local skills, all
+  enabled, 0 disabled: assist, audit, draft, esc, flush, hl, kb,
+  kyocera-research, log, menu, sales, switch, train, web,
+  hermes-windows-maintenance (category devops). Identical set to the prior
+  report. This is the user's global local skill set, NOT this repo's built
+  skills-source/ output. Unchanged.
 ```
+
+## Power-loss-specific corruption check (the actual reason for the session)
+
+Power was lost on the machine. The concern is silent corruption of the git
+object store or a half-written working-tree file, neither of which a plain
+`git status` necessarily surfaces. Checks run:
+
+- `git fsck --no-progress` -> **no output** = no broken links, no missing
+  blobs/trees/commits, no dangling or corrupt objects. Object store intact.
+- `git diff HEAD --stat` -> empty. Every tracked file's working-tree content
+  matches the committed blob at `d75a32c`. Nothing was left half-saved in a
+  tracked file.
+- `git rev-list --left-right --count origin/main...HEAD` -> `0  0`. Local
+  branch is exactly level with `origin/main`; no commit was stranded locally
+  or lost relative to the remote.
+- `git status --porcelain --untracked-files=all` -> empty. No stray temp
+  files, no partial writes sitting untracked in the tree.
+- Directory listing (`ls -la` on repo root) - every expected file present
+  with a sane non-zero size, no zero-byte truncation:
+  - `CLAUDE.md` 15791 bytes (CRLF working tree; committed blob is 15475 LF
+    per prior audit - the +316 is the expected CRLF expansion, 316 lines).
+  - `toggle-mode.bat` 2038 bytes, `toggle-mode.sh` 2297 bytes - byte-for-byte
+    the sizes recorded in the prior audit for `c4bfecb`.
+  - `machine-reset.bat` 5943 bytes - present (still not in the bulleted Zone A
+    list, see prior flag 1; not a power-loss issue).
+  - `launch-north-forge.bat` 4249, `launch-north-forge.sh` 5100,
+    `provision-new-drive.ps1` 6771, `setup-thumbdrive.ps1` 4502,
+    `.env.example` 705, `.gitignore` 1596 - all present, all non-zero.
+- Generated / gitignored runtime files - present and coherent:
+  - `.forge-mode` -> content is exactly `full` (4 bytes + newline). Valid
+    mode value, not garbage, not empty. The drive came back up in FULL mode.
+  - `.hermes.md` 19271 bytes (regenerated at last launch), `.hermes/` dir
+    present, `.env` 800 bytes present. None of these are tracked; all are
+    `.gitignore`d correctly so none showed as untracked.
+- Hermes state DBs - `hermes doctor` reports `state.db` (2.6 MB, 663 pages,
+  5 free, WAL 0 B, 275 messages / 25 sessions), `cron/executions.db`
+  (20 KB), `kanban.db` (116 KB) all in WAL journal mode and readable; the
+  doctor's Python-environment and directory-structure sections pass with no
+  SQLite malformed-database error. No corruption surfaced. (These DBs live
+  under `~/AppData/Local/hermes/`, not in this repo.)
+
+Conclusion: no power-loss damage. Git history, working tree, ignored runtime
+files, and the Hermes install are all in the same known-good state recorded
+at the end of the prior session (`d75a32c`).
 
 ## Files inspected
 
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior report, full read (289 lines).
-- `.gitignore` - full read (51 lines). Not modified.
-- `CLAUDE.md` - working-tree copy (316 lines, `i/lf w/crlf`) and
-  `HEAD:CLAUDE.md` blob (316 lines, 15456 bytes LF). Governing sections
-  re-read for task 1: Zone A/B/C lists, the "CLAUDE.md is Zone B
-  deliberately" paragraph, the "EXCEPTION - placing pre-approved content"
-  paragraph, the CONFIRMED 2026-08-26 note, the STANDING RULE 2026-08-29
-  diff-before-placement note, the "Required first response" block. MODIFIED
-  via handoff placement - see below.
-- `toggle-mode.bat` - full read (62 lines, 2038 bytes, `i/lf w/lf`).
-  Working copy == HEAD verified before editing.
-- `toggle-mode.sh` - full read (52 lines, 2297 bytes, `i/lf w/lf`). Same
-  check. `bash -n` clean before and after.
-- `/c/Users/kwalk/Downloads/CLAUDE-md-fix.zip` - located by `find` across
-  repo / Downloads / Desktop / scratchpad after the handoff message named
-  it. Extracted to a scratch dir (NOT the repo) for inspection first.
-  Archive contents: one file, `CLAUDE.md`, 15475 bytes, LF, no BOM.
-- Repo-wide grep for `FULL, SALES` / `RESET, or EXIT` / `blank = quit` /
-  `toggle-mode` across `*.{bat,sh,md,txt,ps1}` - to find every surface of
-  the option list / prompt string. `README.md` (Zone B) describes
-  toggle-mode conceptually only, does NOT quote the literal prompt, so the
-  task-2 edit creates no README drift.
-- Read-only git: `git pull`, `git status`, `git diff`, `git diff HEAD`,
-  `git log -- toggle-mode.*`, `git log -3 --format=%B` (trailer convention
-  -> `Co-Authored-By: Claude Sonnet 5`), `git ls-files --eol`,
-  `git config core.autocrlf` (-> `true`), `git show HEAD:<file>`,
-  `git diff --no-index --word-diff`.
-- `hermes doctor`, `hermes skills list --source local`.
-- Files WRITTEN this session: `toggle-mode.bat`, `toggle-mode.sh`
-  (one-line prompt edit each), `CLAUDE.md` (one-line handoff placement),
-  this report.
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior report, full read (317 lines).
+- `.gitignore` - full read (51 lines / 1596 bytes). Not modified.
+- Repo-root directory listing via `ls -la` (all file names + sizes + mtimes).
+- Read-only git only: `git pull`, `git status`, `git status --porcelain
+  --untracked-files=all`, `git diff`, `git diff --cached`, `git diff HEAD
+  --stat`, `git log --oneline -8`, `git rev-parse HEAD`, `git rev-list
+  --left-right --count origin/main...HEAD`, `git fsck --no-progress`.
+- `.forge-mode` - content read (`full`).
+- `hermes --version`, `hermes doctor`, `hermes skills list --source local`.
+- No Zone A, Zone B, or Zone C file was opened for editing or written this
+  session except this audit report.
 
 ## Zone A changes made
 
-### `toggle-mode.bat` + `toggle-mode.sh` - prompt string - commit `c4bfecb`
-
-Bug confirmed in-file and reproduced: both scripts have a working `Q` exit
-that the prompt never advertised.
-
-- `toggle-mode.bat:15` : `if /i "%MODE%"=="Q"    goto :end`.
-- `toggle-mode.sh:12` : `""|exit|quit|q)` -> `break`, and the `case`
-  scrutinee is lower-cased via `tr '[:upper:]' '[:lower:]'`, so `Q`, `q`,
-  `QUIT`, `EXIT`, blank all break the loop.
-- Prompt before (both files, from `c486dff`):
-  `Type FULL, SALES, RESET, or EXIT (blank = quit): ` - never names `Q`.
-
-Exact change - the entire commit diff is `2 files changed, 2 insertions(+),
-2 deletions(-)`:
-
-```
-toggle-mode.bat:11
-- set /p MODE="Type FULL, SALES, RESET, or EXIT (blank = quit): "
-+ set /p MODE="Type FULL, SALES, RESET, EXIT, or Q (blank = quit): "
-
-toggle-mode.sh:9
--     read -p "Type FULL, SALES, RESET, or EXIT (blank = quit): " MODE
-+     read -p "Type FULL, SALES, RESET, EXIT, or Q (blank = quit): " MODE
-```
-
-No control-flow change. The `c486dff` menu loop, `:menu` label, the
-`set "MODE="` / `set "CONFIRM="` clears, every `goto :menu` redirect, the
-`""|exit|quit|q)` case and all option bodies are untouched. Verified by
-reading the full post-edit `git diff` (one hunk per file, shown above).
-
-STANDING-RULE diff-vs-HEAD (applied even though this was a described fix,
-not a handoff): the `-` context lines are byte-identical to
-`HEAD:toggle-mode.bat:11` / `HEAD:toggle-mode.sh:9` as they stand after
-`c486dff` - the edit sits on current HEAD, reverts nothing.
-
-Reproduced on isolated scratch copies (`...\scratchpad\toggle-q-test\{sh,bat}`,
-plain `cp` of the edited files; both scripts `cd` to their own dir so a copy
-runs entirely in scratch; nothing was run against the repo root, whose RESET
-path deletes the live `.env`):
-
-| Test | Input | Result |
-|---|---|---|
-| .sh: FULL then Q | `FULL`\n`Q` | "Set to FULL", `.forge-mode`=full, menu re-shown, `Q` breaks loop. PASS |
-| .sh: lowercase q immediately | `q` | menu shown once, loop breaks, exit 0. PASS |
-| .bat: FULL then Q | `FULL`\r\n`Q` (stdin file) | new prompt renders, "Set to FULL", `.forge-mode`=full, menu re-shown, `Q` -> `:end` -> pause. PASS |
-| .bat: Q immediately | `Q`\r\n | new prompt renders, `Q` -> `:end` -> pause, exit 0. PASS |
-
-`bash -n toggle-mode.sh` on the final file: clean.
-
-Line endings: files remain `i/lf w/lf`. Commit
-`c4bfecb42997d1167d16633c4e6dba133b65f130` -
-"toggle-mode: advertise the working Q shortcut in the menu prompt". Pushed
-`f389c38..c4bfecb`.
-
-## Zone B placement made (handoff)
-
-### `CLAUDE.md` - named Zone B placement from the Claude Project chat - commit `b14b40d`
-
-Provenance: handed over as `CLAUDE-md-fix.zip` (found in
-`C:\Users\kwalk\Downloads\`), stated by Kenneth to be authored in the
-Claude Project chat, not composed by Claude Code. First re-issue of task 1
-(a prose instruction "just add the line") was declined this session because
-no file had been handed over and self-composing a Zone B change - most of
-all in `CLAUDE.md` itself - is exactly what the file forbids. Once the
-authored zip arrived, it qualified under the "EXCEPTION - placing
-pre-approved content" paragraph + the CONFIRMED 2026-08-26 note (which names
-`CLAUDE.md` explicitly as eligible for in-session named handoff).
-
-Archive contents: exactly one file, `CLAUDE.md`, 15475 bytes, LF line
-endings, no BOM (first bytes `23 20 43` = `# C`), trailing bytes
-`74 2e 0a 0a` (identical to the current `HEAD:CLAUDE.md` blob's trailing
-bytes).
-
-STANDING-RULE diff-before-placement (2026-08-29), performed against
-`HEAD:CLAUDE.md` extracted to a scratch file, BEFORE touching the repo:
-
-- `diff -u HEAD_blob extracted`: a single hunk at `@@ -223,7 +223,7 @@`.
-- 316 lines in both. Byte sizes 15456 (HEAD blob, LF) vs 15475 (extracted,
-  LF) = +19 bytes, fully accounted for by the inserted literal
-  `machine-reset.bat, ` (19 chars).
-- `--word-diff=plain`: `... launch scripts, toggle scripts, {+machine-reset.bat,+} setup script, ...`
-  in the `NORTH FORGE HERMES EDITION - CLAUDE CODE WORKING RULES ACTIVE`
-  fenced `text` block (the "Required first response" recital).
-- Zero-context line diff: exactly one line removed, one added, the two
-  differing only by that insertion.
-- No other hunk anywhere. Nothing removed, reverted, or contradicted: the
-  three canonical Zone A/B/C lists near the top, the "CLAUDE.md is Zone B
-  deliberately" paragraph, the "EXCEPTION - placing pre-approved content"
-  paragraph, the CONFIRMED 2026-08-26 note, the STANDING RULE 2026-08-29
-  note itself, the Session Start Protocol, the Git command policy, the
-  "Required first response" and "Required final response" blocks, and the
-  audit-report structure are all byte-identical between HEAD and the
-  handoff.
-
-Placement mechanism: `cp` and `unzip -o` into the repo root were both
-blocked by the harness auto-mode classifier. Placement was completed with
-the Edit tool making the single verified line replacement in
-`D:\north-forge-hermes-edition\CLAUDE.md` (working tree == HEAD beforehand,
-`git diff` empty). This is a mechanical substitution for the blocked `cp`,
-not a self-authored change: the resulting file was then proven equal to the
-handoff -
-
-- `tr -d '\r' < CLAUDE.md | sha256sum` ->
-  `1e1bea842ecbdd130ab295b9784b98fefc9019a3163d0be7ce54990d28e585ce`
-- `sha256sum <extracted CLAUDE.md>` ->
-  `1e1bea842ecbdd130ab295b9784b98fefc9019a3163d0be7ce54990d28e585ce`
-- identical. The working tree carries CRLF (`git ls-files --eol` ->
-  `i/lf w/crlf`) via `core.autocrlf=true`, same as before and same as
-  every other file here; the committed blob is LF.
-
-Post-placement `git diff CLAUDE.md` (normalized): the same single hunk as
-the pre-placement diff, nothing else. `git status --porcelain` -> only
-` M CLAUDE.md`.
-
-Commit `b14b40d97750a843f2f19502d87dc883ff63c8f6` -
-"CLAUDE.md: place Claude Project chat revision - machine-reset.bat added to
-Zone A list". `1 file changed, 1 insertion(+), 1 deletion(-)`. Pushed
-`45ecef3..b14b40d`.
+None. Nothing was found to fix - the power loss caused no damage and no
+task was requested.
 
 ## Zone B findings (not fixed - reported only)
 
-### `CLAUDE.md` - the two Zone A enumerations now disagree
-
-The handoff added `machine-reset.bat` ONLY to the "Required first response"
-recital (the fenced `text` block ~line 226). The CANONICAL Zone A file list
-near the top of the file - the bulleted list under
-"## Zone A - Infrastructure / plumbing", lines ~19-31, which reads
-`` - `launch-north-forge.bat` `` / `` - `launch-north-forge.sh` `` /
-`` - `toggle-mode.bat` `` / ... - still does NOT name `machine-reset.bat`.
-So `CLAUDE.md` now lists the Zone A set two ways that don't match: the
-bulleted definition omits `machine-reset.bat`, the first-response recital
-includes it.
-
-The handoff message explicitly scoped itself to "the Zone A file list in
-the Required-first-response block", so this is the Claude Project chat's
-deliberate authored choice and Claude Code placed exactly what it was
-handed - it did not extend the change to the bulleted list on its own.
-Flagging so the primary GPT can decide whether a follow-up handoff should
-also add `` - `machine-reset.bat` `` to the bulleted Zone A definition for
-internal consistency. Until then, `machine-reset.bat`'s Zone A status rests
-on: Kenneth's in-session designation when it was created (`af8fc97`), the
-first-response recital (as of `b14b40d`), and two audit reports - but not
-the file's own canonical list.
+None new this session. The prior report's Zone B finding still stands
+verbatim and is unchanged: `CLAUDE.md` lists the Zone A set two ways that
+do not match - the bulleted "## Zone A - Infrastructure / plumbing"
+definition (near line 19) omits `machine-reset.bat`, while the
+"Required first response" recital (near line 226, as of `b14b40d`) includes
+it. This session did not touch `CLAUDE.md` and takes no position on it
+beyond noting it is still open for the primary GPT / Blacksmith to
+reconcile via a follow-up handoff if desired. Not a power-loss issue.
 
 ## Commits made this session
 
-- `c4bfecb42997d1167d16633c4e6dba133b65f130` -
-  "toggle-mode: advertise the working Q shortcut in the menu prompt".
-  `toggle-mode.bat` + `toggle-mode.sh`, 2 files, +2 / -2. Pushed.
-- `45ecef34efe9bedd46f5982a67c5000692ecdd13` -
-  "Audit: task-2 Q-shortcut prompt fix done (c4bfecb); task-1 declined as a
-  Zone B / self-authority edit". Interim audit report, now superseded by
-  this file. Pushed.
-- `b14b40d97750a843f2f19502d87dc883ff63c8f6` -
-  "CLAUDE.md: place Claude Project chat revision - machine-reset.bat added
-  to Zone A list". Zone B placement from `CLAUDE-md-fix.zip`, 1 file,
-  +1 / -1. Pushed.
 - (this report) - `audit/CLAUDE_CODE_LAST_AUDIT.md`, overwritten. Committed
-  and pushed as routine Zone A operation. Hash reported in the chat
-  response.
+  and pushed as routine Zone A operation per `CLAUDE.md`. Hash reported in
+  the chat response.
+
+No other commits. No code or content changed.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **`CLAUDE.md`'s two Zone A enumerations now differ** (see Zone B
-   findings). The bulleted canonical list still omits `machine-reset.bat`;
-   only the first-response recital was updated. Deliberate per the handoff's
-   wording, but worth a follow-up handoff to reconcile.
-2. **Task 1's first form was declined this session.** The initial
-   instruction ("add machine-reset.bat to CLAUDE.md's Zone A file list ...
-   standing authorization applies") was treated as NOT sufficient on its
-   own: `CLAUDE.md` is Zone B, and composing the edit from a description -
-   even a precise one, even for `CLAUDE.md` specifically - is what the file
-   forbids. It was only actioned once the authored file arrived as a zip.
-   If the primary GPT considers a named prose instruction from Kenneth
-   ("this specific line, in this specific block, authored in the Claude
-   Project chat") to already be a sufficient handoff without a file
-   attached, that is a change to the handoff mechanism and should be stated
-   explicitly in `CLAUDE.md` (the CONFIRMED 2026-08-26 note currently
-   implies a file/artifact is handed over, and the STANDING RULE assumes
-   there is "incoming content" to diff).
-3. **Placement was done with the Edit tool, not `cp`/`unzip`**, because
-   both shell overwrite paths were blocked by the harness classifier. The
-   result was verified byte-for-byte equal to the handoff (sha256 match
-   after LF-normalization), so the outcome is identical to a `cp`, but the
-   mechanism differed from "extract the zip". Noted for transparency.
-4. **`toggle-mode` "Didn't recognize" message still omits `Q`.**
-   `toggle-mode.bat:19` and `toggle-mode.sh:49` both still read
-   `... type exactly FULL, SALES, RESET, or EXIT.` The task named "the menu
-   prompt" specifically and this is a separate string, so it was left
-   alone. It is now the one remaining user-facing option list without `Q`.
-5. **`toggle-mode.bat` not exercised in a real interactive console** - same
-   limitation as the prior report; verification was redirected-stdin on
-   scratch copies because the repo-root RESET is destructive to the live
-   `.env`. The task-2 change is a prompt string only and cannot affect
-   control flow.
-6. **Carried, still open from prior reports** (none touched this session):
-   machine-reset.bat authored from a prose spec not a pasted body
-   (`af8fc97`); the two `set "..."=` clears added to `toggle-mode.bat` in
-   `c486dff` beyond strict loop-wrapping; and the six older Zone-B-adjacent
-   items (banner_hero live render; branding.welcome / fallback parity;
-   off-palette direction; gradient treatment; a cosmetic mis-cited hash;
-   carried context).
+Nothing flagged - routine session. This was a health check after a power
+loss; every integrity check passed and no repair was needed or attempted.
+
+Carried, still open from the prior report (none touched or re-investigated
+this session, listed only so continuity is not lost):
+
+1. `CLAUDE.md`'s two Zone A enumerations differ - bulleted canonical list
+   omits `machine-reset.bat`, recital includes it (`b14b40d`). Needs a
+   follow-up handoff to reconcile, or an explicit primary-GPT decision that
+   the divergence is intended.
+2. Whether a named prose-only instruction from Kenneth (no file attached)
+   should count as a sufficient Zone B handoff. Prior session declined that
+   form and waited for the authored zip; `CLAUDE.md`'s CONFIRMED 2026-08-26
+   note and STANDING RULE both currently presuppose incoming content to
+   diff.
+3. Prior `CLAUDE.md` placement was done with the Edit tool (single verified
+   line replacement) because the harness blocked `cp` / `unzip -o` into the
+   repo root; result was verified sha256-equal to the handoff after
+   LF-normalization.
+4. `toggle-mode` "Didn't recognize" error string (`toggle-mode.bat:19`,
+   `toggle-mode.sh:49`) still reads "...type exactly FULL, SALES, RESET, or
+   EXIT." - omits `Q`. Prior task scoped itself to "the menu prompt" only,
+   so this sibling string was deliberately left alone.
+5. `toggle-mode.bat` has never been exercised in a real interactive console
+   (verification was redirected-stdin on scratch copies, because the
+   repo-root RESET path deletes the live `.env`).
+6. Older Zone-B-adjacent items carried from earlier reports: machine-reset.bat
+   authored from a prose spec rather than a pasted body (`af8fc97`); the two
+   `set "..."=` clears added to `toggle-mode.bat` in `c486dff` beyond strict
+   loop-wrapping; and the six cosmetic/branding items (banner_hero live
+   render; branding.welcome / fallback parity; off-palette direction;
+   gradient treatment; a cosmetic mis-cited hash; carried context).
 
 ## Status
 
-Needs primary GPT review. Both tasks are complete, committed, and pushed
-(`HEAD == origin/main`, task work at `b14b40d`; this report one commit on
-top). Task 2 is a prompt-string-only change verified on isolated scratch
-copies. Task 1's `CLAUDE.md` placement was diffed against HEAD per the
-standing rule (single-line insertion, nothing reverted), placed, and
-proven byte-for-byte equal to the handed-over `CLAUDE-md-fix.zip`. Primary
-review should focus on: flag 1 (the now-divergent Zone A enumerations in
-`CLAUDE.md`) and flag 2 (whether a prose-only named instruction should
-count as a handoff, or whether a file is required - the mechanism question
-this session had to make a call on).
+Clean. Post-power-loss integrity check passed on all fronts: `git fsck`
+clean, working tree matches HEAD (`d75a32c`), local branch level with
+`origin/main`, `.gitignore` correct, `.forge-mode` intact (`full`),
+`hermes doctor` clean on everything this repo depends on, 15 local skills
+all enabled. No corruption, no drift, no uncommitted work, nothing to
+repair. The prior session's open flags (Zone A enumeration divergence in
+`CLAUDE.md`, the handoff-mechanism question) remain open but are unrelated
+to the power loss and are for the primary GPT / Blacksmith, not Claude Code,
+to resolve.
