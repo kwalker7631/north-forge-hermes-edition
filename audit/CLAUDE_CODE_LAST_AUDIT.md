@@ -1,347 +1,288 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-02, session following the end-of-night verification pass
-(prior audit commit `9c5f0c7`, HEAD at session start). This session created
-one new Zone A infrastructure file (`machine-reset.bat`), verified its logic
-by execution on the safe paths, and committed + pushed it. Two commits: the
-script (`af8fc97`) and this audit report.
+Timestamp: 2026-09-02 into 2026-09-03. One continuous session, two Zone A
+tasks from Kenneth: (1) create `machine-reset.bat` from a written spec;
+(2) wrap the `toggle-mode.bat` / `toggle-mode.sh` menu in a loop. Session
+start HEAD was `9c5f0c7`; session end HEAD is `c486dff`. Four commits this
+session (`af8fc97`, `63b4a69`, `c486dff`, and this report).
 
-Requested task (verbatim from Kenneth): "Extract this machine-reset.bat into
-the repo root - a new, standalone Zone A file, fix/place per standing
-authorization once verified. Manages Hermes state on the MACHINE, distinct
-from toggle-mode.bat which manages the DRIVE. Two options: rotate just the
-API key (deletes only .env, keeps memory/sessions/model config intact - fits
-a periodic key-rotation habit), or a full purge (stops/uninstalls the
+Requested task 2 (verbatim from Kenneth): "Behavioral change to
+toggle-mode.bat and toggle-mode.sh - implement against the CURRENT real
+files, do not let me hand you a stale rewrite. Current problem: after
+picking RESET, the script exits. If the next thing the person wants is to
+immediately set FULL or SALES mode, they have to relaunch the whole script
+from scratch - clunky. Fix: wrap the existing FULL/SALES/RESET dispatch in
+a loop. After any option completes (including an invalid/unrecognized
+input), show the menu again instead of exiting. Only exit on an explicit
+new option - add 'EXIT' or 'Q' as a 4th choice, or exit on a blank Enter.
+Preserve the existing goto-label structure in the .bat (do not revert to
+if/else) and the existing case-dispatch in the .sh - this is purely a loop
+wrapper, not a rewrite of what each option does. Test all paths: FULL then
+EXIT, RESET then immediately FULL without relaunching, invalid input then a
+valid one, confirm RESET's existing YES-confirmation behavior is unchanged.
+Commit and push once verified."
+
+Requested task 1 (verbatim): "Extract this machine-reset.bat into the repo
+root - a new, standalone Zone A file, fix/place per standing authorization
+once verified. Manages Hermes state on the MACHINE, distinct from
+toggle-mode.bat which manages the DRIVE. Two options: rotate just the API
+key (deletes only .env, keeps memory/sessions/model config intact - fits a
+periodic key-rotation habit), or a full purge (stops/uninstalls the
 gateway, wipes the entire Hermes folder on this machine, requires typing
 YES). Verify the logic, commit and push."
 
-Outcome in one line: `machine-reset.bat` authored from the spec in the task
-(no file body was pasted in the message - see "Uncertain / flagged" item 1),
-placed at repo root, logic verified by running the four non-destructive
-paths, committed `af8fc97` and pushed to `origin/main`. Working tree clean
-afterward except this report.
+Outcome in one line: both tasks done and pushed. `machine-reset.bat` new at
+repo root (`af8fc97`); `toggle-mode.bat` + `toggle-mode.sh` looped
+(`c486dff`). Every path Kenneth named for task 2 was executed against
+isolated scratch copies (including the real destructive RESET->YES delete)
+and behaves as specified; RESET's YES-gate is unchanged. Working tree clean
+apart from this report.
 
 ## Session Start Protocol results
 
 ```text
 SESSION START CHECK
-Pulled: Already up to date (git pull -> "Already up to date"). HEAD at
-  session start = 9c5f0c7 == origin/main. HEAD after this session's script
-  commit = af8fc97 (pushed); this report adds one more commit on top.
-Last audit read: Yes - "2026-09-02, end-of-night verification pass", 453
-  lines, status "Clean". It recorded no code/content change (verification
-  only), confirmed HEAD == origin/main == c2073b1 at that time, and carried
-  six open items for the primary GPT (live render check of banner_hero;
-  branding.welcome / fallback-file parity; off-palette resolution direction;
-  gradient treatment on banner_hero; a cosmetic mis-cited audit-commit hash
-  in an older report; carried context re: 15 global local skills + ~900-char
-  .hermes.md headroom). None of those six were touched this session - this
-  session's task is unrelated (new machine-reset script).
-Uncommitted at start: None. git status -> "nothing to commit, working tree
-  clean". No untracked files at session start. (Build artifacts .hermes.md
-  and .hermes/skills/ present on disk but gitignored.)
-.gitignore: OK - present, read in full (1596 bytes, 51 lines, LF). Confirmed
-  it still excludes .env (L2), *.env (L3), .forge-mode (L10), .agent-name
-  (L11), /.hermes/ (L18), .hermes.md (L19), config.yaml (L23), state.db /
-  state.db-* (L24-25), sessions/ memories/ cron/ logs/ *.log (L26-30),
-  .claude/ (L44), and the root-anchored /skills/ legacy guard (L51). Not
-  modified this session.
+Pulled: Already up to date (git pull -> "Already up to date"). Session-start
+  HEAD 9c5f0c7 == origin/main.
+Last audit read: Yes - "2026-09-02, end-of-night verification pass", status
+  Clean; 6 carry-over items for the primary GPT (banner_hero live render;
+  branding.welcome / fallback parity; off-palette direction; gradient
+  treatment; a cosmetic mis-cited hash; carried context). None intersect
+  either task this session; all still open, untouched.
+Uncommitted at start: None. git status -> "working tree clean", no
+  untracked files.
+.gitignore: OK - read in full (1596 bytes, 51 lines). Still excludes .env,
+  *.env, .forge-mode, .agent-name, /.hermes/, .hermes.md, config.yaml,
+  state.db*, sessions/, memories/, cron/, logs/, .claude/, and the
+  root-anchored /skills/ legacy guard. Not modified.
 hermes doctor: Clean on everything this repo depends on. Python 3.11.16,
-  SQLite 3.53.1 (WAL; state.db 2.6 MB / 25 sessions / 275 messages,
-  cron/executions.db 20.0 KB, kanban.db 116.0 KB), venv active, version
-  files consistent (0.21.0). ~/AppData/Local/hermes/.env exists, API key
-  configured, config.yaml exists, config v39, no deprecated keys, no retired
-  xAI models, no active security advisories, no suspicious MCP stdio
-  commands, SSL CA bundle valid, all required packages present. All required
-  directories present (cron/, sessions/, logs/, skills/, memories/, SOUL.md,
-  USER.md 856 chars). Non-blocking warnings, all pre-existing and unrelated
-  to this repo: two optional chat packages absent (python-telegram-bot,
-  discord.py); four optional auth providers not logged in (Nous, OpenAI
-  Codex, MiniMax, xAI); Playwright Chromium not installed; one high-severity
-  build-time npm advisory in agent-browser / web workspace deps (build
-  tooling, not runtime). "Update available: 503 commits behind" reported by
-  `hermes --version` - informational, not acted on. None of this touches
-  north-forge-hermes-edition.
-Project skills: `hermes skills list --source local` -> 15 local skills,
-  all enabled: assist, audit, draft, esc, flush, hl, kb, kyocera-research,
-  log, menu, sales, switch, train, web, and hermes-windows-maintenance
-  (category devops). Footer: "0 hub-installed, 0 builtin, 15 local - 15
-  enabled, 0 disabled". This is the user's ambient/global local skill set,
-  NOT this repo's built .hermes/skills/. Unchanged from the last five
-  audits. Not a finding.
+  SQLite 3.53.1, venv active, version files consistent (0.21.0),
+  ~/AppData/Local/hermes/.env + config.yaml present, config v39, no
+  deprecated keys, no retired xAI models, no security advisories, no
+  suspicious MCP stdio, SSL bundle valid, all required packages + dirs
+  present. Non-blocking pre-existing warnings only (optional telegram/
+  discord pkgs; optional Nous/Codex/MiniMax/xAI auth not logged in;
+  Playwright Chromium absent; one high build-time npm advisory in
+  agent-browser / web workspace). "hermes update" reports 503 commits
+  behind - informational, not acted on. None touches this repo.
+Project skills: `hermes skills list --source local` -> 15 local, all
+  enabled: assist, audit, draft, esc, flush, hl, kb, kyocera-research, log,
+  menu, sales, switch, train, web, hermes-windows-maintenance (devops).
+  User's global set, not this repo's build. Unchanged.
 ```
 
 ## Files inspected
 
-Read-only inspection unless noted. Only `machine-reset.bat` (new) and this
-report were written.
-
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior session's report, full read
-  (453 lines, status "Clean").
-- `.gitignore` - full read (1596 bytes). Confirmed the exclusion set above.
-  Not modified.
-- `toggle-mode.bat` - full read (56 lines, working-tree CRLF). This is the
-  DRIVE-side reset the new script is explicitly "distinct from". Used as the
-  house-style reference: `@echo off` / `setlocal` / `cd /d "%~dp0"`, `set /p`
-  prompts, `if /i "%VAR%"=="X" goto :label`, `:label ... goto :end`, `:end`
-  then `pause`, `^(...^)`-escaped parens in `echo`, and specifically its
-  `:do_reset` block's `set /p CONFIRM="Type YES (all caps) to confirm: "` /
-  `if not "%CONFIRM%"=="YES"` gate, which the new script's option 2 mirrors.
-- `toggle-mode.sh` - full read (47 lines) - the POSIX sibling of the above,
-  read to confirm the reset semantics (`.env` + `.forge-mode` + `.hermes.md`
-  + `.hermes/skills` on the DRIVE), reinforcing that the new machine-side
-  script must target a different location.
-- `launch-north-forge.bat` - full read (101 lines, CRLF). Source of the
-  per-machine Hermes folder resolution convention the new script copies
-  verbatim: lines 81-85, `if defined HERMES_HOME (set "SKIN_DIR=%HERMES_HOME%\skins")
-  else (set "SKIN_DIR=%LOCALAPPDATA%\hermes\skins")`. Also confirms the
-  installer one-liner referenced in the new script's post-purge message
-  (`iex (irm https://hermes-agent.nousresearch.com/install.ps1)`, line 41)
-  and that `where hermes` / `errorlevel 1` is the established "is Hermes
-  present" check (lines 38-46).
-- `.env.example` - full read (14 lines). Confirms the repo/DRIVE `.env` holds
-  a single `ANTHROPIC_API_KEY=` line and is a different file from the
-  per-machine `%LOCALAPPDATA%\hermes\.env` the new script deletes.
-- `provision-new-drive.ps1` - full read (134 lines). Precedent for
-  machine-side credential handling: lines 106-131 resolve
-  `$hermesConfigDir = if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:LOCALAPPDATA\hermes" }`
-  (identical convention) and its "option 2" does
-  `Remove-Item $hermesConfigFile -Force` + `Remove-Item $hermesEnvFile -Force`
-  ("Nothing else in that folder was touched (skills, memory, sessions all
-  left alone)"). The task's option 1 is narrower still - `.env` only, keep
-  `config.yaml` too.
-- `DEMO_PREP_BACKLOG.md` - partial read (lines 70-99, 168-195). Only to
-  check existing "gateway" references: two mentions, both informational
-  (Hermes messaging-gateway bridge to Telegram/WhatsApp as a real available
-  path; the supported-platform enum list). Nothing that constrains a
-  machine-reset script. Not modified (it is Zone C, but nothing needed
-  changing).
-- `machine-reset.bat` - NEW FILE, written this session (172 lines, LF
-  in-repo). Full content is the commit `af8fc97` diff.
-- Live machine state, read-only: `ls` of `%LOCALAPPDATA%\hermes` to confirm
-  what option 1 keeps vs. what option 2 removes. That folder currently
-  holds, among ~40 entries: `.env` (26912 bytes - larger than a bare key
-  because `hermes gateway enroll` also writes relay creds there),
-  `config.yaml` (4907 bytes), `config.yaml.bak.20260902_002711`,
-  `hermes-agent/` (the git install + venv), `hermes-agent.broken-20260902-002507/`,
-  `bin/`, `cron/`, `kanban.db`, `logs/`, `memories/`, `sessions/`,
-  `skills/`, `skins/`, `hooks/`, `pairing/`, `platforms/`, `pending_messages/`,
-  `gateway-service/`, `gateway.pid`, `gateway.lock`, `gateway_state.json`,
-  `gateway-starts.log`, `state.db` (+ `-shm` / `-wal`), `auth.json`,
-  `SOUL.md`, `USER.md`. So option 1 (delete `.env` only) leaves model
-  config + memory + sessions + skills intact as specified; option 2
-  (`rmdir /s /q` the folder) takes all of it plus the Hermes program.
-- `hermes --help` and `hermes gateway --help` - to verify the two gateway
-  subcommands the task names actually exist (they do - see Verification
-  item 2).
-- Read-only git: `git pull`, `git log --oneline -12`,
-  `git log --all --oneline -- machine-reset.bat` (empty - genuinely new),
-  `git log --all -p -S"machine-reset"` (empty), `git status`, `git diff`,
-  `git diff --cached`, `git config core.autocrlf` (-> `true`),
-  `git show HEAD:toggle-mode.bat | file -` (-> LF blob),
-  `git ls-files --eol`.
-- `hermes doctor`, `hermes skills list --source local` - Session Start
-  Protocol step 5.
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` - prior report (453 lines, "Clean"),
+  then this session's own machine-reset report (312 lines) before it was
+  overwritten by this one.
+- `.gitignore` - full read (1596 bytes). Not modified.
+- `toggle-mode.bat` - full read of the working-tree copy (56 lines, CRLF in
+  working tree / LF blob). Re-read fresh at the start of task 2 per
+  Kenneth's "CURRENT real files" instruction, and `git diff HEAD --
+  toggle-mode.bat` confirmed empty (working file == HEAD) before editing.
+- `toggle-mode.sh` - full read (47 lines, CRLF working tree / LF blob).
+  Same fresh re-read + `git diff HEAD` empty check.
+- `launch-north-forge.bat` (101 lines), `toggle-mode.sh` sibling logic,
+  `.env.example` (14 lines), `provision-new-drive.ps1` (134 lines),
+  `DEMO_PREP_BACKLOG.md` (partial: L70-99, L168-195) - all read during
+  task 1 (machine-reset.bat), see prior report for detail.
+- Live machine: `ls %LOCALAPPDATA%\hermes`, `hermes --help`,
+  `hermes gateway --help` - task 1.
+- Read-only git: `git pull`, `git log` (repo-wide and `-- toggle-mode.bat
+  toggle-mode.sh`: history is `73a58a0` scaffold, `c023a62` "add RESET
+  option to match README", `8e1eb69` "3 Zone A fixes"), `git status`,
+  `git diff HEAD`, `git ls-files --eol`, `git config core.autocrlf`
+  (-> true).
+- Files WRITTEN this session: `machine-reset.bat` (new, task 1),
+  `toggle-mode.bat` + `toggle-mode.sh` (modified, task 2), this report.
 
 ## Zone A changes made
 
-One new file. Nothing pre-existing was edited.
+### 1. `machine-reset.bat` (NEW) - commit `af8fc97`
 
-### `machine-reset.bat` (NEW) - commit `af8fc97`
+Authored from the written spec (no file body was in the task message).
+172-line Windows batch script at repo root. Menu options: (1) rotate the
+API key = `del` only `%HERMES_DIR%\.env`, keep config.yaml / memory /
+sessions / skills; (2) full purge = `hermes gateway stop` +
+`hermes gateway uninstall` + `rmdir /s /q %HERMES_DIR%`, gated on typing
+`YES`. `%HERMES_DIR%` = `%HERMES_HOME%` else `%LOCALAPPDATA%\hermes`, same
+convention as `launch-north-forge.bat:81-85`. Safety: option 2 refuses if
+the target equals `%SystemDrive%` / `%USERPROFILE%` / `%LOCALAPPDATA%` /
+`%APPDATA%`, or if it contains neither `hermes-agent\` nor `config.yaml`.
+Non-destructive paths execution-verified; destructive paths inspection-
+verified against `hermes gateway --help` and `toggle-mode.bat` precedent.
+Full detail is in the previous audit report (superseded by this file but
+preserved in git at commit `63b4a69`). Flags 1 and 2 below are carried
+forward from it.
 
-- Before: file did not exist. `git log --all -- machine-reset.bat` empty;
-  no `machine-reset` string anywhere in history.
-- After: 172-line Windows batch script at repo root, LF line endings in the
-  git blob (`git ls-files --eol` -> `i/lf w/lf`; `core.autocrlf=true` will
-  render it `w/crlf` on the next Windows checkout, identical handling to
-  `toggle-mode.bat` whose blob is also LF).
-- Structure:
-  - Header block: `@echo off` / `setlocal` / `cd /d "%~dp0"`, then a `rem`
-    banner stating the toggle-mode.bat (DRIVE) vs. this (MACHINE)
-    distinction and summarizing the two options.
-  - Folder resolution: `if defined HERMES_HOME (set "HERMES_DIR=%HERMES_HOME%")
-    else (set "HERMES_DIR=%LOCALAPPDATA%\hermes")` - byte-for-byte the same
-    convention as `launch-north-forge.bat:81-85` and
-    `provision-new-drive.ps1:106`. Then
-    `if "%HERMES_DIR:~-1%"=="\" set "HERMES_DIR=%HERMES_DIR:~0,-1%"` to drop
-    a trailing backslash so the later equality guards are exact.
-  - Menu: prints the resolved folder (with a
-    `(does not exist - nothing here to reset)` note when it is absent),
-    then options 1 / 2 / 3, then `set "CHOICE="` + `set /p CHOICE=`.
-    Dispatch: `if "%CHOICE%"=="1" goto :rotate_key` /
-    `"2" goto :full_purge` / `"3" goto :cancel`, else an
-    "unrecognized - type exactly 1, 2, or 3" line and `goto :end`.
-  - `:rotate_key` - if `%HERMES_DIR%\.env` is absent, says so
-    ("Add a key later with: hermes setup") and exits. Otherwise prints
-    exactly what will be deleted and that gateway relay creds in the same
-    file go too, `set "CONFIRM="` + `set /p CONFIRM="Press Y then Enter to
-    delete .env: "`, `if /i not "%CONFIRM%"=="Y"` -> "Cancelled - nothing
-    was deleted" + exit. On Y: `del /q "%HERMES_DIR%\.env"`, then
-    `if exist "%HERMES_DIR%\.env"` -> print "could not delete, a session or
-    the gateway is probably still running" + exit. On success: "Done - .env
-    removed", plus how to restore the key (`hermes setup`, or hand-write a
-    one-line `.env`) and re-enroll the gateway (`hermes gateway enroll`).
-  - `:full_purge` - if the folder is absent, says so and exits. Then the
-    safety gate: `goto :bad_target` if `%HERMES_DIR%` case-insensitively
-    equals `%SystemDrive%`, `%USERPROFILE%`, `%LOCALAPPDATA%`, or
-    `%APPDATA%`; and `if not exist "%HERMES_DIR%\hermes-agent\" if not exist
-    "%HERMES_DIR%\config.yaml" goto :bad_target` (folder must look like a
-    Hermes install). Then prints the three steps, an itemized list of what
-    is lost, `set "CONFIRM="` + `set /p CONFIRM="Type YES (all caps) to
-    confirm: "`, `if not "%CONFIRM%"=="YES"` -> "Cancelled - nothing was
-    stopped, uninstalled, or deleted" + exit. On YES:
-    `where hermes >nul 2>nul` / `if errorlevel 1` -> skip the gateway
-    calls with a note, `else` -> `call hermes gateway stop` then
-    `call hermes gateway uninstall` (echoed first). Then
-    `rmdir /s /q "%HERMES_DIR%"`, then `if exist "%HERMES_DIR%\"` ->
-    "partly done, some files still locked by a Hermes process" + exit. On
-    full success: "Hermes is fully removed", how to reinstall
-    (`launch-north-forge.bat`, or the README one-liner), and "you may need
-    a new terminal for PATH changes".
-  - `:bad_target` - "Refusing to delete ... does not look like a Hermes
-    install ... or points at a drive root / home folder ... fix HERMES_HOME
-    and re-run", then `goto :end`.
-  - `:cancel` - "Cancelled - nothing was changed", `goto :end`.
-  - `:end` - `echo.` + `pause` (matches `toggle-mode.bat`).
-- Why: standing task from Kenneth for a machine-side counterpart to the
-  drive-side `toggle-mode.bat` RESET, covering periodic API-key rotation
-  and a full machine teardown.
-- Commit: `af8fc97186d780bf1f24c2dc75157ac763510fa0`, pushed to
-  `origin/main` (`9c5f0c7..af8fc97`).
+### 2. `toggle-mode.bat` - modified - commit `c486dff`
+
+- Before: linear script. Preamble (show `.forge-mode`, `set /p MODE`),
+  then `if /i` dispatch to `:do_full` / `:do_sales` / `:do_reset` /
+  fall-through unrecognized; every branch ended `goto :end`; `:end`
+  -> `pause`. Picking any option ran it once and the script exited.
+- After: the same labels and the same `if /i ... goto :label` dispatch,
+  wrapped in a label loop.
+  - `+ :menu` label immediately after `cd /d "%~dp0"`.
+  - `+ echo.` as the first line under `:menu` (blank-line separator
+    between iterations; also appears once before the first menu).
+  - `+ set "MODE="` immediately before `set /p MODE=`. REQUIRED under the
+    loop: `set /p` leaves the variable unchanged on an empty line, so
+    without clearing it first a blank Enter on iteration 2+ would re-use
+    the previous choice instead of being detected as "exit".
+  - prompt text: `"Type FULL, SALES, or RESET and press Enter: "` ->
+    `"Type FULL, SALES, RESET, or EXIT (blank = quit): "`.
+  - `+ if not defined MODE goto :end` / `+ if /i "%MODE%"=="EXIT" goto
+    :end` / `+ if /i "%MODE%"=="Q" goto :end` inserted before the
+    existing FULL/SALES/RESET checks.
+  - unrecognized branch: message now ends `..., RESET, or EXIT.`; its
+    `goto :end` -> `goto :menu`.
+  - `:do_full`, `:do_sales`: trailing `goto :end` -> `goto :menu`. The
+    `echo full> ".forge-mode"` / `echo sales> ...` / echo lines are
+    byte-identical.
+  - `:do_reset`: `+ set "CONFIRM="` immediately before
+    `set /p CONFIRM=`. REQUIRED under the loop: after a prior successful
+    RESET the variable holds `YES`; without clearing it, a later RESET
+    followed by a blank Enter at the confirm prompt would pass the
+    `if not "%CONFIRM%"=="YES"` gate and delete again. With the clear,
+    the original semantics hold (blank / anything != `YES` -> "Cancelled
+    - nothing was deleted"). The cancel branch's `goto :end` ->
+    `goto :menu`; the post-delete trailing `goto :end` -> `goto :menu`.
+    The four `if exist ... del/rmdir` lines and both echo blocks are
+    byte-identical.
+  - `:end` -> `pause` unchanged.
+  - Net: `2 files changed, 60 insertions(+), 47 deletions(-)` across both
+    scripts; for the .bat the deletions are the five `goto :end` lines
+    that became `goto :menu`, the old prompt string, and the old
+    unrecognized-message string.
+- Line endings: written LF; `git ls-files --eol` -> `i/lf` (blob),
+  identical to before; `core.autocrlf=true` renders CRLF in the Windows
+  working tree, same as every other script here. The "LF will be replaced
+  by CRLF" warning on `git add` is expected.
+
+### 3. `toggle-mode.sh` - modified - commit `c486dff`
+
+- Before: linear - preamble then a single `case "$(echo "$MODE" | tr
+  ...)" in full) sales) reset) *) esac`, then EOF.
+- After: the identical preamble + `case` body wrapped in
+  `while true; do ... done` and re-indented one level. Changes:
+  - `+ while true; do` / `+ done`.
+  - `+ echo ""` as the first line inside the loop (separator).
+  - prompt text updated (same wording as the .bat).
+  - `+ ""|exit|quit|q)` case whose body is `break`. Case-insensitive
+    because the existing `tr '[:upper:]' '[:lower:]'` already lowercases
+    `$MODE`, so `EXIT` / `Quit` / `Q` all match.
+  - `*)` message now ends `..., RESET, or EXIT.`
+  - Every existing case body (`full)`, `sales)`, `reset)` including its
+    `read -p "Type YES..."`, the `[ "$CONFIRM" = "YES" ]` test, the
+    `rm -f` / `rm -rf` lines, and both echo blocks) is byte-identical,
+    only re-indented.
+  - No `CONFIRM=` guard is needed here: `read` reassigns `CONFIRM` every
+    iteration (blank Enter -> `CONFIRM=""`), so the YES-gate resets
+    naturally.
+- Line endings: `i/lf` blob, unchanged; CRLF in the Windows working tree
+  via autocrlf, same as before. `bash -n toggle-mode.sh` -> clean.
+
+## Verification performed (task 2)
+
+Method: because RESET actually deletes `.env` (Kenneth's real Anthropic
+key sits in `D:\north-forge-hermes-edition\.env`, 800 bytes, gitignored),
+NOTHING was run against the repo root. The verified script content was
+written to isolated scratch directories
+(`...\scratchpad\toggle-test\t1..t7`), each seeded with dummy `.env` /
+`.forge-mode` / `.hermes.md` / `.hermes\skills\`, and driven by CRLF stdin
+fixture files via `cmd /c ".\toggle-mode.bat < in.txt"` (.bat) and
+`printf ... | bash ./toggle-mode.sh` (.sh). Both scripts `cd` to their own
+directory, so a copy under scratch operates entirely within scratch; the
+logic is location-independent. After all tests passed, the byte-identical
+content was written to the real repo files and `git diff HEAD` was
+inspected (the `-` context lines match HEAD exactly, i.e. the change is
+built on current HEAD, not a stale base). Scratch dirs were then deleted.
+
+A test-harness note for the primary GPT: piping a here-string / single
+multiline string into `cmd /c batch` only delivered ONE line to the first
+`set /p`, then EOF - this made an early test run look like the loop was
+broken. It was the pipe, not the script: `set /p` in a loop needs a real
+file on stdin (`< in.txt`) or a console. With `< in.txt` every path below
+ran green. (Incidentally this also proved the EOF-safety: when stdin runs
+dry mid-loop, `if not defined MODE goto :end` fires and the script exits
+rather than spinning.)
+
+| Test | Input | Expected | Result |
+|---|---|---|---|
+| T1 FULL then EXIT | `FULL`, `EXIT` | write `.forge-mode`=full, re-show menu, exit on EXIT | .bat + .sh: menu -> "Set to FULL" -> menu again -> exit. `.forge-mode`=full. PASS |
+| T2 RESET then immediately FULL (no relaunch) | `RESET`, `YES`, `FULL`, `EXIT` | RESET deletes all four, "Done.", menu shows "(none set - defaults to SALES)", FULL recreates `.forge-mode`, exit | .bat + .sh: exactly that. Post state `.env`=GONE, `.hermes.md`=GONE, `.hermes/skills`=GONE, `.forge-mode`=full (deleted by RESET, recreated by FULL). PASS - this is the clunkiness the task set out to remove |
+| T3 invalid then valid | `BOGUS`, `SALES`, `EXIT` | "Didn't recognize", re-show menu, SALES writes `.forge-mode`=sales, exit | .bat + .sh: "Didn't recognize that - type exactly FULL, SALES, RESET, or EXIT." -> menu -> "Set to SALES" -> `.forge-mode`=sales -> exit. PASS |
+| T4 RESET YES-gate, decline | `RESET`, `no`, `EXIT` | RESET blurb, "Cancelled - nothing was deleted.", re-show menu, exit; nothing deleted | .bat + .sh: "Cancelled - nothing was deleted." Every file still PRESENT. PASS - existing YES-confirmation behavior unchanged |
+| T5 RESET YES-gate, blank at confirm | `RESET`, `<blank>`, `EXIT` | blank != YES -> "Cancelled - nothing was deleted."; nothing deleted (guards against stale `CONFIRM=YES`) | .bat + .sh: "Cancelled - nothing was deleted." All files PRESENT. PASS |
+| T6 blank at menu | `<blank>` | show menu once, exit immediately | .bat: menu -> pause(:end). .sh: menu -> exit 0. PASS |
+| T7 Q at menu | `Q` (.sh also `q`) | exit | .bat + .sh: exit cleanly. PASS |
+
+`bash -n toggle-mode.sh` (final version): clean, no syntax error.
 
 ## Zone B findings (not fixed - reported only)
 
-None. No Zone B file was opened for evaluation this session. `toggle-mode.bat`,
-`toggle-mode.sh`, `launch-north-forge.bat`, `.env.example`,
-`provision-new-drive.ps1`, `.gitignore` are all Zone A. `DEMO_PREP_BACKLOG.md`
-is Zone C and was not changed. The six carry-over items from the prior audit
-(banner_hero live render, branding.welcome / fallback parity, off-palette
-direction, gradient treatment, the cosmetic hash mis-cite, carried context)
-are untouched and still open - this session's task did not intersect them.
-
-## Verification performed (logic check the task asked for)
-
-The task said "Verify the logic". No file body was supplied in the message,
-so this is verification of the script as authored from the written spec, not
-a diff against a provided draft.
-
-### Item 1 - the four non-destructive paths, executed
-
-Run on this machine via `<input> | cmd /c D:\north-forge-hermes-edition\machine-reset.bat`:
-
-| Input | Path exercised | Result | Side effects |
-|---|---|---|---|
-| `3` | resolution block, trailing-`\` strip, menu render, dispatch, `:cancel`, `:end`/`pause` | "Cancelled - nothing was changed." | none |
-| `1` then `n` | `:rotate_key` up to the `if /i not "%CONFIRM%"=="Y"` branch | "Cancelled - nothing was deleted." | `%LOCALAPPDATA%\hermes\.env` still present (`Test-Path` -> True) after the run |
-| `HERMES_HOME=C:\Windows`, then `2` | `:full_purge` -> safety gate -> `:bad_target` (fires before any YES prompt, before any delete) | "Refusing to delete \"C:\Windows\". It does not look like a Hermes install ..." | `C:\Windows` still present (`Test-Path` -> True) |
-| `9` | unrecognized-choice branch | "Didn't recognize that - run this again and type exactly 1, 2, or 3." | none |
-
-The `:bad_target` guard was confirmed to trigger specifically on the
-"no `hermes-agent\` and no `config.yaml` inside" condition (`C:\Windows` has
-neither), i.e. the chained `if not exist ... if not exist ...` works as a
-logical AND. Menu rendering is correct: the `^(...^)` escapes produce literal
-parentheses, and `set /p` accepts piped stdin.
-
-Safe-default behaviour verified: on an empty/other response, both confirm
-prompts (`Y` gate on option 1, `YES` gate on option 2) fall to the cancel
-branch - a mis-typed menu selection cannot delete anything without a second,
-explicit, exact-match confirmation.
-
-### Item 2 - the destructive paths, by inspection only (not executed)
-
-Deliberately NOT run - this is Kenneth's live machine with a working Hermes
-install (25 sessions in state.db, gateway currently running per the
-`gateway.pid` / `gateway.lock` / `gateway_state.json` in the folder). The
-destructive branches are:
-
-- Option 1 after `Y`: `del /q "%HERMES_DIR%\.env"` then an `if exist`
-  recheck. `%HERMES_DIR%` is quoted throughout; the file is confirmed to
-  exist before the delete is attempted. Follows `toggle-mode.bat:44`
-  (`if exist ".env" del /q ".env"`) - no `/a` attribute flag, same as the
-  precedent.
-- Option 2 after `YES`: `call hermes gateway stop` + `call hermes gateway
-  uninstall`, then `rmdir /s /q "%HERMES_DIR%"`, then an `if exist`
-  recheck for the locked-file partial-failure case. `call` is used (not a
-  bare invocation) so it works whether the `hermes` shim resolves to a
-  `.cmd`/`.bat` or a `.exe`; `where hermes` guards the whole gateway step.
-
-Both gateway subcommands are real - `hermes gateway --help` lists:
-`{run,start,stop,restart,status,install,uninstall,list,setup,migrate-legacy,enroll}`.
-So `hermes gateway stop` and `hermes gateway uninstall` are valid, and
-`enroll` (referenced in option 1's restore hint) is documented as "Enroll
-this gateway with a relay connector (writes relay auth creds to .env)",
-which is why option 1's message notes that relay creds in `.env` are removed
-along with the key.
-
-### Item 3 - line endings
-
-`machine-reset.bat` written LF. `git ls-files --eol` -> `i/lf w/lf` for the
-new file, `i/lf w/crlf` for `toggle-mode.bat`. `core.autocrlf=true` (repo
-config) and `git show HEAD:toggle-mode.bat | file -` -> "ASCII text" (no
-CRLF), i.e. the existing `.bat` blobs are LF too. The new file's blob is
-therefore consistent with the repo; the "LF will be replaced by CRLF the
-next time Git touches it" warning on `git add` is the expected autocrlf
-behaviour and matches how the other two `.bat` files already behave in a
-Windows working tree. No `.gitattributes` exists to override this.
+None. `toggle-mode.bat` and `toggle-mode.sh` are Zone A. No Zone B file was
+opened this session. The six carry-over Zone-B-adjacent items from the
+prior audit are untouched and still open.
 
 ## Commits made this session
 
 - `af8fc97186d780bf1f24c2dc75157ac763510fa0` - "machine-reset.bat: new
-  machine-side Hermes reset (key rotation + full purge)". One file, +172
-  lines, `create mode 100644 machine-reset.bat`. Pushed
-  (`9c5f0c7..af8fc97 main -> main`).
-- (this audit report) - `audit/CLAUDE_CODE_LAST_AUDIT.md`, overwritten,
-  committed + pushed as normal Zone A operation. Hash in the chat response.
+  machine-side Hermes reset (key rotation + full purge)". +172 lines, new
+  file. Pushed.
+- `63b4a69cb516f734c6de6f5a9c0efd7f211ce7cf` - "Audit: machine-reset.bat
+  authored from spec + placed, non-destructive paths verified (af8fc97)".
+  Audit report for task 1. Pushed.
+- `c486dff06220ab3d40f1dd292031f64db3585429` - "toggle-mode: loop the menu
+  instead of exiting after each action". `toggle-mode.bat` +
+  `toggle-mode.sh`, 2 files changed, 60 insertions(+), 47 deletions(-).
+  Pushed (`63b4a69..c486dff`).
+- (this report) - `audit/CLAUDE_CODE_LAST_AUDIT.md`, overwritten. Committed
+  + pushed as normal Zone A operation. Hash in the chat response.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **No file body was in the task message.** The prompt said "Extract this
-   machine-reset.bat" but contained only a prose spec, not a pasted script.
-   I read "fix/place per standing authorization once verified" + "Verify the
-   logic" as: author the file from the spec, verify the batch logic is
-   sound, then place it - which is squarely within Zone A ("mechanical glue
-   code ... testable, low-risk"). If a specific `machine-reset.bat` draft
-   was meant to be pasted and Kenneth still has it, it should be diffed
-   against `af8fc97`; where they differ, the intended-draft wins for
-   anything behavioural and this authored version should be treated as a
-   first pass, not the reference.
-2. **`machine-reset.bat` is a NEW Zone A file, not one from the fixed list
-   in CLAUDE.md.** CLAUDE.md's Zone A section enumerates specific files;
-   this one was designated Zone A by Kenneth in-session. I treated an
-   in-session instruction from the Blacksmith naming a new infrastructure
-   script as Zone A + "commit and push" as sufficient authorization (same
-   category as `toggle-mode.bat` / `setup-thumbdrive.ps1` /
-   `provision-new-drive.ps1`, no field/technical-judgment content). Flagging
-   so the primary GPT can (a) confirm that judgment and (b) decide whether
-   CLAUDE.md's Zone A file list should be updated to name
-   `machine-reset.bat` explicitly, the way it already names the other
-   scripts.
-3. **Destructive branches are unproven by execution.** Option 1's actual
-   `del` and option 2's `hermes gateway stop/uninstall` + `rmdir /s /q`
-   were verified by reading and by precedent (`toggle-mode.bat`,
-   `provision-new-drive.ps1`, `hermes gateway --help`), not by running them
-   on this machine. First real use of option 2 in particular should be on a
-   throwaway/test Hermes install, watching for: (a) `rmdir /s /q` leaving
-   files behind because a Hermes process still holds them (the script
-   detects this and says so, but does not retry or force-kill), and (b)
-   whether `hermes gateway uninstall` needs elevation for a
-   systemd/launchd-style service on the target OS (on Windows it appears to
-   be a user-level `gateway-service/` dir, so likely fine, but unverified).
-4. **Restore path after option 1 is advisory only.** The script tells the
-   user to run `hermes setup` or hand-write a one-line `.env`; it does not
-   itself recreate `.env` or launch a wizard (matching `toggle-mode.bat`,
-   which tells you to run the launcher rather than doing it). If Kenneth
-   wants option 1 to also drop a fresh `.env` skeleton or call
-   `hermes setup` directly, that is a deliberate design choice to make, not
-   a bug.
+1. **[carried from task 1] `machine-reset.bat` came as a prose spec, not a
+   pasted file body.** "Extract this machine-reset.bat" had no script
+   attached. It was authored from the spec's description. If a specific
+   draft was meant to be pasted, diff it against `af8fc97`.
+2. **[carried from task 1] `machine-reset.bat` is a NEW Zone A file not
+   named in CLAUDE.md's Zone A list.** Treated Kenneth's in-session
+   designation ("a new, standalone Zone A file ... commit and push") as
+   sufficient authorization, same category as the other scripts. CLAUDE.md's
+   Zone A file list may want `machine-reset.bat` added explicitly.
+3. **[task 2] Two lines were ADDED inside `toggle-mode.bat` that are not
+   pure loop-wrapping: `set "MODE="` and `set "CONFIRM="`.** They are
+   variable-clears, not logic changes, and they exist specifically to keep
+   the *existing* behavior intact once the body runs more than once per
+   launch (blank-Enter detection; and preventing a stale `CONFIRM=YES`
+   from re-triggering a RESET delete). Without them the loop would silently
+   change behavior. Called out because the task said "purely a loop
+   wrapper" and these are the two lines a strict reading might not expect.
+   The `.sh` needed no equivalent (`read` always reassigns).
+4. **[task 2] `Q` / `quit` accepted but only `EXIT` is shown in the
+   prompt.** The prompt reads `(blank = quit)`; `EXIT`, `Q`, and (in the
+   .sh) `QUIT` all work but only EXIT and "blank" are advertised. Kenneth
+   said "add 'EXIT' or 'Q'" - both were added plus blank-Enter. If the
+   prompt should spell out `Q` too, that is a one-word change.
+5. **[task 2] Not run in a real interactive console.** All verification was
+   via redirected stdin on scratch copies (the repo-root RESET is
+   genuinely destructive to Kenneth's live `.env`). Real keyboard use of
+   `set /p` strips the trailing CR that redirected CRLF input can carry,
+   so interactive behavior should be at least as clean as the tests, but a
+   human double-clicking `toggle-mode.bat` once and cycling
+   FULL -> RESET -> SALES -> EXIT would be a good confirmation.
 
 ## Status
 
-Needs primary GPT review - specifically items 1 and 2 above (task message
-carried a spec, not a file body; and `machine-reset.bat` is a new Zone A
-file not yet listed in CLAUDE.md). The script itself is in the repo and
-pushed (`af8fc97`), its non-destructive logic is execution-verified, and its
-destructive logic is inspection-verified against repo precedent and
-`hermes gateway --help`. Git is clean and fully pushed apart from this
-report. The six carry-over items from the previous audit remain open and
-untouched.
+Needs primary GPT review - items 1 and 2 (machine-reset.bat: spec not
+file body; new Zone A file not yet listed in CLAUDE.md) and item 3
+(the two `set "..."=` clears added to toggle-mode.bat beyond strict
+loop-wrapping). Both tasks are complete, committed, and pushed
+(`HEAD == origin/main == c486dff`); working tree clean apart from this
+report. Task 2's every named path is execution-verified on isolated
+copies, including the destructive RESET->YES delete, and RESET's
+YES-confirmation gate is unchanged. The six carry-over items from the
+previous audit remain open and untouched.
