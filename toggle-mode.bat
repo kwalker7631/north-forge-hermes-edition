@@ -8,7 +8,7 @@ echo Current mode file:
 if exist ".forge-mode" (type ".forge-mode") else (echo ^(none set - defaults to SALES^))
 echo.
 set "MODE="
-set /p MODE="Type FULL, SALES, RESET, or EXIT (blank = quit): "
+set /p MODE="Type FULL, SALES, RESET, EXIT, or Q (blank = quit): "
 
 if not defined MODE goto :end
 if /i "%MODE%"=="EXIT" goto :end

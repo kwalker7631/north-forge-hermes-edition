@@ -6,7 +6,7 @@ while true; do
     echo "Current mode file:"
     if [ -f ".forge-mode" ]; then cat ".forge-mode"; else echo "(none set - defaults to SALES)"; fi
     echo ""
-    read -p "Type FULL, SALES, RESET, or EXIT (blank = quit): " MODE
+    read -p "Type FULL, SALES, RESET, EXIT, or Q (blank = quit): " MODE
 
     case "$(echo "$MODE" | tr '[:upper:]' '[:lower:]')" in
         ""|exit|quit|q)
