@@ -54,7 +54,7 @@ if [ ! -f ".agent-name" ]; then
     echo "name if you'd like - it still runs as North Forge underneath, this"
     echo "just changes what it calls itself when talking to you."
     echo ""
-    read -p "Name your assistant (press Enter to keep 'North Forge'): " CUSTOMNAME
+    read -p "Name your assistant (press Enter to keep 'North Forge'): " CUSTOMNAME || CUSTOMNAME=""
     if [ -z "$CUSTOMNAME" ]; then
         echo "North Forge" > ".agent-name"
     else

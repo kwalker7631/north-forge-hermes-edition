@@ -33,7 +33,7 @@ if not exist ".agent-name" (
     if "!CUSTOMNAME!"=="" (
         echo North Forge> ".agent-name"
     ) else (
-        echo !CUSTOMNAME!> ".agent-name"
+        echo !CUSTOMNAME! > ".agent-name"
     )
     echo.
 )
