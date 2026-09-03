@@ -48,6 +48,21 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 1
 fi
 
+if [ ! -f ".agent-name" ]; then
+    echo ""
+    echo "First launch on this drive: you can give your assistant a personal"
+    echo "name if you'd like - it still runs as North Forge underneath, this"
+    echo "just changes what it calls itself when talking to you."
+    echo ""
+    read -p "Name your assistant (press Enter to keep 'North Forge'): " CUSTOMNAME
+    if [ -z "$CUSTOMNAME" ]; then
+        echo "North Forge" > ".agent-name"
+    else
+        echo "$CUSTOMNAME" > ".agent-name"
+    fi
+    echo ""
+fi
+
 python3 - "$MODE" << 'PYEOF'
 import sys, os
 mode = sys.argv[1]
@@ -69,6 +84,7 @@ with open(".hermes.md", "w", encoding="utf-8") as f:
 PYEOF
 
 echo "North Forge running in $MODE mode."
+echo "Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it."
 
 # --- install Hermes FIRST if missing - nothing below this works without it ---
 if ! command -v hermes >/dev/null 2>&1; then

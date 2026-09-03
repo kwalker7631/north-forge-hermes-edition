@@ -1,6 +1,17 @@
 # North Forge - Hermes Edition
 
-This repo is the **content layer** for North Forge (Kyocera Edition) running on Hermes Agent. It is intentionally small - the Hermes engine itself is NOT in here.
+A field-support AI built specifically for Kyocera Document Solutions technicians and sales reps - carries KB authoring, hotline ticket handling, escalation packets, and pre-sales product guidance, runs from your own PC or a portable drive, and never asks you to remember a slash command you don't already know.
+
+Why this exists: a technician on a call shouldn't have to open a manual, hunt through ServiceNow, or wait on hold to find out what a code means. This tool collects the minimum evidence needed, gives a direct next step, and tells you plainly when it isn't sure - it doesn't replace judgment, it clears the fog around routine calls so judgment gets spent on the calls that actually need it.
+
+## Built on Hermes Agent
+
+This runs on top of [Hermes Agent](https://github.com/NousResearch/hermes-agent) by Nous Research (MIT licensed) - an open-source, general-purpose AI agent framework with real memory, scheduled background tasks, and a large tool/skill ecosystem. North Forge doesn't reimplement any of that; this repo is purely the *content layer* - the rules, the skills, the branding - that turns a general-purpose agent into this specific one. See `ATTRIBUTION.md` for the full license text and required notices.
+
+**Want to add your own custom task or skill?** Hermes supports this natively, and it's worth knowing about beyond just this repo:
+
+- **A one-off or recurring background task** (the pattern `kyocera-research` uses): from inside a live session, `/cron add "<schedule>" "<what to do>" --skill <optional-skill-name> --name <job-name>` - for example `/cron add "every 24h" "Check for new firmware release notes" --name nightly-firmware-check`. Check what's scheduled with `/cron list`.
+- **A new skill of your own**: create a folder under `skills-source/shared/` (available in every mode) or `skills-source/tsc-only/` (FULL mode only) containing a `SKILL.md`. Give it YAML frontmatter with a `name:` field (this is what lets Hermes register it as a real `/slash-command` - without it, Hermes falls back to the folder name, which is usually not what you want) and a `description:` field, then write the actual instructions below a `---` closing line. The full Hermes documentation on skills, tools, and the wider ecosystem lives at the [Hermes Agent GitHub repo](https://github.com/NousResearch/hermes-agent) - worth a look if you want to go beyond what's built in here.
 
 ## Two-repo architecture
 

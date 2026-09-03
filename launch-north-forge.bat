@@ -23,6 +23,21 @@ if /i "%MODE%"=="full" (
     xcopy /e /i /y "skills-source\tsc-only" ".hermes\skills" >nul
 )
 
+if not exist ".agent-name" (
+    echo.
+    echo First launch on this drive: you can give your assistant a personal
+    echo name if you'd like - it still runs as North Forge underneath, this
+    echo just changes what it calls itself when talking to you.
+    echo.
+    set /p CUSTOMNAME="Name your assistant (press Enter to keep 'North Forge'): "
+    if "!CUSTOMNAME!"=="" (
+        echo North Forge> ".agent-name"
+    ) else (
+        echo !CUSTOMNAME!> ".agent-name"
+    )
+    echo.
+)
+
 powershell -NoProfile -Command ^
     "$m='%MODE%';" ^
     "$t=Get-Content '.hermes.template.md' -Raw;" ^
@@ -33,6 +48,7 @@ powershell -NoProfile -Command ^
     "Set-Content -Path '.hermes.md' -Value $t -NoNewline"
 
 echo North Forge running in %MODE% mode.
+echo Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it.
 
 rem --- install Hermes FIRST if missing - nothing below this works without it ---
 where hermes >nul 2>nul
