@@ -1,520 +1,274 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-04, ~02:20 EDT (relay task); ~02:50 EDT (Zone C append);
-~03:15 EDT (README-fix.zip - HELD); ~03:30 EDT (README-fix re-cut PLACED
-`da0249c`; official `README-fix2.zip` verified identical to it). Session-
-start HEAD `df92049`; working tree clean at start. End HEAD `da0249c`
-(+ this report).
+Timestamp: 2026-09-04, ~afternoon EDT. Session-start HEAD `51781a3`
+("Audit: task 3 resolved - README placed (da0249c); README-fix2.zip
+verified identical, not re-placed"). Working tree clean at start and at
+end. End HEAD = this report's commit (audit file only).
 
-Requested tasks (three, all from Kenneth in-session):
-  (1) The primary GPT asked for a verbatim relay of specific current repo
-      text so it can author corrected files off a known-good base rather
-      than a stale sandbox copy. Three items:
-    1a. `CLAUDE.md` `## Zone A` bulleted file list + the `Required first
-        response` recital block, exact current text.
-    1b. `README.md` file-tree block (the fenced block under `## What's in
-        here`) + the two `setup-thumbdrive.ps1` prose references, exact
-        current text.
-    1c. A direct yes/no: does `README.md` currently contain an
-        `## Updating Hermes itself` section documenting
-        `machine-reset.bat`'s rotate-key / full-purge options?
-  (2) Append (append-only, no edit/removal of existing entries) a logged
-      future item to `NEXT_STEPS.md`: "## Future: North Forge Maker Studio
-      (extracted from ABMS/Pine Barren Farms)" - given verbatim by
-      Kenneth.
-  (3) Zone B placement: "Extract README-fix.zip into this repo's root,
-      overwriting README.md" - whole-file handoff from the Claude Project
-      chat. Instructed to diff against HEAD per the STANDING RULE and
-      confirm every change is accounted for. Handoff enumerates exactly
-      three change groups: (3a) add "## Updating Hermes itself" section;
-      (3b) fix both stale `setup-thumbdrive.ps1` refs -> `archive/`;
-      (3c) add `machine-reset.bat` + `CHANGELOG.md` to the file-tree
-      block. Handoff explicitly says "confirm no other line changed."
+Requested task (from Kenneth, in-session): make two "precise, targeted"
+edits to `CLAUDE.md` directly, described as using "only text confirmed
+verbatim in the last audit, not a full-file reconstruction":
 
-Task (1): no fix requested, none made - read / quote / report only.
-Task (2): Zone C append performed and committed per standing Zone C
-authorization (`CLAUDE.md` lines 127-147, 202-212). Pure append, 36
-insertions, 0 deletions, existing entries byte-untouched - verified with
-`git diff --stat` (`1 file changed, 36 insertions(+)`) and full
-`git diff` review before commit. Text placed byte-for-byte as Kenneth
-supplied it; Claude Code composed none of it.
-Task (3): first cut **HELD** (undescribed `## Passcode system` section,
-zero implementation - detail below). Kenneth then gave an explicit
-in-session instruction to place the file minus that section and minus
-the coupled "admin-password-gated - see \"Passcode system\" above"
-clause. **PLACED as `da0249c`** - re-cut by hand from the held zip per
-that instruction, diff verified to be exactly the five reviewed-correct
-hunks and nothing else, CRLF preserved, zero residual `passcode`
-references. Kenneth then also sent the Claude Project chat's own re-cut
-`README-fix2.zip`; it is **content-identical** to `da0249c`
-(sha256 `fb5f802...` after CR-normalisation, `git diff --no-index`
-clean) and differs only by shipping LF instead of the repo's CRLF, so it
-was **not** re-placed - doing so would be a pure line-ending churn commit
-with no content change. Task (3) is closed.
+  1. In the `## Zone A` bulleted file list: remove the bullet
+     `- ` + backtick-`setup-thumbdrive.ps1`-backtick entirely (superseded,
+     moved to `archive/`), and add a new bullet
+     `- ` + backtick-`machine-reset.bat`-backtick to the same list, so the
+     bulleted list and the `Required first response` recital agree.
+  2. Add one new clarifying line "near the Zone A list (wherever reads
+     most naturally)" stating that `archive/` is outside Zone A's
+     "may fix directly" scope - read-only historical storage, contents
+     not modified and files not moved in/out without an explicit
+     instruction, even though `archive/` is not separately zone-labeled.
+
+Then verify, confirm the list and recital agree on both points, commit
+and push.
+
+## Outcome: DECLINED - not performed. Reported only.
+
+`CLAUDE.md` is a Zone B file (the file lists itself in Zone B twice:
+lines 60 "`CLAUDE.md` (this file, itself)" and the `Required first
+response` recital line 227). Zone B is read-only for Claude Code. The
+only mechanism by which Zone B content may change is the **placement
+exception** (lines 66-73): the Blacksmith or the Claude Project chat
+hands over "a specific, already-authored file... byte-for-byte as handed
+over," and explicitly "it does not compose, rephrase, or extend the
+content itself." Lines 51-58 also state directly: "Updates to this file
+come from the Blacksmith or from the Claude Project chat where the rest
+of this repo's content is authored, never from Claude Code editing it in
+place." The `Required first response` recital Claude Code must state each
+session ends: "I will not edit Zone B content, including this file, and
+will not compose content on Zone B's behalf - only place exactly what
+I'm handed."
+
+Why this request does not meet the placement exception:
+
+- **Edit 1** (remove one bullet, add another) is near-mechanical, but no
+  authored file was handed over. It is "editing in place," which lines
+  51-58 prohibit for `CLAUDE.md` absent a real handoff.
+- **Edit 2** asks Claude Code to compose the exact wording of a brand-new
+  line AND to choose where it "reads most naturally." That is composing
+  and placing new Zone B prose - the exact thing lines 66-73 and the
+  recital line 230 forbid. The framing "text confirmed verbatim in the
+  last audit" does not hold: the prior audit
+  (`audit/CLAUDE_CODE_LAST_AUDIT.md` at `51781a3`) contains no authored
+  replacement for the Zone A list and no verbatim text for any new
+  `archive/` clause. Its findings 3 and 4 describe the *problem* and
+  state these "still need their own Zone B handoff"; flag 5 gives only a
+  working *assumption* about `archive/` ("treat `archive/` as read-only
+  'kept for history'"), not authored `CLAUDE.md` sentence text.
+
+The STANDING RULE (lines 92-119) reinforces this: every Zone B placement
+requires diffing an incoming file against HEAD before applying. There is
+no incoming file here to diff.
+
+Per lines 84-90 ("if something there looks wrong, describe why in the
+report and stop. Flag it back to the Blacksmith or to the Claude Project
+chat where this content is authored"), the change is flagged below and
+in chat, not made.
 
 ## Files inspected
 
-- `CLAUDE.md` (full, 316 lines) - read in full. Relevant spans quoted
-  below verbatim: Zone A list lines 22-34, `Required first response`
-  block lines 219-231.
-- `README.md` (full, 190 lines) - read in full. Relevant spans: file-tree
-  fenced block lines 35-79 (under `## What's in here`, line 33); the two
-  `setup-thumbdrive.ps1` references at lines 66 and 123. All 16 `## `
-  headings enumerated via `grep -n '^## ' README.md`.
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior, 350 lines) - read in full as
-  session-start continuity.
-- `machine-reset.bat` (present at repo root, 6115 bytes, mtime
-  2026-09-03 18:11) - grepped for its option labels only (lines 13-17
-  rem header, 41-52 menu + dispatch, 58 `:rotate_key`, 94 `:full_purge`,
-  107 `FULL PURGE - this will:`). Not read in full.
-- `git ls-files | grep -i 'archive\|setup-thumb'` -> `archive/setup-thumbdrive.ps1`
-  (single hit). `ls setup-thumbdrive.ps1` -> `No such file or directory`.
-  `ls archive/` -> `setup-thumbdrive.ps1` (4502 bytes, mtime
-  2026-09-03 18:11). Confirms the `88953a7` `git mv` is in effect.
-- `grep -rn 'setup-thumbdrive'` across `*.md *.ps1 *.bat *.sh` - hits in
-  `README.md:66`, `README.md:123`, `CLAUDE.md:29`, and this audit file
-  only. No functional / script reference anywhere.
+- `CLAUDE.md` - relevant spans read this session:
+  - lines 18-47: end of the `.hermes.md` discovery note, the `---`
+    divider, `## Zone A` heading (line 22), `Files:` (line 24), the
+    ten-bullet file list (lines 25-34), and the `Reasoning:` /
+    `Claude Code MAY` / `Claude Code MUST` paragraphs through line 47.
+  - lines 216-233: tail of the Zone B section, `## Required first
+    response` (line 219), the fenced recital block (lines 224-231),
+    `## Required final response` (line 233).
+  - Zone B self-membership confirmed at line 60 (`CLAUDE.md` (this file,
+    itself)) and recital line 227, from the CLAUDE.md contents supplied
+    in the session context.
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior, 521 lines) - read in full as
+  session-start continuity. Key carried-forward items: findings 3 and 4
+  (CLAUDE.md Zone A list vs. recital disagreement on `machine-reset.bat`
+  and `setup-thumbdrive.ps1`; `archive/` unzoned) recorded as
+  "still open, CLAUDE.md-side, needs its own Zone B handoff"; flag 5
+  ("`archive/` zone assignment still unanswered... Blocking clean
+  authoring of the `CLAUDE.md` Zone A list fix").
+- `.gitignore` - read in full (54 lines). Contains all four
+  session-start-protocol-required excludes: `.env` (line 2), `.forge-mode`
+  (line 11), `/.hermes/` (line 22), `.hermes.md` (line 23). Also present:
+  `.agent-name` (12), `state.db` / `state.db-*` (28-29), `sessions/`
+  (30), `memories/` (31), `cron/` (32), `logs/` + `*.log` (33-34),
+  `.claude/` (46), `/skills/` (54, the legacy-wrong-folder guard). Not
+  modified this session - no task touched it and it is correct.
+- `archive/` - `ls -la`: single file `setup-thumbdrive.ps1` (4502 bytes,
+  mtime 2026-09-03 18:11). No copy of `setup-thumbdrive.ps1` at repo
+  root (`ls setup-thumbdrive.ps1` -> absent). Confirms the `88953a7`
+  `git mv` from a prior session is still in effect.
+- `machine-reset.bat` - present at repo root, 6115 bytes, mtime
+  2026-09-03 18:11. Not read in full this session (its behaviour is
+  documented in prior audits: interactive menu 1 = rotate API key /
+  delete `.env`; 2 = full purge / stop+uninstall gateway then remove
+  Hermes folder; 3 = cancel; `Y`/`YES` confirm only, no password gate).
+- `hermes` binary present at
+  `/c/Users/kenw/AppData/Local/hermes/bin/hermes`.
 
 ## Session-start protocol results
 
-- **`git pull`**: `Already up to date.` Session-start HEAD `df92049`
-  ("Audit: fix remaining <HASH> placeholder (final push hash 72be258)").
+- **`git pull`**: `Already up to date.` HEAD `51781a3`.
 - **`git status` / `git diff`**: working tree clean, nothing staged,
-  nothing modified, branch even with `origin/main`.
-- **`.gitignore`**: not re-modified this session. Prior audits confirmed
-  it excludes `.env`, `.forge-mode`, `.hermes.md`, `.hermes/`, plus the
-  `/skills/` guard at line 51 and `logs/` at line 29. Not re-diffed this
-  session (no task touched it); assumed intact per `df92049` state.
-- **`hermes doctor`**: run in a chained background command that exceeded
-  the 120 s foreground timeout and was moved to background; I initially
-  reported it as hung and killed. **Correction: it completed with exit
-  code 0 and produced full clean output** (task `bzgfco3qm`, notified
-  after my first response). This BREAKS the "6+ consecutive sessions
-  with no `hermes doctor` output" streak the prior audits recorded - the
-  command works, it is just slow (>120 s) on this machine. Verbatim
-  result:
-  ```
-  ◆ Security Advisories      ✓ No active security advisories
-  ◆ MCP Server Security      ✓ No suspicious MCP stdio commands
-  ◆ Python Environment       ✓ Python 3.11.16   ✓ SQLite 3.53.1
-                             ✓ Virtual environment active
-                             ✓ Version files consistent (0.21.0)
-    state.db WAL 1.0 MB; cron/executions.db WAL 20.0 KB;
-    verification_evidence.db WAL 32.0 KB; kanban.db WAL 116.0 KB
-  ◆ SSL / CA Certificates    ✓ SSL CA certificate bundle is valid
-  ◆ Required Packages        ✓ OpenAI SDK  ✓ Rich  ✓ python-dotenv  ✓ PyYAML
-  ```
-  Hermes version 0.21.0. No issues reported in any section.
-- **`hermes skills list --source local`**: also completed (same
-  background task). **14 local skills, all `local` source, all `local`
-  trust, all `enabled`, 0 disabled** - "0 hub-installed, 0 builtin, 14
-  local". Names as registered:
-  `assist, audit, draft, esc, flush, hl, kb, kyocera-research, log,
-  menu, sales, switch, train, web`.
-  Note: `daily-brief` is NOT in this list - consistent with the prior
-  audit's record that the `daily-brief/SKILL.md` handoff file was HELD,
-  not placed. This live list reflects the last launcher build into
-  `~/.hermes`, not necessarily current `skills-source/`; a fresh launch
-  would rebuild it. `Category` column is blank for every row (no skill
-  sets a `category:` field). Prior audits' "15 skill sources" figure vs.
-  this "14 registered" - flagged below for the primary GPT to reconcile
-  against `skills-source/**`.
-
-## Task (3) - README-fix.zip placement - HELD
-
-### How the handoff arrived (worth noting - matches the export-mishap pattern)
-
-There is no `README-fix.zip` at the repo root or anywhere on disk under
-that name. The only new download is `~/Downloads/files.zip` (20,919 B,
-mtime 2026-09-04 02:15). `unzip -l files.zip`:
-
-```
-    25522  2026-09-04 06:15   README.md
-    10436  2026-09-04 06:15   README-fix.zip
-```
-
-`files.zip` contains BOTH a top-level `README.md` AND a nested
-`README-fix.zip`. Extracted the nested zip:
-`unzip -l README-fix.zip` -> single entry `README.md`, 25522 B,
-mtime 2026-09-04 02:14. `sha256sum` of the top-level `README.md` and the
-nested-zip `README.md` are **identical**
-(`550795f4385905a982502119d9293986cbdf4710eb443c97f99d15f68aef9d00`), so
-there is exactly one candidate file regardless of which layer it is
-pulled from. The double-wrap (a zip inside a zip inside a differently
-named zip) is itself a small signal that the export was assembled
-loosely.
-
-### Incoming file vs. current HEAD
-
-- Current `README.md` (HEAD `df92049`): 190 lines, 21,699 bytes,
-  **CRLF** line endings (`xxd` shows `0d0a`), sha256
-  `ed9ef922bf2f91fdb3210e42a21f6c28a9a2ac653fe051488b3e8d23b6098da1`.
-- Incoming `README.md`: 221 lines, 25,522 bytes, **LF only**
-  (`file` -> "ASCII text, with very long lines"; `xxd | grep -c 0d0a`
-  on the head -> 0).
-- **Line-ending flip is a whole-file change.** Placing the incoming file
-  as-is converts the entire README from CRLF to LF. Git on this repo has
-  `core.autocrlf` behavior active (every `audit/` commit this session
-  emitted `warning: ... LF will be replaced by CRLF the next time Git
-  touches it`), so the committed blob may normalize back to CRLF on
-  checkout - but the placement should be done from a CRLF copy to keep
-  the diff to real content lines only, not 221 phantom EOL changes.
-
-### `diff <(git show HEAD:README.md) <incoming>` - six hunks
-
-```
-60a61
-> machine-reset.bat               <- Kenneth-only: manages THIS MACHINE's Hermes state (separate from the drive) - rotate just the API key, or fully purge everything
-66c67,68
-< setup-thumbdrive.ps1           <- SUPERSEDED - kept only because Kenneth's own personal drive was set up with it early on. Do not use for new drives.
----
-> archive/
->   setup-thumbdrive.ps1          <- SUPERSEDED, moved here from repo root - kept only because Kenneth's own personal drive was set up with it early on. Do not use for new drives.
-76a79
-> CHANGELOG.md                     <- plain-language running history of what changed and why, distinct from git log and from the audit report below
-96a100,112
-> ## Passcode system - handoff activation and admin lock
-> [ ... 13 lines ... ]
-123c139
-< `setup-thumbdrive.ps1` is superseded by this script and kept only for historical reasons - don't use it for new drives.
----
-> `archive/setup-thumbdrive.ps1` is superseded by this script and kept only for historical reasons - don't use it for new drives.
-154a171,185
-> ## Updating Hermes itself (not this repo)
-> [ ... 15 lines ... ]
-```
-
-**Accounted for against the handoff's three stated change groups:**
-
-| Hunk | What it is | Handoff group | Verdict |
-|------|-----------|---------------|---------|
-| `60a61` | add `machine-reset.bat` to file-tree | 3c | matches - `machine-reset.bat` really exists at root (6115 B), really was undocumented |
-| `66c67,68` | file-tree `setup-thumbdrive.ps1` -> `archive/` subtree, "moved here from repo root" | 3b | matches the real `88953a7` `git mv` |
-| `76a79` | add `CHANGELOG.md` to file-tree | 3c | matches - `CHANGELOG.md` really exists (3122 B), really was unlisted |
-| `123c139` | prose `setup-thumbdrive.ps1` -> `archive/setup-thumbdrive.ps1` | 3b | matches the real move |
-| `154a171,185` | new `## Updating Hermes itself (not this repo)` section, 15 lines | 3a | content is accurate on its face (`%LOCALAPPDATA%\hermes`, `$HERMES_HOME`, `hermes gateway stop`/`uninstall`, `state.db`/`cron/`/`logs/` - the `state.db`/`cron/` names match this session's live `hermes doctor` output) - BUT its closing line cross-references the undescribed section: "Both are admin-password-gated - see \"Passcode system\" above." |
-| `96a100,112` | new `## Passcode system - handoff activation and admin lock` section, 13 lines | **NONE** | **undescribed; documents a feature that does not exist** |
-
-### The blocker: hunk `96a100,112` - `## Passcode system`
-
-The incoming file inserts a full 13-line section (incoming lines
-100-112) describing:
-- a per-drive **user-activation flow**: Kenneth runs the launcher on a
-  virgin drive, it prompts for the recipient's **name** and a
-  **passcode** (entered twice), writes both + a timestamp to
-  **`.user-record.txt`**, then requires the passcode once to unlock,
-  creating **`.user-unlocked`**; wrong passcode never locks out, just
-  re-prompts with "Incorrect passcode. Forgot it? Check with the USB
-  admin.";
-- an **admin lock**: a fixed administrator password gating FULL/SALES
-  toggle, RESET, API-key rotation, and full purge, in
-  `toggle-mode.bat`/`.sh` and `machine-reset.bat`, "every single time";
-- RESET also wiping `.user-record.txt` + `.user-unlocked`.
-
-**None of this exists in the repo.** Verified:
-- `git grep -n -i "passcode\|password\|\.user-record\|\.user-unlocked\|unlock"`
-  over all tracked files except `README.md` and `audit/`: only hits are
-  `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md:603` and
-  `skills-source/tsc-only/assist-intake/SKILL.md:79`, both the unrelated
-  field-support phrase "recent password/MFA/tenant/security change".
-- `launch-north-forge.bat` `set /p` prompts: only `MODE` (line 8) and
-  `CUSTOMNAME` for `.agent-name` (line 32). No name-record, no passcode.
-- `launch-north-forge.sh:57`: only the `.agent-name` prompt
-  ("Name your assistant ...").
-- `toggle-mode.bat`: the only gate is `set /p CONFIRM="Type YES (all caps)
-  to confirm: "` (line 45) for RESET. No admin password.
-- `machine-reset.bat`: `set /p CHOICE` 1/2/3 then `set /p CONFIRM` Y or
-  `YES`. No admin password.
-- `.gitignore`: no entry for `.user-record.txt` or `.user-unlocked`
-  (the section claims `.user-record.txt` is "per-drive, never committed"
-  - nothing enforces that).
-- `git log --all --oneline`: no commit message mentions passcode /
-  activation / user-record / lock, ever.
-- No mention in `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md`, `CHANGELOG.md`,
-  or any prior audit report.
-
-So placing the incoming file verbatim would publish, into
-Blacksmith-reviewed user-facing documentation, a detailed description of
-a name+passcode activation gate and an admin-password lock that a team
-member would then expect to encounter and never will - and it would tell
-them a file (`.user-record.txt`) is "never committed" without anything in
-`.gitignore` actually preventing that.
-
-### Why HELD rather than partial-placed
-
-The STANDING RULE's established remedy ("apply only the genuinely new
-part of the handoff") was previously used for Zone A / `.gitignore`
-mechanical fixes where the safe subset was unambiguous. Here:
-- Deciding the `## Passcode system` section is unwanted vs. deliberately
-  ahead of its scripts is a judgment about the primary GPT's intent, and
-  that is exactly the kind of call the Zone B rule reserves to the
-  Blacksmith / Claude Project chat, not Claude Code.
-- The two new sections are coupled - `## Updating Hermes itself` ends
-  with "see \"Passcode system\" above" - so hand-assembling a partial
-  file means either also editing that cross-reference out (composing
-  Zone B prose) or shipping a dangling reference. Both are worse than
-  holding.
-- This is the fourth Zone B handoff tonight (`daily-brief`,
-  `kyocera-research`, and now this) to arrive with content beyond its
-  stated scope. The pattern itself is worth the primary GPT's attention.
-
-### Resolution (path a - taken)
-
-Kenneth confirmed in-session that `## Passcode system` was an accidental
-inclusion and instructed: place the file minus that section (incoming
-lines 100-112) and minus the "see \"Passcode system\" above" clause in
-`## Updating Hermes itself`, "since that feature doesn't exist in the
-repo yet."
-
-What was done (`da0249c`):
-- Removed the 13-line `## Passcode system` section in full (heading
-  through the "Neither passcode lives anywhere..." paragraph and its
-  trailing blank). Verified the line before it was already blank, so the
-  single blank separator before `## Custom agent name` is preserved -
-  structure matches the pre-handoff file.
-- In `## Updating Hermes itself`, removed the **entire** trailing clause
-  " Both are admin-password-gated - see \"Passcode system\" above." from
-  the machine-reset paragraph, not just the "see..." cross-reference
-  fragment. Rationale: "admin-password-gated" is itself a description of
-  the same unimplemented gate - `machine-reset.bat` currently uses only
-  a `Y`/`YES` confirm (verified last commit), so leaving that phrase
-  would be a fresh factual inaccuracy and would contradict the stated
-  purpose of the re-cut. **Flagged here for the primary GPT** in case a
-  literal-minimal cut (fragment only, phrase kept) was actually wanted -
-  trivial to adjust, but the accurate reading is the phrase goes too.
-  The sentence now ends cleanly at "...deletes the entire folder
-  above)."
-- Output written with CRLF to match the repo's existing `README.md`
-  line endings, so `git diff` shows only real content lines.
-
-`git diff HEAD~1 -- README.md` = **exactly five hunks**, 20 insertions /
-2 deletions:
-`60a61` machine-reset.bat file-tree line; `66c67,68` setup-thumbdrive.ps1
--> archive/ subtree; `76a79` CHANGELOG.md file-tree line; `123c139`
-prose archive/setup-thumbdrive.ps1; `156a159,175` `## Updating Hermes
-itself (not this repo)` section (without the passcode clause). No
-`## Passcode system`. `grep -ic passcode README.md` -> 0.
-
-### Cross-check against the Claude Project chat's own re-cut
-
-Kenneth subsequently supplied `~/Downloads/README-fix2.zip` (single
-`README.md`, 23,501 B, LF, mtime 2026-09-04 02:23) - the primary GPT's
-independent re-cut of the same file. Compared to `da0249c`:
-- `git show HEAD:README.md | tr -d '\r' | sha256sum` ->
-  `fb5f80243fc4bcfeda6766c11d095212aedfccbf9d8afc487904de680ba1c201`
-- `tr -d '\r' < README-fix2/README.md | sha256sum` -> **same hash**.
-- `git diff --no-index` (both CR-stripped) -> no differences.
-- Only real difference: `README-fix2.zip` ships LF; the committed repo
-  file is CRLF like the rest of the tree.
-Therefore `README-fix2.zip` was **not** placed - it would produce a
-whole-file CRLF->LF churn commit with zero content change. The hand
-re-cut and the primary GPT's re-cut agree byte-for-byte on content.
+  nothing modified, branch even with `origin/main`. `git diff` empty.
+- **Last audit**: read in full (see above).
+- **`.gitignore`**: verified this session - all four required excludes
+  present (lines 2, 11, 22, 23). No fix needed.
+- **`hermes doctor` / `hermes skills list`**: NOT run this session. The
+  prior audit records `hermes doctor` completes clean but takes >120 s
+  (exceeds the foreground timeout, has to be backgrounded) and last ran
+  clean at version 0.21.0 with 14 local skills all enabled + locally
+  trusted. Given this session's task was declined at the analysis stage
+  with no repo change, the slow doctor run was not initiated. Offered to
+  Kenneth in chat if he wants it this session. This continues to mean no
+  live launcher run / no `.hermes.md` assembly exercise this session.
+- **Session-start status block**: delivered in chat before any task work.
 
 ## Zone A changes made
 
-None. No Zone A file was modified, staged, or committed for a fix. The
-only Zone A writes are this report and the Zone B/C placements below.
-
-## Zone B placements made this session
-
-- **`README.md` <- `da0249c`** (whole-file handoff, re-cut per Kenneth's
-  explicit in-session instruction). Five reviewed-correct hunks placed;
-  `## Passcode system` section + "admin-password-gated - see \"Passcode
-  system\" above" clause omitted per instruction (feature has no
-  implementation in the repo). Verified byte-identical in content to the
-  primary GPT's own `README-fix2.zip` re-cut. Detail in Task (3) above.
-  **One judgment call flagged**: removed the whole "admin-password-gated"
-  clause, not just the cross-reference fragment - see Task (3)
-  resolution.
+None. No Zone A file was modified, staged, or committed for a fix this
+session. The only write this session is this audit report itself
+(Zone A operational record, auto-commit authorized per CLAUDE.md lines
+233-238 / 313-316 of the prior report's structure).
 
 ## Zone B findings (not fixed - reported only)
 
-**Finding 0 - RESOLVED this session.** The first `README-fix.zip` carried
-an undescribed `## Passcode system` section (name+passcode activation
-gate, admin-password lock) with zero implementation in any tracked file.
-Held, then placed without that section per Kenneth's instruction
-(`da0249c`). Underlying open item for the primary GPT: **the
-passcode/admin-lock feature is now referenced nowhere in the repo again -
-if it is still intended, it needs a real Zone A implementation
-(launcher name+passcode+`.user-record.txt`/`.user-unlocked` flow,
-admin-password gate on `toggle-mode.*` + `machine-reset.bat`, `.gitignore`
-entries) AND the README section back, together.**
+### Finding A (carried from prior audit findings 3 + 4 - still open, now the subject of a declined edit request)
 
-Findings 1-5 below re-confirm items already open in the prior audit.
-NOTE: `da0249c` resolves the `README.md` side of findings 1, 2 and 5
-(the stale `setup-thumbdrive.ps1` path refs, and the missing
-`## Updating Hermes itself` section / missing `machine-reset.bat` +
-`CHANGELOG.md` file-tree entries). Findings 3 and 4 are `CLAUDE.md`-side
-and still need their own Zone B handoff - unchanged.
+`CLAUDE.md` is internally inconsistent about which infrastructure files
+are Zone A, and `archive/` has no zone assignment. Precise current state
+at HEAD `51781a3`:
 
-1. **`README.md:66` (inside the file-tree fenced block) - stale path.**
-   Exact current line:
-   ```
-   setup-thumbdrive.ps1           <- SUPERSEDED - kept only because Kenneth's own personal drive was set up with it early on. Do not use for new drives.
-   ```
-   The file is now at `archive/setup-thumbdrive.ps1` (committed
-   `88953a7`, verified this session - no copy at repo root). The tree
-   block lists it at root indentation with no `archive/` parent entry,
-   and the block has no `archive/` line at all. `machine-reset.bat` and
-   `CHANGELOG.md` are also both absent from this tree block (added
-   `5e2bc49`; `machine-reset.bat` has zero mentions anywhere in
-   `README.md`).
+- **`## Zone A` bulleted list, `CLAUDE.md` line 29**, exact current text:
+  ```
+  - `setup-thumbdrive.ps1`
+  ```
+  This names a file that no longer exists at repo root. It was
+  `git mv`d to `archive/setup-thumbdrive.ps1` at commit `88953a7`
+  (verified this session: present in `archive/` at 4502 bytes, absent at
+  root). Bare basename, no path.
 
-2. **`README.md:123` - stale prose.** Exact current line:
-   ```
-   `setup-thumbdrive.ps1` is superseded by this script and kept only for historical reasons - don't use it for new drives.
-   ```
-   Reads as though the file sits at repo root alongside
-   `provision-new-drive.ps1`. Path now `archive/`.
+- **`## Zone A` bulleted list does NOT contain `machine-reset.bat`.**
+  Full current list, `CLAUDE.md` lines 25-34:
+  ```
+  - `launch-north-forge.bat`
+  - `launch-north-forge.sh`
+  - `toggle-mode.bat`
+  - `toggle-mode.sh`
+  - `setup-thumbdrive.ps1`
+  - `provision-new-drive.ps1`
+  - `.env.example`
+  - `skins/north-forge.yaml`
+  - `audit/CLAUDE_CODE_LAST_AUDIT.md`
+  - `.gitignore`
+  ```
+  `machine-reset.bat` exists at repo root (6115 bytes) and is treated as
+  infrastructure everywhere else in the file.
 
-3. **`CLAUDE.md:29` - Zone A list entry.** Exact current line (bullet):
-   ```
-   - `setup-thumbdrive.ps1`
-   ```
-   Bare basename, no path. After the `88953a7` move this names a file
-   that no longer exists at that location. Related open question (carried
-   from prior audit, still unanswered): **`archive/` has no zone
-   assignment anywhere in `CLAUDE.md`.**
+- **`Required first response` recital, `CLAUDE.md` line 226**, exact
+  current text:
+  ```
+  Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, machine-reset.bat, setup script, provision-new-drive.ps1, .env.example, skins/north-forge.yaml, this audit report, .gitignore
+  ```
+  The recital DOES list `machine-reset.bat`, and abbreviates
+  `setup-thumbdrive.ps1` to "setup script". So the recital already
+  reflects the intended end state that Kenneth's requested edit 1 would
+  bring the bulleted list to.
 
-4. **`CLAUDE.md` internal inconsistency (carried forward, still open).**
-   The `## Zone A` bulleted list (lines 24-34) does NOT include
-   `machine-reset.bat`. The `Required first response` recital (lines
-   225-230) DOES: line 226 reads
-   `...may fix + commit + push automatically): launch scripts, toggle scripts, machine-reset.bat, setup script, provision-new-drive.ps1, .env.example, skins/north-forge.yaml, this audit report, .gitignore`.
-   So the recital already treats `machine-reset.bat` as Zone A and
-   already abbreviates `setup-thumbdrive.ps1` to "setup script"; the
-   bulleted list still names `setup-thumbdrive.ps1` explicitly and omits
-   `machine-reset.bat`. The two need reconciling, and the `archive/`
-   zone question resolved, in the same edit.
+- **`archive/` appears nowhere in `CLAUDE.md`.** It has no zone label.
+  The directory currently holds one file (`setup-thumbdrive.ps1`). Prior
+  audits' working assumption (flag 5, unchanged): treat it as read-only
+  historical storage - Claude Code does not modify its contents and does
+  not move files into it without an explicit instruction. That
+  assumption is not written into `CLAUDE.md` anywhere; Kenneth's
+  requested edit 2 would write it in.
 
-5. **`README.md` has NO `## Updating Hermes itself` section.** Direct
-   check performed at the primary GPT's request. `grep -n '^## '
-   README.md` returns exactly 16 headings (listed in full in the chat
-   response); none is "Updating Hermes itself" or any near variant.
-   `grep -n 'machine-reset\|Updating Hermes\|rotate-key\|full-purge\|purge'
-   README.md` returns **zero lines**. `machine-reset.bat` is entirely
-   undocumented for users - it exists at repo root (6115 bytes) with a
-   two-option interactive menu (`1` Rotate the API key - delete only
-   `.env`; `2` Full purge - stop + uninstall the messaging gateway
-   service then remove the Hermes folder; `3` cancel), and its only
-   textual references in the repo are `CHANGELOG.md` and `CLAUDE.md`.
-   **Conclusion for the primary GPT: if it believes it authored an
-   "## Updating Hermes itself" section for `README.md` in an earlier
-   round, that handoff did not land in this repo.** Same pattern the
-   prior audit noted for other zips. Current `README.md` HEAD is
-   `df92049`; no commit in the visible log
-   (`df92049 72be258 88953a7 084d67b e869b82 decef9a 0929a49 6162663`)
-   has a message suggesting a README Hermes-update section was added.
+**Why it matters:** the bulleted list is the operative enumeration a
+reader (human teammate or Claude Code) would consult to decide whether a
+file is directly fixable. As written it (a) grants standing fix +
+auto-commit authority over a path that no longer exists, (b) omits a
+real destructive-capability script (`machine-reset.bat` can uninstall
+the gateway service and delete the Hermes folder) from any zone at all,
+leaving its edit authority undefined, and (c) leaves `archive/`
+unzoned so "may fix directly" arguably extends into historical storage.
+Both requested edits are, on their face, correct fixes for a real
+inconsistency. The blocker is purely authority: they must be authored as
+Zone B content and handed over, not composed by Claude Code editing the
+rules file in place.
+
+### Path to resolution (for the primary GPT / Blacksmith)
+
+Author the change as Zone B content and hand it over in-session naming
+`CLAUDE.md` as originating from the Claude Project chat with an
+instruction to commit (the trigger confirmed 2026-08-26, CLAUDE.md lines
+75-82). Either:
+
+  (a) the complete revised `CLAUDE.md` cut from current HEAD `51781a3`, or
+  (b) exact hunks: the exact replacement bullet list, and the exact new
+      `archive/` sentence WITH its exact surrounding anchor lines so
+      placement is unambiguous (no "wherever reads most naturally"
+      latitude - that latitude is what makes it composition rather than
+      placement).
+
+Claude Code will then diff against HEAD per the STANDING RULE, confirm no
+prior fix is reverted, place byte-for-byte, verify the bulleted list and
+the recital agree on `machine-reset.bat` present + `setup-thumbdrive.ps1`
+absent, and push.
+
+To support authoring off a known-good base, the two current spans are
+quoted verbatim above (list at lines 25-34, recital at line 226).
 
 ## Commits made this session
 
-- `d9981b3` - "Audit: verbatim relay of Zone A list / recital / README
-  file-tree to primary GPT; confirm README has no 'Updating Hermes
-  itself' section" - `audit/CLAUDE_CODE_LAST_AUDIT.md` only. Pushed
-  `df92049..d9981b3` to `origin/main`.
-- `2f65aaa` - "Audit: fill commit hash d9981b3 into report" - same file.
-- `074b57a` - "Audit: correct hermes doctor/skills-list result (completed
-  clean, not hung)" - same file. The chained background `hermes` command
-  finished with exit 0 after my first response; session-start section and
-  flag 3 corrected accordingly.
-- `a145b88` - "NEXT_STEPS: log future item - North Forge Maker Studio
-  (ABMS extraction)" - **Zone C**, `NEXT_STEPS.md`, append-only, +36
-  lines / -0. Pushed `074b57a..a145b88`.
-- `1d26cd0` - "Audit: record Zone C append to NEXT_STEPS (Maker Studio
-  future item)" - `audit/` file only.
-- `dc41386` - "Audit: README-fix.zip HELD - undescribed '## Passcode
-  system' section, no implementation in repo" - `audit/` file only.
-- `da0249c` - "Place README-fix per Blacksmith re-cut: archive/ path
-  fixes, machine-reset.bat + CHANGELOG.md in file-tree, new '## Updating
-  Hermes itself' section" - **Zone B placement**, `README.md`, +20 / -2,
-  five hunks, passcode section + clause omitted per instruction. Pushed
-  `dc41386..da0249c`.
-- (final commit) - this report update: task (3) resolved, README placed,
-  `README-fix2.zip` verified identical and not re-placed. `audit/` file
-  only.
+- (this report) - "Audit: CLAUDE.md Zone A list/recital fix requested -
+  declined as Zone B edit, needs authored handoff (findings 3-4 still
+  open)" - `audit/CLAUDE_CODE_LAST_AUDIT.md` only. Nothing else staged or
+  committed.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **Judgment call inside the `da0249c` placement: I removed the whole
-   clause " Both are admin-password-gated - see \"Passcode system\"
-   above."**, not just the "see \"Passcode system\" above" fragment
-   Kenneth named. Reason: `machine-reset.bat` is not actually
-   password-gated today (only a `Y`/`YES` confirm), so "admin-password-
-   gated" would be a fresh inaccuracy and defeats the point of the
-   re-cut ("README should not describe [the feature] until it's actually
-   implemented"). The primary GPT's own `README-fix2.zip` made the exact
-   same removal (verified byte-identical), so this reads as the intended
-   cut - but if a literal-minimal edit was wanted, it is a one-line
-   adjustment.
+1. **The declined edits are substantively correct.** This is not a case
+   of the request looking wrong - the Zone A list genuinely is stale and
+   self-contradictory with its own recital, exactly as prior findings 3
+   and 4 recorded. The decline is on authority grounds only: `CLAUDE.md`
+   is Zone B, edit 2 requires composing new prose and choosing its
+   location, and no authored file was handed over. If the primary GPT
+   considers a pure mechanical bullet-list reconciliation (edit 1 alone,
+   no new sentence) to be within Claude Code's reach for `CLAUDE.md`
+   specifically, that is a change to the Zone B rule and should be stated
+   explicitly in a `CLAUDE.md` handoff, not inferred.
 
-2. **The passcode / admin-lock feature is now undocumented again** (as it
-   was before tonight). If it is still a real roadmap item, it needs a
-   proper Zone A implementation handoff (launcher name+passcode flow
-   writing `.user-record.txt` / `.user-unlocked`; admin-password gate in
-   `toggle-mode.bat`/`.sh` + `machine-reset.bat`; `.gitignore` entries
-   for the two dotfiles) delivered together with the README section, so
-   docs and behaviour match. Nothing tracks this yet - not in
-   `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md`, or `CHANGELOG.md`.
+2. **`archive/` still has no zone assignment** (open since at least two
+   prior audits). Every session that touches the Zone A list question
+   re-hits this. Worth resolving in the same handoff that fixes the
+   bullet list - edit 2 is a reasonable form for it, it just needs to be
+   authored.
 
-3. **STANDING-RULE prior-fix check on the README handoff (clean).** The
-   placed file does not revert any previously-recorded fix. The
-   `88953a7` `setup-thumbdrive.ps1 -> archive/` move is correctly
-   reflected in the file-tree subtree change and the prose line; no
-   other prior audit fix touches `README.md`. The only issue with the
-   original handoff was additive (the extra section), now removed.
+3. **`hermes doctor` not run this session.** No repo change was made, so
+   the slow (>120 s) run was skipped. If the primary GPT wants a
+   standing "run it every session regardless" it should be added to the
+   Session Start Protocol text explicitly; right now the protocol says
+   "if `hermes` is installed" and prior sessions have skipped it for
+   time/relevance without objection.
 
-4. **`README-fix2.zip` not placed** - it is content-identical to
-   `da0249c` and differs only by LF-vs-CRLF line endings. Placing it
-   would be a no-content churn commit flipping the whole file's endings.
-   If the primary GPT specifically wants the repo `README.md` on LF, say
-   so explicitly - that is a deliberate repo-wide line-ending decision,
-   not something to fold in silently under a content handoff.
-
-5. **`archive/` zone assignment still unanswered.** Blocking clean
-   authoring of the `CLAUDE.md` Zone A list fix. Prior audit's default
-   assumption, unchanged: treat `archive/` as read-only "kept for
-   history," Claude Code does not modify its contents and does not move
-   new files in without an explicit instruction.
-
-6. **`hermes doctor` / `hermes skills list` DID run clean this session**
-   (background task `bzgfco3qm`, exit 0) - I had wrongly reported them as
-   hung/killed in my first pass and have corrected the session-start
-   section above. `hermes doctor` is fully clean at 0.21.0; 14 local
-   skills all enabled + locally trusted. Still no launcher run / no live
-   `.hermes.md` assembly exercise this session. **Reconcile "15 skill
-   sources" (prior audits) vs. "14 registered local skills" (this
-   session's live list) against `skills-source/**`** - likely just
-   `daily-brief` (held, not placed) accounting for the difference, but
-   worth a direct check.
-
-7. **`.gitignore` not re-diffed this session** - no task touched it and
-   the working tree was clean, so it was taken as intact at `df92049`.
-   If the primary GPT wants an explicit re-verification of the four
-   required excludes + the `/skills/` and `logs/` guards, that is a
-   one-command check next session.
+4. **`.gitignore` re-verified clean this session** (unlike the prior
+   session which took it as intact without re-diffing). All four
+   required excludes present at lines 2, 11, 22, 23; `/skills/` guard
+   present at line 54.
 
 ## Status
 
-Needs primary GPT review - flags 1 and 2 above (the "admin-password-
-gated" clause removal, and the now-undocumented passcode feature).
+Needs primary GPT / Blacksmith action - the requested `CLAUDE.md` fix is
+correct but must be delivered as an authored Zone B handoff (complete
+file or exact anchored hunks), not made by Claude Code editing the rules
+file in place. Findings 3 and 4 from the prior audit remain open,
+unchanged, and are now the explicit subject of this flag.
 
 Session end state:
-- Task (1): verbatim relay delivered in chat + quoted in this report.
-  `README.md` confirmed to have had no `## Updating Hermes itself`
-  section and no `machine-reset.bat` reference at HEAD `df92049`.
-- Task (2): `NEXT_STEPS.md` Maker Studio future item appended and pushed
-  (`a145b88`). Pure append, existing entries untouched.
-- Task (3): **RESOLVED.** First `README-fix.zip` held (undescribed
-  `## Passcode system` section, no implementation). Re-cut per Kenneth's
-  in-session instruction and placed as `da0249c` - five reviewed-correct
-  hunks, passcode section + clause removed, CRLF preserved, `grep -ic
-  passcode README.md` = 0. Primary GPT's `README-fix2.zip` re-cut
-  arrived next and is byte-identical in content (sha256 `fb5f802...`,
-  LF-vs-CRLF only) - not re-placed, would be pure churn.
-- Still open, `CLAUDE.md`-side, needs its own Zone B handoff: findings 3
-  and 4 (Zone A list still names `setup-thumbdrive.ps1` / omits
-  `machine-reset.bat`; `archive/` has no zone assignment).
+- Task: declined at analysis stage, reported here and in chat. No repo
+  content changed.
 - Repo integrity: working tree clean apart from this `audit/` file.
-  End HEAD `da0249c` + this report. `hermes doctor` clean at 0.21.0 this
-  session; 14 local skills enabled + trusted. No launcher / live
-  `.hermes.md` assembly run this session.
+  Session-start HEAD `51781a3`. `.gitignore` verified correct.
+  `hermes doctor` not run this session (prior: clean at 0.21.0).
+- Still open, CLAUDE.md-side, needs its own Zone B handoff: Zone A
+  bulleted list names `setup-thumbdrive.ps1` (now in `archive/`) and
+  omits `machine-reset.bat`; `archive/` has no zone assignment.
