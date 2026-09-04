@@ -420,3 +420,17 @@ it's worth building.
 
 Not started. Needs its own dedicated session, not tacked onto existing
 North Forge work.
+
+## Open items (2026-09-04)
+
+- [ ] Add `research-log/` to README.md's file-tree section as a real
+      tracked/committed path (not gitignored). Commit its contents the
+      first time either cron job (`nightly-kyocera-research`,
+      `daily-kyocera-brief`) produces output.
+- [ ] If the "4279 commits behind" banner reappears: capture a screenshot
+      or raw copy-paste immediately, including any visible escape codes,
+      before investigating further. Do not run `hermes update` until the
+      figure is explained.
+- [ ] Fix ANSI/VT100 rendering on whatever terminal produced the raw
+      `?[1;33m` escape-code output - separate issue from the commits-behind
+      number itself.
