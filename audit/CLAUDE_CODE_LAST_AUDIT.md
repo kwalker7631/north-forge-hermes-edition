@@ -1,23 +1,32 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-04, ~02:20 EDT. Session-start HEAD `df92049`; working
-tree clean at start. This report is the only write this session (Zone A,
-`audit/CLAUDE_CODE_LAST_AUDIT.md`).
+Timestamp: 2026-09-04, ~02:20 EDT (relay task); ~02:50 EDT (Zone C append,
+below). Session-start HEAD `df92049`; working tree clean at start.
 
-Requested task: the primary GPT (via Kenneth) asked for a verbatim relay
-of specific current repo text so it can author corrected files off a
-known-good base rather than a stale sandbox copy. Three items:
-  1. `CLAUDE.md` `## Zone A` bulleted file list + the `Required first
-     response` recital block, exact current text.
-  2. `README.md` file-tree block (the fenced block under `## What's in
-     here`) + the two `setup-thumbdrive.ps1` prose references, exact
-     current text.
-  3. A direct yes/no: does `README.md` currently contain an
-     `## Updating Hermes itself` section documenting `machine-reset.bat`'s
-     rotate-key / full-purge options?
+Requested tasks (two, both from Kenneth in-session):
+  (1) The primary GPT asked for a verbatim relay of specific current repo
+      text so it can author corrected files off a known-good base rather
+      than a stale sandbox copy. Three items:
+    1a. `CLAUDE.md` `## Zone A` bulleted file list + the `Required first
+        response` recital block, exact current text.
+    1b. `README.md` file-tree block (the fenced block under `## What's in
+        here`) + the two `setup-thumbdrive.ps1` prose references, exact
+        current text.
+    1c. A direct yes/no: does `README.md` currently contain an
+        `## Updating Hermes itself` section documenting
+        `machine-reset.bat`'s rotate-key / full-purge options?
+  (2) Append (append-only, no edit/removal of existing entries) a logged
+      future item to `NEXT_STEPS.md`: "## Future: North Forge Maker Studio
+      (extracted from ABMS/Pine Barren Farms)" - given verbatim by
+      Kenneth.
 
-No fix was requested this session and none was made. This was a read /
-quote / report session only.
+Task (1): no fix requested, none made - read / quote / report only.
+Task (2): Zone C append performed and committed per standing Zone C
+authorization (`CLAUDE.md` lines 127-147, 202-212). Pure append, 36
+insertions, 0 deletions, existing entries byte-untouched - verified with
+`git diff --stat` (`1 file changed, 36 insertions(+)`) and full
+`git diff` review before commit. Text placed byte-for-byte as Kenneth
+supplied it; Claude Code composed none of it.
 
 ## Files inspected
 
@@ -164,10 +173,15 @@ about to author against them.
   itself' section" - `audit/CLAUDE_CODE_LAST_AUDIT.md` only. Pushed
   `df92049..d9981b3` to `origin/main`.
 - `2f65aaa` - "Audit: fill commit hash d9981b3 into report" - same file.
-- (this third commit) - "Audit: correct hermes doctor/skills-list result
-  (completed clean, not hung)" - same file. The chained background
-  `hermes` command finished with exit 0 after my first response;
-  session-start section and flag 3 corrected accordingly.
+- `074b57a` - "Audit: correct hermes doctor/skills-list result (completed
+  clean, not hung)" - same file. The chained background `hermes` command
+  finished with exit 0 after my first response; session-start section and
+  flag 3 corrected accordingly.
+- `a145b88` - "NEXT_STEPS: log future item - North Forge Maker Studio
+  (ABMS extraction)" - **Zone C**, `NEXT_STEPS.md`, append-only, +36
+  lines / -0. Pushed `074b57a..a145b88`.
+- (this final commit) - report update recording task (2) + the two
+  commits above. Same `audit/` file only.
 
 ## Uncertain / flagged for primary GPT review
 
