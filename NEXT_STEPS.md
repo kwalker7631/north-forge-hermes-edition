@@ -384,3 +384,39 @@ copy includes `daily-brief` in both modes. Not exercised this session: a
 live `hermes cron list` / `hermes cron add` run (no live Hermes session
 against a real key on this checkout) and a live model run - Kenneth's fresh
 launch exercises those.
+
+## Future: North Forge Maker Studio (extracted from ABMS/Pine Barren Farms)
+
+Kenneth's Pine Barren Farms production GPT (internally "Animal Barn Maker
+Studio," ABMS, v22) contains a genuinely reusable production-methodology
+engine - the hybrid multi-tool pipeline (InVideo/Kling/CapCut/ElevenLabs/
+Gemini coordination), the Production Card deliverable format, and the
+governance/debug/audit discipline - largely separable from Pine Barren
+Farms' specific world content (characters, lore, image-fix patches).
+Light structural review (2026-09-04) confirmed the mechanism sections
+read as almost entirely general-purpose already, not deeply entangled
+with world-specific content - this is more tractable than assumed going
+in.
+
+Goal: strip the Animal Barn-specific canon out of ABMS_GPT_INSTRUCTIONS,
+keeping the underlying method/pipeline/format, and re-skin it for
+Kyocera - generating PowerPoint decks, training videos, and demonstration
+content using Kyocera machines/brand standards instead of Pine Barren
+Farms' world. Eventually intended to run from the same drive as North
+Forge itself.
+
+Smaller, nearer-term stepping stone (do this first, separately): generate
+KB Builder's Mermaid diagrams/images inline as part of that skill's own
+process, instead of requiring a separate tool - a first, contained
+version of "generate the actual visual" before the full Maker Studio
+port.
+
+Also worth researching (not yet investigated): whether integrating
+Perplexity specifically (already used in Pine Barren Farms' own workflow
+for research/edits) would add real value to kyocera-research/daily-brief
+beyond whatever web-search tool Hermes already uses - needs actual
+verification of what integration would even look like before assuming
+it's worth building.
+
+Not started. Needs its own dedicated session, not tacked onto existing
+North Forge work.
