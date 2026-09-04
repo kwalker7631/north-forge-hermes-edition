@@ -112,6 +112,11 @@ never left staring at the screen.
   the site."
   After: click the link.
 
+/manual
+  Answers "how do I use this system" questions from this very manual -
+  what a command does, how to add a skill, what /flush is for.
+  After: ask your next question, or just get back to work.
+
 /flush
   WIPES the current issue from North Forge's working memory but keeps you
   in the same mode. Use BETWEEN TICKETS so ticket A's details never bleed
@@ -146,10 +151,10 @@ Not every drive has every command. The mode banner at session start tells
 you which one you have.
 
   FULL drive  - everything in section 3.
-  SALES drive - only /menu, /sales, /web, /flush, /switch (plus the two
-                automatic research jobs). Support commands like /assist
-                and /kb are intentionally absent, not broken. For repair
-                issues, use the normal TSC channel.
+  SALES drive - only /menu, /manual, /sales, /web, /flush, /switch (plus
+                the two automatic research jobs). Support commands like
+                /assist and /kb are intentionally absent, not broken. For
+                repair issues, use the normal TSC channel.
 
 To change a drive's mode: exit the session, run `toggle-mode.bat` (or
 `.sh`), pick FULL or SALES, then relaunch. (The third option, RESET, wipes
@@ -184,13 +189,13 @@ the drive - the launcher re-creates missing jobs automatically.
 
 A "skill" is one folder containing one SKILL.md instruction file. Each
 command in section 3 is backed by exactly one skill. On a FULL drive there
-are 15:
+are 16:
 
   Support (FULL drives only - 8):
     assist-intake, kb-builder, draft-writer, hotline-ticket,
     escalation-packet, forge-audit, fault-logging, training-guide
-  Shared (every drive - 7):
-    sales-assist, web-navigator, menu, flush, switch,
+  Shared (every drive - 8):
+    sales-assist, web-navigator, menu, manual, flush, switch,
     kyocera-research, daily-brief
 
 To list what YOUR drive actually loaded, type inside a session:

@@ -6,6 +6,12 @@ description: Build a locked-HTML-template KB draft
 
 Trigger: the user asks for a KB, KB draft, ServiceNow KB, knowledge article, publishable article, uses /kb or /k, or says "make that a KB."
 
+When /kb triggers, run the full pipeline as one deliverable - research, Mermaid map, multimedia selection, image/video prompts, META, and the compliance check are all part of the standard output. Do not ask the user to select research, Mermaid, multimedia, image prompts, video prompts, META, or audit separately.
+
+## Primary source format
+
+The standard KB Builder input is a ServiceNow Hotline Case Details export paired with its associated Knowledge Details export - the case that generated the KB, and the KB record itself. This pair already carries the HL case number and the KB number together. QA/Service Bulletin documents and other reference material are supplementary: cited as reference documents layered on top of this primary pair, not treated as the primary source themselves. When only a QA/SB document is supplied without an accompanying case export, build from that document as the primary source per usual, but note in Deep Search Notes that no source hotline case was supplied.
+
 This skill is authoritative for KB structure and content. Read it in full before drafting. Do not fall back to a general impression of "what a KB usually looks like" - the locked template and the rules below are the standard, not a starting point to improvise from.
 
 Never rewrite this skill file on your own initiative, even to fix something that looks wrong. Flag it to the Blacksmith (Kenneth Walker Jr.) in chat and wait for confirmation.

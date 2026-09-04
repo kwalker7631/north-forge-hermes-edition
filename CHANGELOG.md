@@ -4,6 +4,20 @@ Plain-language running log of what actually changed and why. Distinct from `git 
 
 ## [Unreleased] - 2026-09-04
 
+### Added (later session, Claude Code)
+- **`USER_MANUAL.md`** - plain-English end-user manual: every command with its one real slash form, an explicit "what to do after" line per command, the /clear-and-/reset danger warning, FULL vs SALES differences, the scheduled research jobs, installed skills and how to verify them, and a step-by-step add-a-skill walkthrough. Written for the least technical person who ever gets handed a drive.
+- **New `/manual` skill** (`skills-source/shared/manual/`) - answers "how do I use this system" questions by reading USER_MANUAL.md instead of improvising from memory. Skill count 15 -> 16 (8 tsc-only + 8 shared). Added to both mode menus.
+- **Assembled-size guard in both launchers** - the `.hermes.md` assembly step now aborts the launch (with a plain message) if the assembled file reaches the 20,000-char ceiling Hermes silently truncates at, and warns loudly within 200 chars of it. Closes the standing MARGIN WARNING's "no automated guard" gap. Current sizes: FULL 18,579 / SALES 18,574.
+
+### Fixed (later session, Claude Code)
+- **Research job ran at ~2 PM instead of overnight.** The `nightly-kyocera-research` cron job used "every 24h", which anchors to whenever the job was created - so it drifted to mid-afternoon and fed the 8 AM daily brief ~18-hour-stale findings. Rescheduled the live job to fixed 6:00 AM, and corrected the same schedule in BOTH launchers' self-healing re-add blocks (which would otherwise have silently recreated the drifting schedule after any AppData flush) and in the kyocera-research skill's setup note (Blacksmith-approved locked-skill edit).
+- **First-ever research pass executed successfully** (manual fire as a shakedown): created `research-log/kyocera-research-log.md` with 5 classified findings, committed. Also installed the browser fallback (`npx agent-browser install --with-deps`) so future passes can corroborate bot-walled forum sources instead of leaving them stuck at Unverified.
+- **KB template header version drift**: `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` comment headers said "v21.5" in three places (lines 2-3 and the TEMPLATE LOCK RULE line); now "v21.8". Body and contact block untouched. (Drift-audit item 1, Blacksmith-approved.)
+- **kb-builder skill was missing two blocks present in the v21.8 master**: the PRIMARY SOURCE FORMAT block (HL Case Details + Knowledge Details export pair as the standard /kb input) and the "do not ask the user to select research/Mermaid/multimedia/META separately" rule. Both added verbatim from the fallback paste version. (Drift-audit items 2+3, Blacksmith-approved.)
+- **README file tree** now lists `USER_MANUAL.md` and `research-log/` as real tracked paths.
+
+Full detail for the GPT-side Claude: `audit/HANDOFF_2026-09-04_SESSION_CHANGES.md`.
+
 ### Fixed
 - **Ghost-text contrast (`banner_dim`)**: `skins/north-forge.yaml` line 46
   changed from `#282828` (near-black) to `#888888` (medium gray). The

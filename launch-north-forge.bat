@@ -45,7 +45,14 @@ powershell -NoProfile -Command ^
     "$c=Get-Content \"mode-blocks\$m-menu.md\" -Raw;" ^
     "$name='North Forge'; if (Test-Path '.agent-name') { $n=(Get-Content '.agent-name' -Raw).Trim(); if ($n) { $name=$n } };" ^
     "$t=$t.Replace('{{MODE_BANNER_BLOCK}}',$b).Replace('{{COMMAND_MENU_BLOCK}}',$c).Replace('{{AGENT_NAME}}',$name);" ^
+    "if ($t.Length -ge 20000) { Write-Host ('FATAL: assembled .hermes.md is ' + $t.Length + ' chars - at or over the 20,000-char context-file ceiling. Hermes would silently drop the middle of the file. Trim the template/banner/menu before launching.'); exit 1 };" ^
+    "if ($t.Length -ge 19800) { Write-Host ('WARNING: assembled .hermes.md is ' + $t.Length + ' chars - within 200 of the 20,000-char ceiling. Trim soon.') };" ^
     "Set-Content -Path '.hermes.md' -Value $t -NoNewline"
+if errorlevel 1 (
+    echo Launch aborted: .hermes.md was not written.
+    pause
+    exit /b 1
+)
 
 echo North Forge running in %MODE% mode.
 echo Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it.
@@ -119,7 +126,7 @@ rem No manual /cron add ever needed again.
 hermes cron list 2>nul | findstr /C:"nightly-kyocera-research" >nul
 if errorlevel 1 (
     echo Scheduling the nightly Kyocera research job...
-    hermes cron add "every 24h" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >nul 2>nul
+    hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >nul 2>nul
 )
 hermes cron list 2>nul | findstr /C:"daily-kyocera-brief" >nul
 if errorlevel 1 (

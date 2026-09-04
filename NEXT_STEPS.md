@@ -423,10 +423,9 @@ North Forge work.
 
 ## Open items (2026-09-04)
 
-- [ ] Add `research-log/` to README.md's file-tree section as a real
-      tracked/committed path (not gitignored). Commit its contents the
-      first time either cron job (`nightly-kyocera-research`,
-      `daily-kyocera-brief`) produces output.
+- [x] Add `research-log/` to README.md's file-tree section as a real
+      tracked/committed path. DONE 2026-09-04 (later session). First cron
+      output committed at `a801cb8`.
 - [ ] If the "4279 commits behind" banner reappears: capture a screenshot
       or raw copy-paste immediately, including any visible escape codes,
       before investigating further. Do not run `hermes update` until the
@@ -434,3 +433,25 @@ North Forge work.
 - [ ] Fix ANSI/VT100 rendering on whatever terminal produced the raw
       `?[1;33m` escape-code output - separate issue from the commits-behind
       number itself.
+
+## Session 2026-09-04 (later, Claude Code) - cron shakedown + fix batch
+
+Full narrative for the GPT-side Claude: audit/HANDOFF_2026-09-04_SESSION_CHANGES.md.
+Summary: live research cron rescheduled every-24h -> 0 6 * * * (and the same
+fix applied to both launchers' self-healing re-add blocks + the skill's setup
+note, Blacksmith-approved); first research pass fired successfully
+(research-log/kyocera-research-log.md, a801cb8); browser fallback installed;
+USER_MANUAL.md authored; new /manual shared skill (count 15 -> 16, both menus
+updated); assembled-size guard added to both launchers (FATAL >= 20000, WARN
+>= 19800; current FULL 18,579 / SALES 18,574 - supersedes the old 789-char
+headroom figure); KB template headers v21.5 -> v21.8 (3 lines); kb-builder
+gained the PRIMARY SOURCE FORMAT block + no-separate-selection rule
+(drift-audit items 1-3 CLOSED, Blacksmith-approved).
+
+Still open after this session: .hermes.template.md's
+<how_this_package_is_organized> paragraph does not yet name the `manual`
+skill (small Zone B template edit, ~1,400 chars headroom available);
+fallback paste version not synced (/manual, 6 AM schedule); drift-audit
+item 4 (source-package decision); sales-assist FAQ content; live-mode QA
+parts 2/4 - NO LONGER KEY-BLOCKED, the successful cron run proved the key
+works.

@@ -2,6 +2,7 @@
 Each command has ONE real slash form (Hermes allows one name per skill) - shown first. Alternate words below work typed plain (no slash, e.g. "ticket") via natural-language routing - NOT with a slash ("/ticket" = Unknown command).
 
 /menu - command menu (.hermes/skills/menu)
+/manual - how to use this system - commands, skills, navigation (.hermes/skills/manual)
 /assist (or "a") - support-call assist (.hermes/skills/assist-intake)
 /kb (or "k") - locked-HTML-template KB draft (.hermes/skills/kb-builder)
 /draft (or "d") - chat/ticket/email draft (.hermes/skills/draft-writer)

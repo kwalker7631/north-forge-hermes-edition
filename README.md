@@ -72,6 +72,10 @@ KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html  <- locked KB HTML template, requi
 fallback/
   NORTH_FORGE_v21.8_PASTE_VERSION.md  <- complete, original single-file prompt - paste into any chat AI if this whole Hermes setup is ever unavailable
 ATTRIBUTION.md                  <- required acknowledgment that this runs on the open-source Hermes Agent engine
+USER_MANUAL.md                  <- plain-English end-user manual: every command, what skills are installed, how to add one, cheat sheet - written for the least technical person who ever gets handed a drive
+research-log/
+  kyocera-research-log.md       <- appended by the nightly-kyocera-research cron job (6 AM daily) - real, committed field-research findings, tracked in git on purpose
+  daily-brief-log.md            <- appended by the daily-kyocera-brief cron job (8 AM daily) once it first runs
 FIRST_TIME_README.txt           <- plain-language quickstart for a first-time team member receiving a drive - not for Kenneth, for whoever gets handed one
 CLAUDE.md                       <- Claude Code's working rules for this repo (Zone A/B/C authority model) - read by Claude Code automatically, not by Hermes itself
 NEXT_STEPS.md                   <- what's built vs. still to build

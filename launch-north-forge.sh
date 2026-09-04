@@ -79,9 +79,20 @@ if os.path.exists(".agent-name"):
         if n:
             agent_name = n
 tmpl = tmpl.replace("{{MODE_BANNER_BLOCK}}", banner).replace("{{COMMAND_MENU_BLOCK}}", menu).replace("{{AGENT_NAME}}", agent_name)
+size = len(tmpl)
+if size >= 20000:
+    print(f"FATAL: assembled .hermes.md is {size} chars - at or over the 20,000-char context-file ceiling.")
+    print("Hermes would silently drop the middle of the file. Trim the template/banner/menu before launching.")
+    sys.exit(1)
+if size >= 19800:
+    print(f"WARNING: assembled .hermes.md is {size} chars - within 200 of the 20,000-char ceiling. Trim soon.")
 with open(".hermes.md", "w", encoding="utf-8") as f:
     f.write(tmpl)
 PYEOF
+if [ $? -ne 0 ]; then
+    echo "Launch aborted: .hermes.md was not written."
+    exit 1
+fi
 
 echo "North Forge running in $MODE mode."
 echo "Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it."
@@ -145,7 +156,7 @@ hermes skills trust .
 # No manual /cron add ever needed again.
 if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    hermes cron add "every 24h" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1
+    hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1
 fi
 if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."

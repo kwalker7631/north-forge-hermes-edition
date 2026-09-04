@@ -51,6 +51,8 @@ This log is a plain git-tracked file, not something living only in Hermes's own 
 
 Inside a live Hermes session, run:
 
-    /cron add "every 24h" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research
+    /cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research
+
+(Schedule corrected 2026-09-04 with Blacksmith approval: originally "every 24h", which anchors to whenever the job was created and drifts to mid-day runs. Fixed 6 AM gives the 8 AM daily-brief fresh findings to read every morning.)
 
 Check progress any time with `/cron list`. The job's own memory/continuity (a real Hermes feature as of the v0.21.0 release) helps it avoid re-researching the same ground twice, on top of this skill's own explicit dedup-against-the-log-file instruction above - two layers of protection against repeating findings, not just one.
