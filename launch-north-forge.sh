@@ -140,9 +140,9 @@ hermes skin list
 # reaches a drive - see README for the tradeoff this makes.
 hermes skills trust .
 
-# Self-healing nightly research job - checks every launch, re-schedules
-# itself if missing (e.g. after an AppData flush wiped it). No manual
-# /cron add ever needed again.
+# Self-healing scheduled jobs - re-adds the research and daily-brief cron
+# entries if either is missing (e.g. after an AppData flush wiped them).
+# No manual /cron add ever needed again.
 if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
     hermes cron add "every 24h" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1

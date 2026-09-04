@@ -7,7 +7,7 @@ Each command has ONE real slash form (Hermes allows one name per skill) - shown 
 /draft (or "d") - chat/ticket/email draft (.hermes/skills/draft-writer)
 /audit (or "chk") - review output for drift/failure (.hermes/skills/forge-audit)
 /flush - reset working issue package, stays in mode (see flush_clear_rule below)
-/switch - reset working issue package AND mode, shows menu (see flush_clear_rule below). NEVER /clear or /reset for either - both are native Hermes commands that wipe the whole session with no warning.
+/switch - reset working issue package AND mode, shows menu (see flush_clear_rule below - NEVER /clear or /reset for this)
 /train (or "t") - guided training mode (.hermes/skills/training-guide)
 /hl (or "ticket") - hotline ticket update (.hermes/skills/hotline-ticket)
 /esc - escalation packet (.hermes/skills/escalation-packet)

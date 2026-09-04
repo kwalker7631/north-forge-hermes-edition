@@ -113,9 +113,9 @@ rem Auto-approved here since this repo is Blacksmith-reviewed before it ever
 rem reaches a drive - see README for the tradeoff this makes.
 hermes skills trust .
 
-rem Self-healing nightly research job - checks every launch, re-schedules
-rem itself if missing (e.g. after an AppData flush wiped it). No manual
-rem /cron add ever needed again.
+rem Self-healing scheduled jobs - re-adds the research and daily-brief cron
+rem entries if either is missing (e.g. after an AppData flush wiped them).
+rem No manual /cron add ever needed again.
 hermes cron list 2>nul | findstr /C:"nightly-kyocera-research" >nul
 if errorlevel 1 (
     echo Scheduling the nightly Kyocera research job...
