@@ -58,12 +58,14 @@ skills-source/                <- the real, tracked skill content (one copy, neve
 .forge-mode                    <- GENERATED per physical drive by toggle-mode - never committed, defaults to sales if absent
 .agent-name                    <- OPTIONAL, one line of text, per physical drive - a custom nickname for the agent (e.g. "Kyle"). Never committed. Defaults to "North Forge" if absent. Create it by hand (a plain text file containing just the name) - no toggle script for this yet.
 toggle-mode.bat / .sh          <- Kenneth-only: sets a drive's mode to FULL or SALES, or RESET to wipe a drive's personal setup before handing it to someone else
+machine-reset.bat               <- Kenneth-only: manages THIS MACHINE's Hermes state (separate from the drive) - rotate just the API key, or fully purge everything
 skins/
   north-forge.yaml            <- Hermes skin: rebrands the CLI as "North Forge" using the KB visual palette
 .env.example                   <- copy to .env, fill in your own Anthropic API key, never commit the real .env
 .gitignore                     <- excludes secrets, per-drive mode, and generated files from version control
 provision-new-drive.ps1        <- CANONICAL way to set up a new drive on Windows (see below) - drive-letter-agnostic, safe, one command
-setup-thumbdrive.ps1           <- SUPERSEDED - kept only because Kenneth's own personal drive was set up with it early on. Do not use for new drives.
+archive/
+  setup-thumbdrive.ps1          <- SUPERSEDED, moved here from repo root - kept only because Kenneth's own personal drive was set up with it early on. Do not use for new drives.
 launch-north-forge.bat         <- one-click Windows launcher: assembles the current mode, trusts the project skills, installs Hermes if missing, applies the skin, starts
 launch-north-forge.sh          <- same, for Mac/Linux
 KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html  <- locked KB HTML template, required for /kb to produce a real draft
@@ -74,6 +76,7 @@ FIRST_TIME_README.txt           <- plain-language quickstart for a first-time te
 CLAUDE.md                       <- Claude Code's working rules for this repo (Zone A/B/C authority model) - read by Claude Code automatically, not by Hermes itself
 NEXT_STEPS.md                   <- what's built vs. still to build
 DEMO_PREP_BACKLOG.md            <- running punch-list for demo prep, polish, and things flagged for later
+CHANGELOG.md                     <- plain-language running history of what changed and why, distinct from git log and from the audit report below
 audit/
   CLAUDE_CODE_LAST_AUDIT.md    <- most recent Claude Code session's audit report, overwritten each session
 ```
@@ -120,7 +123,7 @@ The CLI is rebranded via a Hermes **skin** (`skins/north-forge.yaml`) - agent na
 
 No GitHub CLI (`gh`), no `gh auth login`, no browser sign-in step for whoever runs this - the script clones using a read-only access token that's already embedded in the file (see below for how that got there). It only prompts when there's real ambiguity (more than one non-system drive present), and never asks for anything that could be mistyped into damaging the machine.
 
-`setup-thumbdrive.ps1` is superseded by this script and kept only for historical reasons - don't use it for new drives.
+`archive/setup-thumbdrive.ps1` is superseded by this script and kept only for historical reasons - don't use it for new drives.
 
 ## One-click launch (what happens after provisioning, and for repeat use)
 
@@ -152,6 +155,21 @@ Hermes truncates context files over 20,000 characters (drops the middle silently
 ## Skills are locked, not self-improving
 
 Hermes skills normally refine themselves through use. North Forge's skills are the exception - see the `hermes_specific_addendum` section in `.hermes.md`. Nothing in `skills-source/` gets auto-edited. Changes go through the Blacksmith (Kenneth Walker Jr.).
+
+## Updating Hermes itself (not this repo)
+
+`hermes update` updates the Hermes engine on whatever machine you run it on - it has nothing to do with this repo and doesn't touch anything git-tracked. After any update, treat it as a trigger to re-verify, not just install and move on: run `hermes doctor`, `hermes skin list`, and `hermes skills list --source local`, then do one real launch in each mode before trusting it.
+
+**Where Hermes actually lives on a given machine:** `%LOCALAPPDATA%\hermes` on Windows (or `$HERMES_HOME` if that's set, which takes precedence). This folder holds the engine install itself, `config.yaml`, `.env` (the API key Hermes actually reads - separate from this drive's own `.env`), the skin, and all persistent state: `state.db` (memory/sessions), `cron/` (scheduled jobs), `logs/`. None of this is on the drive and none of it is git-tracked.
+
+**To stop and remove the background gateway** (the scheduled-task process that keeps cron jobs running even when no session is open) before deleting anything in that folder:
+```powershell
+hermes gateway stop
+hermes gateway uninstall
+```
+Skipping this step first is why a manual folder deletion sometimes fails partway through with a locked-file error - the gateway process is still holding files open.
+
+**To fully wipe a machine's Hermes state** (rotate to a new API key, or start genuinely fresh on that machine) - use `machine-reset.bat` in this repo rather than doing the above by hand. It has two options: rotate just the API key (keeps memory/sessions/config intact), or a full purge (stops and uninstalls the gateway, then deletes the entire folder above).
 
 ## Kenneth's own GitHub CLI setup (repo administration - NOT needed to provision a drive)
 
