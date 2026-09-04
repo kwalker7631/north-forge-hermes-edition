@@ -3,6 +3,14 @@ set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
+# --- first run on this drive: pop open the plain-language quickstart once ---
+if [ ! -f ".readme-shown" ]; then
+    if command -v xdg-open >/dev/null 2>&1; then xdg-open "FIRST_TIME_README.txt"
+    elif command -v open >/dev/null 2>&1; then open "FIRST_TIME_README.txt"
+    fi
+    touch .readme-shown
+fi
+
 # exFAT (needed for a drive that works on Windows/Mac/Linux) can't store the
 # executable permission bit, so this file can't be made double-clickable
 # directly off the drive. First run creates a real, permanent, double-clickable

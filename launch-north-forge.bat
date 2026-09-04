@@ -2,6 +2,12 @@
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
+rem --- first run on this drive: pop open the plain-language quickstart once ---
+if not exist ".readme-shown" (
+    start "" "FIRST_TIME_README.txt"
+    echo. > .readme-shown
+)
+
 rem --- assemble live .hermes/skills/ and .hermes.md from source, based on the mode toggle ---
 set "MODE=sales"
 if exist ".forge-mode" (
