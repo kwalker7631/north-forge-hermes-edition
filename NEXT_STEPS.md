@@ -317,3 +317,70 @@ Not exercised this session (deferred, per Kenneth's instruction to commit
 before the AppData flush + fresh repull): a live `hermes skills list`
 re-registration against the 14-skill set, and any live model run. Kenneth's
 post-commit fresh launch is what exercises those.
+
+## daily-brief skill + cron self-scheduling (2026-09-03) - improvements handoff placed
+
+Handoff `north-forge-improvements.zip` (Claude Project chat, via Kenneth
+in-session) placed and committed. 5 files: overwrites `.hermes.template.md`,
+`launch-north-forge.bat`, `launch-north-forge.sh`; adds
+`skills-source/shared/daily-brief/SKILL.md` (new shared skill) and
+`CHANGELOG.md` (new file - authored narrative history, treated as Zone B per
+Kenneth's instruction, same category as README.md/ATTRIBUTION.md). Full
+detail in `audit/CLAUDE_CODE_LAST_AUDIT.md`.
+
+What changed:
+- **New shared skill `daily-brief`** (`name: daily-brief`) - a light, fast
+  daily digest of Kyocera / document-solutions industry news, deliberately
+  distinct from `kyocera-research`'s deep deduplicated technical findings.
+  Appends to `research-log/daily-brief-log.md`. Skill count 14 -> **15**
+  (8 tsc-only + 7 shared). Built into BOTH modes (it is under
+  `skills-source/shared/`).
+- **Both scheduled skills now self-schedule via `/cron` at every launch.**
+  `launch-north-forge.bat` / `.sh` each gained a tail block (after
+  `hermes skills trust .`, before the final `hermes` / `exec hermes`) that
+  runs `hermes cron list`, greps for `nightly-kyocera-research` and
+  `daily-kyocera-brief`, and re-adds whichever is missing. An AppData flush
+  that wipes the cron store no longer loses the schedule - next launch
+  restores it. `kyocera-research` = `every 24h`; `daily-brief` =
+  `0 8 * * *` (fixed 8 AM, per its skill's setup note - a real daily brief
+  should land at a consistent time, not drift with launch time). Cron
+  `--name` values match the skill setup notes exactly, so the grep guard
+  actually matches what a manual `/cron add` would have created.
+- **`.hermes.template.md`** - one line changed (the
+  `<how_this_package_is_organized>` paragraph): `kyocera-research` line now
+  reads "kyocera-research and daily-brief (both invoked by scheduled /cron
+  jobs ... both self-schedule automatically at every launch if missing, see
+  launch-north-forge.bat/.sh)". Nothing else in the template touched.
+
+STANDING RULE diff-vs-HEAD: clean. All three overwrites are additive-only.
+Specifically preserved: the `4b74503` launcher hardening
+(`echo !CUSTOMNAME! > ".agent-name"` with the space before the redirect in
+`.bat:36`; `read -p "..." CUSTOMNAME || CUSTOMNAME=""` in `.sh:57`), the
+`2dee2c1` first-launch name-prompt block and the `hermes model` echo line,
+and every prior `.hermes.template.md` fix (personalization block,
+forge-audit rename note, assist-intake router citation, `.hermes/skills`
+folder name, trust gate). No previously-recorded deliberate fix is reverted.
+
+Assembled `.hermes.md` (template + banner + menu; skills separate):
+**FULL 19,211 chars / SALES 19,206 chars** (LF). Zero unreplaced `{{...}}`,
+zero non-ASCII. +110 chars per mode vs the 2026-09-01 numbers.
+
+**MARGIN WARNING - NOW UNDER 800 CHARS, NEEDS REAL ATTENTION BEFORE THE
+NEXT CONTENT ADDITION.** Headroom against the 20,000-char context-file
+ceiling is now **789 chars FULL / 794 chars SALES** (LF). This is no longer
+"budget against it" - it is close enough that the next template, banner, or
+menu addition of any size can push the assembled `.hermes.md` over 20,000,
+at which point Hermes silently drops the middle of the file with no error.
+There is still no automated guard on this. Before any further Zone B
+content growth: either trim existing template/menu text to reclaim budget
+(see the optimization audit in `audit/CLAUDE_CODE_LAST_AUDIT.md` for
+candidate consolidations), or move content out of the always-loaded layer
+into an on-demand skill file. A hard pre-commit size check would also be
+worth adding.
+
+`bash -n launch-north-forge.sh` clean; `.bat` paren depth balanced (0);
+`daily-brief` frontmatter parses with `name: daily-brief`; shared-skills
+copy includes `daily-brief` in both modes. Not exercised this session: a
+live `hermes cron list` / `hermes cron add` run (no live Hermes session
+against a real key on this checkout) and a live model run - Kenneth's fresh
+launch exercises those.
