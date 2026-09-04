@@ -43,7 +43,7 @@ colors:
   banner_accent: "#0A9BCD"      # technical-label blue
   banner_hero_flame: "#F5A623"  # warm orange - the forge fire in banner_hero
   banner_hero_anvil: "#B0B0B0"  # light steel gray - the anvil in banner_hero
-  banner_dim: "#282828"         # dark gray
+  banner_dim: "#888888"         # medium gray - readable as ghost-text on dark terminal bg
   banner_text: "#F2F2F2"
   ui_accent: "#0A9BCD"
   ui_label: "#0A9BCD"
