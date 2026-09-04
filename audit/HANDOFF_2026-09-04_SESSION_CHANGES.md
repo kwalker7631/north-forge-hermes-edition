@@ -120,3 +120,28 @@ locked-skill edits he authorized as Blacksmith.
 - Live cron store confirmed: job f3bbfe9c0d8f next_run 2026-09-05 06:00,
   b99661dc930b next_run 2026-09-05 08:00, both enabled.
 - research-log/kyocera-research-log.md: 34 lines, committed a801cb8.
+
+## Addendum: first-run README auto-open (commit 443cbd6, pushed)
+
+Executed exactly per the GPT-side Claude's own instruction relayed by
+Kenneth (this one originated on YOUR side, so no surprises here):
+
+- launch-north-forge.bat: .readme-shown guard + `start "" FIRST_TIME_README.txt`
+  inserted immediately after `cd /d "%~dp0"` - before mode assembly, naming
+  prompt, cron re-registration, and the hermes handoff.
+- launch-north-forge.sh: xdg-open/open equivalent inserted immediately after
+  SCRIPT_PATH is set, same relative position. If neither opener exists
+  (headless Linux), it silently skips but still touches .readme-shown -
+  acceptable per the provided snippet, flagging so it's a known behavior.
+- .gitignore: .readme-shown added next to .forge-mode/.agent-name.
+
+Pre-commit checks, all PASS: sh syntax clean (bash -n); bat parens balanced;
+insertion-order verified programmatically in both files (readme block <
+mode assembly < cron add < hermes handoff); .readme-shown and .env both
+confirmed gitignored via git check-ignore; .env confirmed NOT tracked
+(git ls-files: zero matches).
+
+Push note: this push (d0bd80b..443cbd6) also carried the session's earlier
+local-only commits to origin/main: a801cb8 (first research-log pass),
+3418ca9 (USER_MANUAL.md), a1f7fa1 (the fix batch described above). Remote
+is now fully in sync with this handoff document.
