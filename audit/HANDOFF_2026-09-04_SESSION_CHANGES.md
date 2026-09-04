@@ -171,3 +171,12 @@ Mac launcher's existing "North Forge.command" desktop icon. Skips
 silently if the shortcut already exists. Verified live on this machine
 (shortcut created, parens balanced). The .sh needed no change - its
 desktop-icon block predates this.
+
+## Addendum 3: vector master for the North Forge icon
+
+Kenneth supplied north_forge_icon.svg - the vector source of the
+anvil+flame icon. Committed as assets/north-forge-icon.svg. This is now
+the icon's source of truth: any future size/format (favicon, print, a
+different .ico size set) should be exported from the SVG, not upscaled
+from the PNG. The previously committed PNG (512px) and multi-size .ico
+are unchanged - they match this artwork.
