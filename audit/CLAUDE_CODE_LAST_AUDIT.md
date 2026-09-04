@@ -294,7 +294,7 @@ not mistaken for an oversight.
   this report. Pushed.
 - `88953a7` - "Archive superseded setup-thumbdrive.ps1; cleanup-pass audit"
   - `git mv setup-thumbdrive.ps1 -> archive/` + this report. Push at end
-  of session (`084d67b..<HASH>`).
+  of session (`084d67b..72be258`).
 
 ## Uncertain / flagged for primary GPT review
 
