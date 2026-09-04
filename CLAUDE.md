@@ -26,12 +26,17 @@ Files:
 - `launch-north-forge.sh`
 - `toggle-mode.bat`
 - `toggle-mode.sh`
-- `setup-thumbdrive.ps1`
+- `machine-reset.bat`
 - `provision-new-drive.ps1`
 - `.env.example`
 - `skins/north-forge.yaml`
 - `audit/CLAUDE_CODE_LAST_AUDIT.md`
 - `.gitignore`
+
+`archive/` is explicitly outside this list's scope - read-only historical
+storage. Claude Code does not modify its contents or move files into or
+out of it without an explicit instruction, even though it carries no
+separate zone label of its own.
 
 Reasoning: this is mechanical glue code - testable, low-risk, no field or
 technical judgment content in it. A bug here (like the `.hermes/skills`
