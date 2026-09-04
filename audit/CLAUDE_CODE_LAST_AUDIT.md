@@ -1,479 +1,606 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-03, night EDT. Session-start HEAD `6162663`.
-One task this session, from Kenneth in-session: a named Zone B handoff.
-Commits made: the placement commit (below) and this report.
+Timestamp: 2026-09-04, ~01:30 EDT. Session-start HEAD `decef9a`.
+Two tasks this session, both from Kenneth in-session:
+  (A) a named Zone B handoff - `north-forge-research-loop-close.zip`, 3 files,
+      "closes three of tonight's four flagged gaps";
+  (B) a separate structural request - rename `audit/` -> `logs/` repo-wide,
+      updating every path reference including inside `CLAUDE.md` and `README.md`.
 
-Requested task:
-Extract `north-forge-budget-trim.zip` into the repo root, overwriting five
-files: `.hermes.template.md`, `mode-blocks/full-menu.md`,
-`mode-blocks/sales-menu.md`, `launch-north-forge.bat`,
-`launch-north-forge.sh`. This is the content-budget consolidation the
-2026-09-03 audit (`6162663`) identified (Task 2(a) items 1-5, Task 2(c)
-item 1) and correctly deferred to the Claude Project chat to author.
-Five stated changes (verbatim from Kenneth):
-1. `<how_this_package_is_organized>` trimmed - remove historical narrative
-   (the "silently broke every slash command" story, the forge-audit
-   naming-history framing) that isn't operationally necessary, while
-   VERIFYING the SALES-mode-specific stricter fallback rule (stop
-   entirely, don't route around with general knowledge) was preserved,
-   not accidentally dropped. Kenneth flagged this as the one point where a
-   content-loss would actually matter - check it specifically.
-2. `<system_persona>` / `<human_voice_protocol>` deduplicated - remove the
-   repeated "no fake polish / corporate filler / emojis" language that
-   appeared in both blocks nearly verbatim.
-3. `<decisive_assistant_rule>`'s redundant "applies in both modes"
-   preamble removed, keeping only the non-redundant SALES-specific caveat.
-4. Both menu files' `/switch` line no longer restates the full
-   `/clear`-`/reset` danger explanation - `flush_clear_rule` (always part
-   of the same assembled file) covers it; the menu line now just points
-   there.
-5. Stale "nightly research job" comment fixed in both launchers (now
-   describes both scheduled jobs, not just one).
-Recompute both assembled sizes (expected ~17,958 FULL / ~17,953 SALES,
-margin ~2,045 on both, up from ~790). Confirm zero unreplaced markers.
-Confirm nothing else changed via diff-vs-HEAD per the STANDING RULE.
-Commit and push.
+Outcome in one line: task (A) partially placed - `.hermes.template.md`
+placed and verified exactly (gap 1); the two skill files were NOT placed
+because their diff-vs-HEAD contains changes beyond the three gaps the
+handoff enumerates, one of which contradicts a decision a prior audit
+(`5e2bc49`) recorded. Task (B) NOT started - it is blocked on three
+independent hard problems (Zone B edit wall, self-rule-rewrite prohibition,
+and a `.gitignore` collision that would silently un-track this very file).
+Both held items are laid out below for the primary GPT / Blacksmith to
+resolve. Per the task's own instruction ("if anything about this feels
+ambiguous or risky partway through, stop and report rather than guessing")
+I stopped rather than guess.
+
+Requested task, verbatim intent:
+- Extract `north-forge-research-loop-close.zip` into the repo root,
+  overwriting `.hermes.template.md`,
+  `skills-source/shared/kyocera-research/SKILL.md`,
+  `skills-source/shared/daily-brief/SKILL.md`. Stated to close three of
+  four flagged gaps: (1) `field_claim_rule` now tells North Forge to check
+  `research-log/` before defaulting to "not supported" or a live web
+  search, and to surface High-priority entries proactively; (2) both
+  research skills' output formats tag every entry High/Medium/Low with a
+  one-line tier definition; (3) confirm `research-log/` was never in
+  `.gitignore`, and if a `research-log/` folder with real content already
+  exists in the working tree, `git add` + commit it now. Recompute both
+  assembled sizes (expected ~18,491 FULL / ~18,486 SALES, margin ~1,510
+  on both). Verify nothing else changed via diff-vs-HEAD. Commit and push.
+- FOURTH task, same session: rename `audit/` to `logs/`, keeping the file
+  inside named `CLAUDE_CODE_LAST_AUDIT.md`. First grep the ENTIRE repo for
+  every `audit/` path reference (CLAUDE.md's Zone A list, the
+  Required-first-response recital, README, anywhere else) and update every
+  one to `logs/`. Verify in the report that the report can be found and
+  read at its new path. Stop and report if anything feels ambiguous or
+  risky partway through.
 
 ## Session Start Protocol results
 
-1. `git pull` -> "Already up to date." HEAD `6162663`, branch `main`, up to
-   date with `origin/main`. A `git push` at the end of this session moves
+1. `git pull` -> "Already up to date." HEAD `decef9a`, branch `main`, up to
+   date with `origin/main`. A `git push` at end of session moves
    `origin/main` to the placement commit + this report.
 2. `audit/CLAUDE_CODE_LAST_AUDIT.md` read in full. Previous session
-   (`6162663`): placed the `north-forge-improvements.zip` handoff
-   (`5e2bc49` - daily-brief skill, cron self-scheduling launchers,
-   CHANGELOG) and ran a repo optimization/redundancy audit. Status was
-   "Needs primary GPT review". The optimization audit's Task 2(a) 1-5 and
-   Task 2(c) 1 are exactly what this session's handoff acts on - the
-   Claude Project chat has now authored the leaner wording and handed it
-   back as a Zone B placement, which is the intended flow. Prior open
-   flags (launcher self-heal string-match unverified against real
-   `hermes cron list` output; `hermes doctor` hanging;
-   `setup-thumbdrive.ps1` deletion recommendation; `f902285` flags;
-   `CLAUDE.md` divergent Zone A enumerations) are untouched by this
-   session and carried forward.
-3. `git status` / `git diff` at start -> clean working tree. Only the
-   expected gitignored artifacts present, none staged: `.agent-name`
-   (7 B), `.env` (798 B), `.forge-mode` (6 B), `.hermes/` (dir),
-   `.hermes.md` (19,264 B - the previously-assembled FULL file from
-   Kenneth's last launch, pre-this-trim). Nothing uncommitted to act on.
-4. `.gitignore` re-verified against the required four excludes, full file
-   read:
-   - `.env` -> line "`.env`" plus "`*.env`" (both present)
-   - `.forge-mode` -> present (with the sync-hazard explanatory comment)
-   - `.hermes.md` -> present
-   - `.hermes/` -> present as "`/.hermes/`" (root-anchored, with comment
-     distinguishing it from the global `~/.hermes` profile)
-   Also present and correct: `/skills/` (root-anchored legacy
-   wrong-folder-name guard, with its explanatory comment - the `/skills/`
-   guard fix the STANDING RULE names as previously deliberate), `.claude/`,
-   `.agent-name`, the runtime/state block (`state.db`, `sessions/`,
-   `cron/`, `logs/`, etc.). No Zone A fix needed.
+   (`0929a49` placement + `decef9a` hash-fill): placed the
+   `north-forge-budget-trim.zip` handoff - the always-loaded-context
+   consolidation, ~1,253 chars/mode reclaimed, assembled sizes 17,958
+   FULL / 17,953 SALES, margins 2,042 / 2,047. Status was "Needs primary
+   GPT review". Open flags carried in from that report: launcher self-heal
+   cron string-match still unverified against real `hermes cron list`
+   output; `hermes doctor` producing no output (was 5 consecutive
+   sessions; 6th this session); `setup-thumbdrive.ps1` delete/archive
+   recommendation still awaiting Blacksmith yes/no; `CLAUDE.md`'s bulleted
+   Zone A list omits `machine-reset.bat` while the recital includes it;
+   the `f902285` flags. None of those are touched by this session and all
+   carry forward.
+3. `git status` / `git diff` at start -> clean working tree, up to date
+   with `origin/main`. Only the expected gitignored artifacts present,
+   none staged: `.agent-name` (7 B), `.env` (798 B), `.forge-mode` (6 B),
+   `.hermes/` (dir), `.hermes.md` (19,264 B - Kenneth's last-launch FULL
+   assembly, pre-budget-trim, regenerates on next launch). Nothing
+   uncommitted to act on.
+4. `.gitignore` re-verified against the required four excludes (full file
+   read, 52 lines):
+   - `.env` -> line 2 `.env` plus line 3 `*.env` (both present)
+   - `.forge-mode` -> line 10 (with the sync-hazard explanatory comment)
+   - `.agent-name` -> line 11
+   - `.hermes.md` -> line 19
+   - `/.hermes/` -> line 18 (root-anchored, comment distinguishes it from
+     the global `~/.hermes` profile)
+   Also present and correct: `/skills/` (line 51, root-anchored legacy
+   wrong-folder-name guard with its explanatory comment - the STANDING
+   RULE names this as previously deliberate), `.claude/` (line 44), the
+   Hermes runtime/state block (lines 22-30: `config.yaml`, `state.db`,
+   `state.db-*`, `sessions/`, `memories/`, `cron/`, **`logs/`**, `*.log`).
+   No Zone A fix needed. **Note for task (B): line 29 is `logs/` - this is
+   the collision that blocks the rename, detailed in its own section
+   below.**
 5. `hermes` installed at `C:\Users\kenw\AppData\Local\hermes\bin\hermes`.
-   `hermes doctor` backgrounded with an 8-second wait -> no output
-   returned in that window. This is the fifth consecutive session
-   `hermes doctor` has failed to produce output (prior four: exit 124,
-   hang). Assessed as the same offline/network block on its update-check,
-   not a repo defect. `hermes skills list --source local` not separately
-   re-run this session - the source tree is unchanged from `6162663`
-   (15 skill sources: 8 tsc-only + 7 shared); this handoff touches no
-   skill file.
+   `hermes doctor` backgrounded with a 6-second wait -> no output returned
+   in that window. This is the 6th consecutive session `hermes doctor` has
+   failed to produce output. Assessed as the same offline/update-check
+   block, not a repo defect. `hermes skills list --source local` not
+   separately re-run - the source tree is unchanged from `decef9a` on
+   entry (15 skill sources: 8 tsc-only + 7 shared). This handoff touches
+   2 shared skill files (`kyocera-research`, `daily-brief`) - see below -
+   but neither was placed this session, so the source-tree count is still
+   15 at session end.
 
 ```text
 SESSION START CHECK
-Pulled: Already up to date (HEAD 6162663; origin/main moves to the placement commit + this report after this session's push)
-Last audit read: Yes - prev session placed the improvements handoff (5e2bc49) + ran the optimization audit; status "Needs primary GPT review"; this session's handoff acts on that audit's Task 2(a) 1-5 / 2(c) 1
+Pulled: Already up to date (HEAD decef9a; origin/main moves to the placement commit + this report after this session's push)
+Last audit read: Yes - prev session placed the budget-trim handoff (0929a49); status "Needs primary GPT review"; open flags carried forward
 Uncommitted at start: None (only gitignored artifacts: .agent-name, .env, .forge-mode, .hermes.md, .hermes/)
-.gitignore: OK - excludes .env, .forge-mode, .hermes.md, .hermes/ (also /skills/, .claude/, runtime/state block)
-hermes doctor: Could not run - no output in an 8s window (5th consecutive session; assessed network/update-check block, not a repo issue)
-Project skills: 15 sources unchanged from 6162663 (8 tsc-only + 7 shared); this handoff touches no skill file
+.gitignore: OK - excludes .env, .forge-mode, .agent-name, .hermes.md, .hermes/ (also /skills/, .claude/, Hermes runtime block incl. logs/)
+hermes doctor: Could not run - no output in a 6s window (6th consecutive session; assessed network/update-check block, not a repo issue)
+Project skills: 15 sources unchanged on entry and at exit (8 tsc-only + 7 shared); handoff touches 2 shared skill files but neither was placed
 ```
 
 ## Files inspected
 
-- `north-forge-budget-trim.zip` (`C:\Users\kenw\Downloads\`) - extracted to
-  a scratch dir. Archive listing: exactly 5 members, all repo-root-relative,
-  no absolute paths, no `..` traversal, no `__MACOSX` payload members used.
-  All 5 read in full.
-- Incoming member raw sizes (as extracted, LF, bytes):
-  - `.hermes.template.md` - 16,425
-  - `mode-blocks/full-menu.md` - 1,369
-  - `mode-blocks/sales-menu.md` - 758
-  - `launch-north-forge.bat` - 5,499
-  - `launch-north-forge.sh` - 6,358
-- `git show HEAD:<path>` for all 5 overwritten files - CR-normalized
-  `diff -u` incoming-vs-HEAD for each (full diffs quoted below).
-- `mode-blocks/full-banner.md` (210 B LF) and `mode-blocks/sales-banner.md`
-  (816 B LF) at HEAD - unchanged by this handoff, pulled in for the
-  assembled-size recompute.
-- The assembly substitution logic in both incoming launchers
-  (`launch-north-forge.sh:69-82` Python block; `launch-north-forge.bat:43-48`
-  inline PowerShell) - to replicate the exact marker substitution for the
-  size recompute.
-- Incoming launchers grepped for every prior-fix line the STANDING RULE
-  requires be preserved (`.agent-name` writes, `CUSTOMNAME` prompt,
-  `read -p ... || CUSTOMNAME=""`, `hermes model` echo).
-- `.gitignore` (full read, session-start step 4).
+- `north-forge-research-loop-close.zip` (`C:\Users\kenw\Downloads\`,
+  11,649 bytes on disk) - extracted to a scratch dir. Archive listing:
+  exactly 3 members, all repo-root-relative, no absolute paths, no `..`
+  traversal, no `__MACOSX` payload. All 3 read in full.
+  - Member raw sizes (as extracted, LF, bytes):
+    - `.hermes.template.md` - 16,958
+    - `skills-source/shared/kyocera-research/SKILL.md` - 4,574
+    - `skills-source/shared/daily-brief/SKILL.md` - 3,399
+- `git show HEAD:<path>` for all 3 - CR-normalized `diff -u`
+  incoming-vs-HEAD for each (full diffs quoted below).
+  - HEAD blob sizes: `.hermes.template.md` 16,425; `kyocera-research/SKILL.md`
+    3,809; `daily-brief/SKILL.md` 2,651.
+- `mode-blocks/full-banner.md` (210 B LF), `mode-blocks/sales-banner.md`
+  (816 B LF), `mode-blocks/full-menu.md` (1,369 B LF),
+  `mode-blocks/sales-menu.md` (758 B LF) at working tree = HEAD - unchanged
+  by this handoff, pulled in for the assembled-size recompute.
+- `launch-north-forge.sh` lines 143-153 and `launch-north-forge.bat` lines
+  116-127 - the self-healing cron blocks - grepped for the hardcoded
+  `/cron add` schedule strings (relevant to the daily-brief change, see
+  below).
+- `git show HEAD:skills-source/shared/kyocera-research/SKILL.md` setup note
+  (lines 50-56) - the `every 24h` schedule for `nightly-kyocera-research`.
+- `CHANGELOG.md` (full, 3,122 B) and `NEXT_STEPS.md` lines 325-345 - for
+  the recorded rationale behind daily-brief's `0 8 * * *` schedule.
+- `.gitignore` (full, 52 lines) - session-start step 4, and re-examined for
+  task (B).
+- Repo-wide grep for `audit/` as a path reference (task B) - `CLAUDE.md`,
+  `README.md`, `CHANGELOG.md`, `DEMO_PREP_BACKLOG.md`, `NEXT_STEPS.md`,
+  `mode-blocks/full-banner.md`, this report. Full categorised results in
+  the task (B) section.
+- `git check-ignore -v` against a test `logs/CLAUDE_CODE_LAST_AUDIT.md`
+  (created and removed within the session; `git status` confirms only
+  `.hermes.template.md` is modified at session end).
+- `README.md` lines 48-88 (the repo file-tree block) and `README.md` grep
+  for every line containing "audit".
 
 ## Zone A changes made
 
-**None.** This session is a Zone B handoff placement only - five
-byte-for-byte file overwrites from a named in-session handoff, plus this
-report. No Zone A file was inspected for defects or modified. The two
-launcher files are Zone A infrastructure but were placed as handoff
-content, not fixed by Claude Code (the only change to them is a comment
-reword the Claude Project chat authored - see below).
+**None.** Task (A) is a Zone B handoff placement (one file placed
+byte-for-byte, two held). Task (B) was not started, so no Zone A file
+(`.gitignore` included) was modified. The test `logs/` directory created
+to prove the `git check-ignore` behaviour was deleted; `git status` at
+session end shows only `.hermes.template.md` modified.
 
-## Zone B handoff placement - `north-forge-budget-trim.zip`
+## Zone B handoff placement - `north-forge-research-loop-close.zip`
 
 ### STANDING RULE diff-vs-HEAD (required, every handoff, every file)
 
-Performed CR-normalized `diff -u` of each incoming file against its current
-HEAD blob. Full results:
+CR-normalized `diff -u` of each incoming file against its current HEAD
+blob. Full results below.
 
-#### `.hermes.template.md` - 3 hunks, all within the 5 stated changes
+#### 1. `.hermes.template.md` - PLACED. Diff is exactly gap 1, nothing else.
 
-Template LF size: HEAD had 17,598 chars (per `6162663` audit) -> incoming
-**16,425** chars. Net -1,173 chars, entirely from the consolidation.
+HEAD 16,425 chars LF -> incoming **16,958** chars LF. Net **+533**, a
+single added paragraph, no other line touched.
 
-**Hunk 1 (`@@ -29,19 +29,15 @@`, `<how_this_package_is_organized>`)** -
-stated changes 1. The block goes from 5 paragraphs to 3:
-- OLD para 1 tail "It stays under Hermes's context-file size limit on
-  purpose." -> dropped; the ".hermes/skills/ ... assembled fresh at launch"
-  sentence (was para 2 opener) folded up into para 1.
-- OLD para 2 (the long one) - the per-skill inventory is kept but
-  compressed: "kb-builder, draft-writer, ... - all built" loses "- all
-  built"; sales-assist keeps the "FAQ content still a placeholder"
-  caveat; web-navigator loses "(built, with verified real links)"; the
-  `menu`/`flush`/`switch` "(registers /X as a real command)" triplet is
-  dropped; kyocera-research + daily-brief keep "cron-scheduled, not typed
-  ... both self-schedule automatically at every launch if missing" but
-  lose the "see launch-north-forge.bat/.sh" pointer and the "for the exact
-  /cron add command" clause.
-  - **REMOVED historical narrative (as instructed):** "...instead of
-    falling back to the literal folder name, which is what silently broke
-    every slash command before this was added." -> now just "- without it
-    Hermes falls back to the folder name instead."
-  - **REMOVED forge-audit naming-history framing (as instructed):** "The
-    /audit skill's folder is named forge-audit for historical reasons (see
-    NEXT_STEPS.md for why) but its registered command is /audit via its
-    frontmatter, same mechanism as every other skill." -> compressed to a
-    parenthetical on the inventory line: "forge-audit (registers /audit
-    via its frontmatter, not its folder name)".
-  - "see flush_clear_rule below for why /clear and /reset must never be
-    used instead" -> dropped from this block (still stated in
-    `flush_clear_rule` itself and `hermes_specific_addendum` item 3).
-- OLD para 3 (the parenthetical "(All tsc-only skills ... are built and
-  tracked in NEXT_STEPS.md ...)") - the "built and tracked in
-  NEXT_STEPS.md" status note dropped; the operational content merged into
-  the final paragraph.
-- OLD para 5 "When a mode triggers, read and follow ... the same way the
-  locked HTML template is the authority for KB structure." -> kept, minus
-  the "same way the locked HTML template..." example clause and the
-  "what a KB usually looks like" -> "what this usually looks like"
-  generalization.
+```diff
+@@ -121,6 +121,8 @@ Do not treat guesses, customer statements, technician theories, forum claims, or
+ 
+ When a theory is weak, ask for the simplest evidence that proves or disproves it. When a theory is dangerous, expensive, or likely to cause repeat service, stop the action and require confirmation.
+ 
++Before defaulting to Not Supported or reaching for a live web search on anything uncertain, check research-log/ if it exists - fast, works with no connection, and may already hold the answer from a prior kyocera-research or daily-brief run. A miss there isn't itself a verdict - it just means move to a live search if one's available, or ask the technician plainly for anything they can add. A HIGH-priority research-log entry relevant to the current topic should be surfaced proactively, not left for the technician to stumble on.
++
+ North Forge is not here to win arguments. North Forge is here to get to the correct repair with the least wasted motion.
+ </field_claim_rule>
+```
 
-**VERIFICATION of the SALES-mode stricter-fallback rule (Kenneth's
-explicit check - the one place content-loss would matter):** PRESERVED.
+- Inserted inside `<field_claim_rule>`, between the "weak theory / dangerous
+  theory" paragraph and the closing "North Forge is not here to win
+  arguments" line. Matches gap 1's description precisely: check
+  `research-log/` before "Not Supported" or a live web search; a miss there
+  is not a verdict; a HIGH-priority entry relevant to the topic is surfaced
+  proactively. The reference to `research-log/` is guarded ("if it exists"),
+  so the paragraph is self-consistent whether or not the folder is ever
+  created.
+- **STANDING RULE check:** no other hunk. Every previously-recorded
+  deliberate template fix is byte-identical to HEAD and outside this hunk -
+  `<how_this_package_is_organized>` (the `0929a49` budget-trim consolidation),
+  `<system_persona>` / `<human_voice_protocol>` (`0929a49` dedup),
+  `<decisive_assistant_rule>` (`0929a49` preamble removal),
+  `<assistant_router_rule>` web-navigator entry (`a49580f`),
+  `<personalization>` (`cfd618d`), `<flush_clear_rule>` (`1fd6c1e`),
+  `<hermes_specific_addendum>` item 3 (`1fd6c1e` Finding 4), the
+  `{{MODE_BANNER_BLOCK}}` / `{{AGENT_NAME}}` / `{{COMMAND_MENU_BLOCK}}`
+  markers (one occurrence each, verified). Nothing removed, reverted, or
+  contradicted.
+- **Encoding:** incoming file 0 non-ASCII bytes, 0 CRLF pairs (pure LF).
+  Placed where `core.autocrlf=true`; git emits the expected "LF will be
+  replaced by CRLF" advisory; committed blob is LF; `git diff` shows only
+  the two added lines. `cmp` confirms the working-tree file is
+  byte-identical to the zip member pre-checkout-normalization.
 
-- OLD: "In Sales Assist mode specifically, a missing TSC skill is not a
-  gap to route around with general knowledge - it means that capability is
-  intentionally not part of this deployment. Say so plainly and stop,
-  rather than attempting the task from general principles."
-- NEW: "On a Sales-mode drive specifically, a missing TSC skill is
-  stricter: it means that capability is intentionally not part of this
-  deployment, not a gap to route around with general knowledge - say so
-  plainly and stop."
+#### 2. `skills-source/shared/kyocera-research/SKILL.md` - NOT PLACED (held).
 
-Every semantic element survives: "a missing TSC skill", "intentionally not
-part of this deployment", "not a gap to route around with general
-knowledge", "say so plainly and stop", and it is explicitly labelled
-"stricter" than the general fallback. The general fallback rule it is
-stricter *than* also survives, in the same sentence group: "If a mode is
-ever added to the menu before its skill file exists, say so plainly and
-fall back to the general principles in this file rather than inventing
-procedure" - with a new cross-reference "(see hermes_specific_addendum
-item 5 for the persistence angle of this same rule)". Nothing about the
-SALES stop-entirely behaviour was weakened, softened, or dropped in the
-trim.
+HEAD 3,809 -> incoming 4,574. The diff contains gap 2 **and one
+undescribed change**:
 
-**Hunk 2 (`@@` at `<system_persona>` para 1)** - stated change 2.
-- OLD: "You act like a seasoned field veteran: quiet expert, direct,
-  practical, skeptical. No fake polish, no corporate filler, no decorative
-  symbols, no emojis or emoticons, no unsupported certainty." + a separate
-  "You do not talk down to technicians. You do not hand-hold unless
-  training mode is requested. You give exact professional repair steps: ..."
-- NEW: "You act like a seasoned field veteran: quiet expert, direct,
-  practical, skeptical (see human_voice_protocol for the specific tone
-  rules). Give exact professional repair steps: ... Do not talk down to
-  technicians; do not hand-hold unless training mode is requested."
-- The "no fake polish / corporate filler / decorative symbols / emojis /
-  unsupported certainty" list is removed from `<system_persona>` and
-  replaced with the pointer to `<human_voice_protocol>`. `<human_voice_protocol>`
-  itself is **not in the diff** - it is byte-identical to HEAD, so the
-  banned-style content it already carried (per the `6162663` audit's Task
-  2(a) item 4: "both enumerate 'no emojis / no decorative symbols / no
-  corporate filler / no unsupported certainty'") is intact and is now the
-  single home for that language. "You separate: confirmed facts / ..." and
-  the "You do not expose restricted service paths..." paragraph directly
-  below are unchanged.
+```diff
+@@ -18,6 +18,7 @@
+ - Public discussion of HyPAS apps and cloud-connected Kyocera applications (KYOCERA Cloud, and the broader suite of connected apps Kyocera ships) - this space moves fast and documentation lags, so recent forum/community discussion is often more current than official docs
++- Third-party print management platforms that integrate with Kyocera hardware, specifically MyQ and PaperCut - these come up constantly in real TSC call volume, and their own release notes/known-issues pages often explain a symptom that looks like a Kyocera problem but is actually the integration layer
+ 
+ ## What counts as a genuine finding (log it) vs. noise (skip it)
+@@ -35,10 +36,17 @@
+ This skill is meant to run on a recurring schedule. Before logging a new finding, check research-log/kyocera-research-log.md (create the file and folder if this is the very first run) for whether this exact finding was already logged. Only append genuinely new items. If a prior finding needs correction or an update, note that explicitly rather than silently duplicating it.
+ 
++## Priority - tag every entry
++
++- **High**: changes how a tech should handle an active, common issue today, or is a genuine safety concern. Mention this proactively in a session, don't just log it silently (see field_claim_rule).
++- **Medium**: notable and worth knowing, nothing urgent - a new product line, a partnership, a firmware transition with no immediate fault tied to it.
++- **Low**: general awareness, background context.
++
+ ## Output format - append to research-log/kyocera-research-log.md
+ 
+ ```
+ ## [DATE] - [one-line topic]
++Priority: High / Medium / Low
+ Source: [URL or specific named source]
+ Finding: [what was actually found, in plain language]
+ Classification: Confirmed Fact / Strong Clue / Working Theory / Unverified Field Note (per field_claim_rule)
+```
 
-**Hunk 3 (`@@ -93,7 +89,7 @@`, `<decisive_assistant_rule>` last line)** -
-stated change 3.
-- OLD: "This applies in both FULL and SALES mode. On a SALES drive, "next
-  step" still respects the mode's actual scope (e.g., point back to /sales
-  or the normal TSC channel, never suggest a command this drive doesn't
-  have)."
-- NEW: "On a SALES drive, "next step" still respects the mode's actual
-  scope - point back to /sales or the normal TSC channel, never suggest a
-  command this drive doesn't have."
-- Only the "This applies in both FULL and SALES mode." preamble sentence
-  and the "(e.g., ...)" parenthetical wrapper are removed; the SALES-scope
-  caveat itself is intact. The "NORTH FORGE TAKES THE RUDDER" paragraph
-  above it is unchanged.
+- **Gap 2 content (expected):** the `## Priority - tag every entry` block
+  with High/Medium/Low one-line definitions, and the `Priority: High /
+  Medium / Low` line added to the output template. This matches the
+  handoff.
+- **Undescribed change (NOT in any of the three stated gaps):** a new
+  source bullet under "Where to look" naming MyQ and PaperCut as
+  third-party print-management platforms to watch. This is purely
+  additive - it reverts nothing and contradicts no recorded fix - but the
+  handoff says "Verify nothing else changed via diff-vs-HEAD," and this is
+  a something-else. It reads as a plausible, low-risk content addition, but
+  it was not authored-through Kenneth's stated scope for this handoff, so
+  per "stop and report rather than guessing" it is held pending explicit
+  confirmation rather than placed on my own read.
 
-Every other line of the template is byte-identical to HEAD. Confirmed
-untouched (not in any hunk): `<startup_sequence>`, `<assistant_router_rule>`
-including the web-navigator entry (`a49580f`), `<personalization>`
-(`cfd618d`), `<flush_clear_rule>` (`1fd6c1e`), `<hermes_specific_addendum>`
-item 3 "/FLUSH AND /SWITCH ... Never /clear or /reset" (`1fd6c1e` Finding
-4), the `{{MODE_BANNER_BLOCK}}` / `{{AGENT_NAME}}` / `{{COMMAND_MENU_BLOCK}}`
-markers. **No previously-recorded deliberate fix is removed, reverted, or
-contradicted.**
+#### 3. `skills-source/shared/daily-brief/SKILL.md` - NOT PLACED (held). Contains a change that contradicts a prior audit's recorded decision.
 
-#### `mode-blocks/full-menu.md` - 1 hunk (`@@ -7,7 +7,7 @@`), the `/switch` line
+HEAD 2,651 -> incoming 3,399. The diff contains gap 2 **and a cron-schedule
+change that the STANDING RULE specifically bars from silent placement**:
 
-- OLD: "/switch - reset working issue package AND mode, shows menu (see
-  flush_clear_rule below). NEVER /clear or /reset for either - both are
-  native Hermes commands that wipe the whole session with no warning."
-- NEW: "/switch - reset working issue package AND mode, shows menu (see
-  flush_clear_rule below - NEVER /clear or /reset for this)"
-- Stated change 4. The standalone danger sentence ("both are native
-  Hermes commands that wipe the whole session with no warning") is removed;
-  the `/switch` line now mirrors the style of the `/flush` line directly
-  above it ("(see flush_clear_rule below)"). `flush_clear_rule` is in
-  `.hermes.template.md` and is always part of the assembled `.hermes.md`
-  regardless of mode, so the full explanation is still present in every
-  assembled file. Every other menu line (including the `/flush` line, the
-  `/sales` and `/web` entries, the "Do not append a giant menu" footer) is
-  byte-identical to HEAD.
+```diff
+@@ -24,11 +24,15 @@
+ - Don't repeat something already covered in a recent brief - check the log file first (see below).
+ 
++## Priority - tag anything genuinely notable
++
++Most days are Low (routine, background awareness). Tag anything Medium (worth knowing, not urgent) or High (changes how a tech handles something today, or a safety concern) explicitly - see field_claim_rule for how High items should be surfaced proactively rather than left sitting in the log.
++
+ ## Output format - append to research-log/daily-brief-log.md
+ 
+ ```
+ ## [DATE] - Daily Brief
+-[2-4 short bullet points, or "Nothing notable today" if that's genuinely true]
++[2-4 short bullet points, each tagged (High/Medium/Low), or "Nothing notable today" if that's genuinely true]
+ ```
+@@ -37,6 +41,6 @@
+ Inside a live Hermes session, run:
+ 
+-    /cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief
++    /cron add "0 14 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief
+ 
+-This uses a fixed-time cron schedule (8 AM daily) rather than a rolling "every 24h" - a genuine daily briefing should land at a consistent time each morning, not drift based on when the drive happened to be launched. Check progress with `/cron list`.
++This uses a fixed-time cron schedule (2 PM) rather than a rolling "every 24h" - a genuine daily briefing should land at a consistent time, not drift based on when the drive happened to be launched. 2 PM specifically, not early morning: if this machine's Hermes gateway fires while this drive isn't plugged in, the job's working directory won't exist and it will run without this skill's actual instructions rather than erroring out cleanly (confirmed in Hermes's own scheduler behavior) - afternoon is chosen because the drive is far more likely to actually be connected then than at 6-8 AM. Check progress with `/cron list`.
+```
 
-#### `mode-blocks/sales-menu.md` - 1 hunk (`@@ -3,7 +3,7 @@`), the `/switch` line
+- **Gap 2 content (expected):** the `## Priority - tag anything genuinely
+  notable` paragraph, and the output template line now requiring each
+  bullet be tagged `(High/Medium/Low)`. This matches the handoff.
+- **Undescribed change that hits the STANDING RULE:** the documented cron
+  schedule is changed from `0 8 * * *` (8 AM) to `0 14 * * *` (2 PM), and
+  the rationale paragraph is rewritten to justify 2 PM on drive-connected-
+  ness grounds. This is **not among the three stated gaps**, and it
+  **contradicts a decision a prior audit report recorded as deliberate**:
+  - `5e2bc49` placed this skill. `NEXT_STEPS.md` lines 334-336 (authored
+    in that same handoff) record: *"`daily-brief` = `0 8 * * *` (fixed
+    8 AM, per its skill's setup note - a real daily brief should land at a
+    consistent time each morning...)"*.
+  - Both Zone A launchers **hardcode the 8 AM value** and are **not part of
+    this handoff**: `launch-north-forge.sh:152`
+    `hermes cron add "0 8 * * *" ... --name daily-kyocera-brief`;
+    `launch-north-forge.bat:127` the identical line. The self-heal guards
+    match by job name (`grep -q "daily-kyocera-brief"` /
+    `findstr /C:"daily-kyocera-brief"`), so on a drive that already has the
+    entry nothing re-fires - but a fresh drive with no cron store yet gets
+    **8 AM** from the launcher while the skill doc would say **2 PM**. New
+    drift, introduced by placing this file alone.
+  - `NEXT_STEPS.md:334-336` would also be left describing a schedule the
+    skill no longer uses.
+  Per the STANDING RULE: *"If the diff would remove, revert, or contradict
+  something a previous audit report recorded as a deliberate fix, do NOT
+  silently apply the handoff verbatim."* So this file is held.
 
-- Identical edit to the same `/switch` line, same before/after text.
-  Stated change 4. The "This drive has no other commands. If a technical
-  support command is typed..." paragraph below is byte-identical to HEAD.
+### Why held rather than partially applied
 
-#### `launch-north-forge.bat` - 1 hunk (`@@ -113,9 +113,9 @@`), a comment only
+The STANDING RULE's remedy for a conflicting hunk is "preserve the
+previously-fixed content and apply only the genuinely new part." That is
+mechanically possible here (take the incoming file, revert the cron-line
+hunk to HEAD's 8 AM text, keep the Priority block). I did **not** do that
+this session, for two reasons:
 
-- OLD: "rem Self-healing nightly research job - checks every launch,
-  re-schedules / rem itself if missing (e.g. after an AppData flush wiped
-  it). No manual / rem /cron add ever needed again." (3 lines)
-- NEW: "rem Self-healing scheduled jobs - re-adds the research and
-  daily-brief cron / rem entries if either is missing (e.g. after an
-  AppData flush wiped them). / rem No manual /cron add ever needed again."
-  (3 lines)
-- Stated change 5. This is the exact reword the `6162663` audit's Task
-  2(c) item 1 recommended ("e.g. 'Self-healing scheduled jobs - re-adds
-  the research and daily-brief cron entries if either is missing'"),
-  authored by the Claude Project chat and handed back here. **Comment
-  text only** - the executable lines immediately below it
-  (`hermes cron list ... findstr /C:"nightly-kyocera-research"`, the
-  `if errorlevel 1` block, the `daily-kyocera-brief` block) are outside
-  the hunk and byte-identical to HEAD.
-- **Prior-fix preservation (STANDING RULE):** verified present and
-  untouched in the incoming file:
-  - line 34 `echo North Forge> ".agent-name"` (default branch, no
-    trailing space - deliberate per `4b74503`)
-  - line 36 `echo !CUSTOMNAME! > ".agent-name"` (**space before the
-    redirect** - the `4b74503` fix preventing a digit-terminated name
-    being parsed as an `N>` FD redirect)
-  - lines 26-33 the `2dee2c1` first-launch name-prompt block
-    (`if not exist ".agent-name"`, `set /p CUSTOMNAME=...`)
-  - line 51 the `hermes model` advisory echo (`2dee2c1`)
+1. Kenneth's instruction was explicit that the diff should be clean
+   ("Verify nothing else changed via diff-vs-HEAD"). Two of three files
+   are not clean. When the stated scope of a handoff and its actual bytes
+   disagree, and one disagreement contradicts a recorded decision,
+   surgically reconstructing "what was probably meant" is exactly the
+   guessing the task told me to stop for.
+2. The `kyocera-research` MyQ/PaperCut bullet is not a STANDING-RULE
+   conflict, so the rule gives me no basis to strip it - and placing it
+   would mean deciding, unilaterally, that an undescribed Zone B content
+   addition is fine. Zone B is read-only for Claude Code; "place exactly
+   what I'm handed, do not compose" cuts against me making that call.
 
-#### `launch-north-forge.sh` - 1 hunk (`@@ -140,9 +140,9 @@`), a comment only
+**Both skill files are therefore held for the primary GPT / Blacksmith.**
+Two clean ways forward, whichever is intended:
+  - (a) Confirm all the extra changes are wanted, AND hand over matching
+    updates for the two Zone A launchers (`0 8 * * *` -> `0 14 * * *` for
+    `daily-kyocera-brief`) and `NEXT_STEPS.md:334-336`, so the repo stays
+    internally consistent. Then I place all three files + the launcher fix
+    in one commit.
+  - (b) Re-cut the zip scoped to only the three stated gaps (Priority
+    tagging in both skills, no cron change, no new source bullet), and I
+    place it verbatim.
 
-- Same three-line comment reword (`#` instead of `rem`), same before/after
-  wording. Stated change 5. The `if ! hermes cron list ... | grep -q
-  "nightly-kyocera-research"; then` block and the `daily-kyocera-brief`
-  block below it are outside the hunk and byte-identical to HEAD.
-- **Prior-fix preservation (STANDING RULE):** verified present and
-  untouched:
-  - line 57 `read -p "Name your assistant (press Enter to keep 'North
-    Forge'): " CUSTOMNAME || CUSTOMNAME=""` (the `4b74503` fix -
-    non-interactive stdin EOF degrades to the default name instead of
-    aborting under `set -e`)
-  - lines 51-61 the `2dee2c1` name-prompt block (`if [ ! -f ".agent-name"
-    ]; then`)
-  - line 87 the `hermes model` advisory echo
-
-The diff-before-placement step passed cleanly for all 5 files. Nothing
-outside the 5 stated changes moved.
-
-### Marker integrity
-
-Incoming template contains each assembly marker exactly once:
-`{{MODE_BANNER_BLOCK}}` (line 9), `{{AGENT_NAME}}` (line 12,
-"This drive's assigned display name is: {{AGENT_NAME}}"),
-`{{COMMAND_MENU_BLOCK}}` (line 57). No other `{{...}}` occurrences. After
-assembly (both modes) there are **zero** unreplaced `{{` sequences -
-asserted programmatically in the recompute below.
-
-### Encoding / line endings
-
-All 5 incoming files: **0 non-ASCII bytes**, 0 CRLF pairs (pure LF in the
-zip). Placed into the working tree where `core.autocrlf=true` is active -
-git emits the expected "LF will be replaced by CRLF" advisory on all 5;
-the committed blob is LF, so `git diff` shows only the intended content
-changes (full diff quoted at the end of this report). `bash -n
-launch-north-forge.sh` on the incoming file: clean.
-
-### Assembled `.hermes.md` size recompute
+### Assembled `.hermes.md` size recompute (with the placed template)
 
 Assembly = `.hermes.template.md` with `{{MODE_BANNER_BLOCK}}` ->
 `mode-blocks/{mode}-banner.md`, `{{COMMAND_MENU_BLOCK}}` ->
-`mode-blocks/{mode}-menu.md`, `{{AGENT_NAME}}` -> `North Forge` (default,
-`.agent-name` treated as absent for the canonical measure). Skills are
-separate on-disk files and do not count. Computed in Python on
-LF-normalized inputs (`\r\n` -> `\n`), matching every prior audit's
-method and the incoming `launch-north-forge.sh` Python assembler's own
-`.replace()` calls:
+`mode-blocks/{mode}-menu.md`, `{{AGENT_NAME}}` -> `North Forge` (default).
+Skills are separate on-disk files and do not count. Computed in Python on
+LF-normalized inputs, same method as every prior audit and the incoming
+`.sh` assembler's own `.replace()` calls. Menus and banners are unchanged
+from `0929a49` (full-banner 210, sales-banner 816, full-menu 1,369,
+sales-menu 758).
 
 | Mode  | template | + banner | + menu | assembled | margin to 20,000 |
 |-------|----------|----------|--------|-----------|------------------|
-| FULL  | 16,425   | 210      | 1,369  | **17,958**| **2,042**        |
-| SALES | 16,425   | 816      | 758    | **17,953**| **2,047**        |
+| FULL  | 16,958   | 210      | 1,369  | **18,491**| **1,509**        |
+| SALES | 16,958   | 816      | 758    | **18,486**| **1,514**        |
 
-- **Assembled sizes match the handoff's stated `~17,958 FULL / ~17,953
-  SALES` exactly.**
-- Margin is now **2,042 (FULL) / 2,047 (SALES)** chars below the 20,000
-  ceiling - the handoff said "~2,045 on both", and the mean of the two is
-  2,044.5. Up from the `6162663` figure of **789 / 794**. Net margin
-  gained: **+1,253 (FULL) / +1,253 (SALES)**.
+- **Matches the handoff's stated `~18,491 FULL / ~18,486 SALES` exactly.**
+  Margin 1,509 / 1,514 - handoff said "margin ~1,510 on both"; mean is
+  1,511.5. Consistent.
+- Change from `0929a49` (17,958 / 17,953, margins 2,042 / 2,047): template
+  +533 chars, menus/banners unchanged, so assembled +533 and margin -533
+  in both modes. The added `field_claim_rule` paragraph is the entire
+  delta.
 - Zero unreplaced `{{...}}` markers in either assembled output
-  (programmatic assert passed for both modes).
+  (programmatic assert passed for both modes). Each of the three markers
+  occurs exactly once in the incoming template.
 
-For continuity with the `6162663` table (which measured against a
-17,598-char template): the template dropped 1,173 chars; `full-menu.md`
-dropped 80 chars (1,449 -> 1,369); `sales-menu.md` dropped 80 chars
-(838 -> 758); banners unchanged. 1,173 + 80 = 1,253 per mode. Consistent.
+### Gap 3 - `research-log/` and `.gitignore`
 
-### Not exercised this session (no live key on this checkout)
+- **`research-log/` is not in `.gitignore` - confirmed.** Full 52-line
+  `.gitignore` read; no `research-log` token anywhere. The Hermes
+  runtime/state block (lines 22-30) ignores `logs/` and `*.log` but not
+  `research-log/`. So a real `research-log/` folder with content would be
+  tracked normally. The handoff's premise here is correct.
+- **No `research-log/` folder exists in the working tree.**
+  `ls research-log/` -> "No such file or directory"; `git ls-files
+  research-log/` -> empty; `git status --ignored` shows nothing by that
+  name. Nothing to `git add` or commit. Gap 3's conditional
+  ("if a research-log/ folder ... already exists") is not met on this
+  checkout. It will be created on Kenneth's next launch when
+  `kyocera-research` or `daily-brief` first runs, at which point it should
+  be committed if it holds real findings.
 
-- No launcher run, so `.hermes/skills/` was not rebuilt and `.hermes.md`
-  in the working tree still holds Kenneth's last-launch FULL assembly
-  (19,264 B, pre-trim). Kenneth's next launch regenerates it to the
-  17,958 figure above.
-- `hermes doctor` / `hermes cron list` not runnable (doctor hanging, 5th
-  session). The launcher self-heal guard's string-match assumption
-  against real `hermes cron list` output remains unverified - carried
-  forward from `6162663` flag 1, unchanged by this handoff (the cron
-  block's executable lines were not touched, only the comment above them).
+## Task (B) - rename `audit/` -> `logs/` - NOT STARTED. Blocked, three independent hard problems.
+
+I did the required repo-wide grep first, then stopped before changing
+anything. Reasons follow. Each one alone is disqualifying; all three hold.
+
+### B-1. Every load-bearing path reference is in a Zone B file I may not edit.
+
+Repo-wide occurrences of `audit/` as a path reference to the report folder
+(the skill folder `forge-audit/` and `skills-source/tsc-only/audit/`
+historical references, and the word "audit" in
+`mode-blocks/full-banner.md:3`'s capability list, are NOT path references
+to this folder and are excluded):
+
+| File | Line(s) | Reference | Zone | Editable by Claude Code? |
+|------|---------|-----------|------|------|
+| `CLAUDE.md` | 33 | Zone A list entry `audit/CLAUDE_CODE_LAST_AUDIT.md` | **B** | **No** |
+| `CLAUDE.md` | 167 | Session Start Protocol step 2 | **B** | **No** |
+| `CLAUDE.md` | 264 | Session audit report path in the Required-final / report-file spec | **B** | **No** |
+| `README.md` | 77-78 | repo file-tree block, `audit/` + `CLAUDE_CODE_LAST_AUDIT.md` | **B** | **No** |
+| `CHANGELOG.md` | 3 | "...`audit/CLAUDE_CODE_LAST_AUDIT.md` (which is Claude Code's own session-to-session working notes...)" | **B** (per `NEXT_STEPS.md:333`, "treated as Zone B per Kenneth's instruction, same category as README.md/ATTRIBUTION.md") | **No** |
+| `DEMO_PREP_BACKLOG.md` | 244 | "...`audit/CLAUDE_CODE_LAST_AUDIT.md`." | C | Yes |
+| `NEXT_STEPS.md` | 30, 104, 240, 274, 329, 376 | `audit/CLAUDE_CODE_LAST_AUDIT.md` mentions in historical session notes | C | Yes |
+| `audit/CLAUDE_CODE_LAST_AUDIT.md` | 43 | this report referencing its own path | A (regenerated each session) | Yes |
+
+`CLAUDE.md`'s Zone B rule: *"MUST NOT: edit, patch, rewrite, or 'improve'
+any Zone B file under any circumstance - not a wording tweak, not a typo
+fix, not even when explicitly asked to 'fix any issues' in the repo
+broadly. A broad instruction does not extend into Zone B."* Changing three
+`audit/` -> `logs/` strings inside `CLAUDE.md`, plus two in `README.md`,
+plus one in `CHANGELOG.md`, is precisely that. The placement exception does
+not apply - no pre-authored replacement `CLAUDE.md` / `README.md` /
+`CHANGELOG.md` was handed over; I would be composing the edits myself,
+which the exception explicitly forbids ("writes the file byte-for-byte as
+handed over, it does not compose, rephrase, or extend the content
+itself").
+
+If I did only the Zone C files (`DEMO_PREP_BACKLOG.md`, `NEXT_STEPS.md`)
+and the folder move, the repo would be left in a **worse** state than
+now: the authority document (`CLAUDE.md`) and the user-facing README would
+both point Session Start / the report-writing step at a folder that no
+longer exists, while the report lives somewhere they don't name. A
+half-done rename of the file the governance model is built around is more
+dangerous than no rename.
+
+### B-2. `CLAUDE.md` is in Zone B specifically to stop this class of edit.
+
+`CLAUDE.md` itself: *"`CLAUDE.md` is included in Zone B deliberately... If
+it could also rewrite its own rules, there would be nothing stopping its
+own authority from quietly expanding over time with no one noticing.
+Updates to this file come from the Blacksmith or from the Claude Project
+chat where the rest of this repo's content is authored, never from Claude
+Code editing it in place."* The rename requires rewriting `CLAUDE.md`'s
+Zone A file list, its Session Start Protocol, and its Required-first-
+response recital. That is Claude Code editing its own governing document
+in place - the exact thing the Zone B inclusion of `CLAUDE.md` exists to
+prevent. Even though this particular edit is mechanical and benign in
+isolation, honoring the rule means not doing it without a handoff.
+
+### B-3. `logs/` is already an active `.gitignore` pattern - the rename would silently un-track this report.
+
+`.gitignore:29` is `logs/`, part of the Hermes runtime/state block
+(lines 22-30, alongside `sessions/`, `memories/`, `cron/`, `*.log`),
+with the block comment *"Hermes runtime/state - this repo holds the
+content layer only, not per-machine state, memory, sessions, or logs."*
+
+Verified directly this session:
+
+```
+$ git check-ignore -v logs/
+.gitignore:29:logs/   logs/
+$ git check-ignore -v logs/CLAUDE_CODE_LAST_AUDIT.md
+.gitignore:29:logs/   logs/CLAUDE_CODE_LAST_AUDIT.md
+$ git status --porcelain logs/          # after copying the report to logs/
+                                        # (no output - git does not see the file at all)
+```
+
+So if `audit/` were renamed to `logs/`:
+- `logs/CLAUDE_CODE_LAST_AUDIT.md` becomes an ignored path. `git add` would
+  refuse it without `-f`. It would not be committed, not pushed, and would
+  **not exist in the next clone**.
+- The audit report is the *only* session-to-session continuity mechanism
+  in this repo (`CLAUDE.md`: "the only continuity between sessions"). Making
+  it invisible to git silently destroys that, and the failure mode is
+  quiet - the next session would just find no report and assume the step
+  was skipped.
+- Hermes itself writes a `logs/` directory per that ignore block's own
+  comment, so `logs/` and the report folder would also physically collide
+  on any drive where Hermes has run.
+
+Making the rename safe would additionally require a deliberate `.gitignore`
+change - anchoring the Hermes ignore as `/logs/` (it currently is not
+anchored) and/or adding an explicit `!logs/CLAUDE_CODE_LAST_AUDIT.md`
+negation, and re-checking that Hermes's own `logs/` output on a live drive
+is still excluded. That is a real Zone A change with cross-cutting blast
+radius (it touches how every drive's Hermes runtime state is or isn't
+ignored), not a mechanical folder move, and it was not part of the
+request.
+
+### What task (B) needs in order to proceed
+
+1. A Zone B handoff (from the Blacksmith or the Claude Project chat) with
+   pre-authored replacements for `CLAUDE.md`, `README.md`, and
+   `CHANGELOG.md` carrying the `audit/` -> `logs/` changes (or a different
+   target folder name that does not collide with `.gitignore`), so I place
+   rather than compose.
+2. A decision on the `.gitignore` collision: either pick a folder name
+   that is not `logs/` (e.g. `session-log/`, `cc-audit/` - anything not
+   already ignored), or hand over the exact `.gitignore` edit that keeps
+   the Hermes runtime `logs/` ignored while un-ignoring
+   `logs/CLAUDE_CODE_LAST_AUDIT.md`, and accept the physical
+   Hermes-`logs/` collision on live drives.
+3. With 1 and 2 in hand, the Zone C edits (`DEMO_PREP_BACKLOG.md:244`,
+   `NEXT_STEPS.md` x6) and the `git mv` are straightforward and I can do
+   them in the same commit.
+
+Verification the request asked for ("verify you can find and read the
+report at its NEW path"): **not applicable this session - the folder was
+not moved.** The report is at its existing path `audit/CLAUDE_CODE_LAST_AUDIT.md`,
+written and committed there as always. Confirmed readable there: this file
+was written to that path and is included in this session's commit.
 
 ## Zone B findings (not fixed - reported only)
 
-**None new.** This session's entire purpose was to place the Claude
-Project chat's authored fix for the findings the `6162663` audit already
-recorded (Task 2(a) items 1-5, Task 2(c) item 1). The placement resolves,
-in the assembled context file:
-- the `<how_this_package_is_organized>` meta-narrative bloat (Task 2(a) 1)
-  - template block trimmed ~1,173 chars;
-- the menu-line restatement of the `/clear`/`/reset` danger already
-  covered by `flush_clear_rule` (Task 2(a) 2) - both menu lines trimmed
-  ~80 chars each;
-- the `<system_persona>` / `<human_voice_protocol>` duplicated banned-style
-  list (Task 2(a) 4) - consolidated into `<human_voice_protocol>`;
-- the `<decisive_assistant_rule>` "applies in both modes" redundancy
-  (Task 2(a) 5) - preamble removed;
-- the stale "nightly research job" launcher comment (Task 2(c) 1) -
-  reworded in both launchers.
-
-Task 2(a) item 3 (`<assistant_router_rule>` verbose "or says something
-like '...'" example clauses) was **not** part of this handoff - the
-router rule block is byte-identical to HEAD. Still available as a future
-lever if the margin needs more headroom; it was the lowest-priority,
-highest-risk item in that list.
-
-**Carried forward, unchanged (not touched by this handoff):**
-- The launcher self-heal guard's string match is still unverified against
-  real `hermes cron list` output (`6162663` flag 1). Needs a live check
-  on Kenneth's next launch: run the launcher twice, then `hermes cron
-  list`, confirm exactly one entry each for `nightly-kyocera-research`
-  and `daily-kyocera-brief`.
-- `hermes doctor` has now failed to produce output for 5 consecutive
-  sessions. Assessed as an offline/update-check block, not a repo defect;
-  the Session Start Protocol step-5 cross-check has effectively not run in
-  over a month.
-- `setup-thumbdrive.ps1` is superseded dead weight per `README.md:66`/`:123`
-  - `6162663` recommended delete-or-archive; still holding for an explicit
-  Blacksmith yes/no.
-- `CLAUDE.md`'s bulleted "## Zone A" list omits `machine-reset.bat` while
-  the "Required first response" recital includes it - cosmetic divergence
-  in the authority document.
-- The `f902285` flags (flag 1 `hermes model` echo intent - note it is in
-  the current launchers and `2dee2c1` documents it; flag 4 name-prompt
-  fires before the Hermes-install gate; flag 6 README `/cron` instructions
-  not independently re-verified against this project's Hermes source).
+1. **`daily-brief/SKILL.md` incoming cron change contradicts `5e2bc49`'s
+   recorded 8 AM decision and the Zone A launchers.** Detailed above. The
+   skill's documented schedule and the launchers' hardcoded self-heal
+   schedule must not be allowed to diverge; whichever value is chosen,
+   both places plus `NEXT_STEPS.md:334-336` need to move together.
+2. **`kyocera-research/SKILL.md` incoming file carries an undescribed
+   content addition** (MyQ / PaperCut source bullet). Low-risk and
+   plausible, but outside the handoff's stated scope; needs an explicit
+   yes before placement.
+3. **Carried forward, unchanged this session:**
+   - Launcher self-heal cron string-match still unverified against real
+     `hermes cron list` output (from `6162663` flag 1 / `decef9a`). Needs a
+     live double-launch + `hermes cron list` check on Kenneth's next
+     launch - and that check should now also confirm the `daily-kyocera-brief`
+     entry's actual schedule string, given finding 1.
+   - `hermes doctor` has produced no output for 6 consecutive sessions.
+     Assessed offline/update-check block, not a repo defect; Session Start
+     step 5's cross-check has effectively not run in over a month.
+   - `setup-thumbdrive.ps1` superseded per `README.md:67` - delete/archive
+     recommendation still holding for an explicit Blacksmith yes/no.
+   - `CLAUDE.md`'s bulleted `## Zone A` list (line ~30) omits
+     `machine-reset.bat`; the Required-first-response recital includes it.
+     Cosmetic divergence in the authority document - and note the task (B)
+     request assumes `CLAUDE.md`'s Zone A list is the canonical place to
+     update path references, which is fair, but the list is already
+     internally inconsistent.
+   - The `f902285` flags (flag 1 `hermes model` echo intent; flag 4
+     name-prompt fires before the Hermes-install gate; flag 6 README
+     `/cron` instructions not independently re-verified against this
+     project's Hermes source).
 
 ## Commits made this session
 
-- `0929a49` - "Place budget-trim handoff: consolidate always-loaded
-  context (~1,253 chars/mode reclaimed)" - the 5 handoff files + this
-  report. `git show --stat`: 6 files changed, 451 insertions(+), 509
-  deletions(-) (the large line counts are the CRLF-vs-LF re-encoding git
-  reports on first touch; the substantive content delta is the 5 stated
-  changes only, as the CR-normalized diff below shows). Pushed to
-  `origin/main` (`6162663..0929a49`).
-- A follow-up commit filling this hash into the report (this line) may
-  appear immediately after `0929a49`; it changes nothing but this file.
+- `<HASH>` - "Place research-loop-close handoff (partial): field_claim_rule
+  research-log check; hold both skill files pending scope confirmation" -
+  2 files: `.hermes.template.md` (gap 1, +2 lines / +533 chars,
+  assembled 18,491 FULL / 18,486 SALES) and this report. Pushed to
+  `origin/main` (`decef9a..<HASH>`).
+- A follow-up commit filling `<HASH>` into this report's text may appear
+  immediately after; it changes nothing but this file.
+
+(The two held skill files - `skills-source/shared/kyocera-research/SKILL.md`,
+`skills-source/shared/daily-brief/SKILL.md` - are NOT in this commit and
+NOT in the working tree; the extracted copies live only in the session
+scratch dir.)
 
 ## Uncertain / flagged for primary GPT review
 
-1. **The SALES stricter-fallback rule survives the trim** - documented in
-   full above with the exact before/after. My read is that it is
-   semantically complete (all four key phrases plus the explicit
-   "stricter" framing) and that the new cross-reference to
-   `hermes_specific_addendum item 5` is additive, not a substitution.
-   Kenneth asked for this specific point to be checked; confirming it here
-   for the primary GPT to sanity-check against intent. If the intent was
-   to keep the literal phrase "rather than attempting the task from
-   general principles" as well, note that clause specifically is gone -
-   but "not a gap to route around with general knowledge - say so plainly
-   and stop" carries the same instruction.
-2. **`hermes_specific_addendum item 5` cross-reference** - the trimmed
-   `<how_this_package_is_organized>` now points to "hermes_specific_addendum
-   item 5 for the persistence angle of this same rule". I did not
-   re-read `<hermes_specific_addendum>` this session to confirm its item 5
-   is actually about rule persistence (the block is unchanged from HEAD
-   and out of scope for a diff-only placement check). Worth the primary
-   GPT confirming the item-5 reference lands on the right content, since
-   it is a new pointer introduced by this trim.
-3. **Assembled-size method** - I measure the canonical way (LF-normalized,
+1. **Partial placement of a 3-file handoff.** I placed 1 of 3 files and
+   held 2. My reasoning is in "Why held rather than partially applied"
+   above. If the intent was for me to apply the STANDING-RULE remedy
+   (place `daily-brief` with the cron hunk reverted to HEAD's 8 AM, place
+   `kyocera-research` verbatim including the MyQ/PaperCut bullet, and flag
+   both), say so and I will - it is a one-commit follow-up. I erred toward
+   report-not-guess because the handoff explicitly asserted a clean diff
+   and it was not clean.
+2. **`daily-brief` 8 AM vs 2 PM - which is current intent?** The incoming
+   file argues 2 PM on solid grounds (drive-connectedness / Hermes
+   scheduler working-dir behavior). If 2 PM is now the intended schedule,
+   the launchers and `NEXT_STEPS.md` need the matching change in the same
+   handoff. If 8 AM stands, the incoming `daily-brief` file needs re-cutting
+   without that hunk.
+3. **`kyocera-research` MyQ/PaperCut bullet** - is this an intended part of
+   the "research loop close" work that just wasn't itemized, or sandbox
+   drift? It's benign either way, but I won't place undescribed Zone B
+   content on my own judgment.
+4. **Task (B) is fully blocked, not partially done.** Nothing was renamed,
+   no reference was changed, no `.gitignore` edit was made. The three
+   blockers (B-1 Zone B edit wall, B-2 self-rule-rewrite prohibition, B-3
+   the `logs/` `.gitignore` collision that would un-track this report) are
+   each sufficient on their own. B-3 in particular means the rename as
+   literally specified ("rename to `logs/`") would break the audit
+   continuity mechanism even if the Zone B wall did not exist - a
+   different target folder name is probably the real fix. Needs Blacksmith
+   / Claude Project chat direction per the "what task (B) needs" list
+   above.
+5. **Assembled-size method** - LF-normalized char counts,
    `{{AGENT_NAME}}` -> literal "North Forge", markers replaced with no
-   surrounding-newline manipulation). The incoming `.sh` assembler uses
-   Python `f.read()` + `.replace()` (keeps whatever newlines are on disk);
-   the `.bat` assembler uses `Get-Content -Raw` + `.Replace()` +
-   `Set-Content -NoNewline`. On a CRLF working tree the real emitted
-   `.hermes.md` will be larger by roughly one byte per line (~143 lines
-   template + menu/banner lines => ~+160 bytes). The 20,000 ceiling is a
-   character limit, not a byte limit, so the LF measure is the right one;
-   flagging the method only so the primary GPT knows the 17,958 / 17,953
-   figures are LF-char counts, consistent with every prior audit's table.
-4. **No live exercise** - no launcher run, no model run against the new
-   `.hermes.md`, no `hermes cron`/`doctor`. All deferred to Kenneth's next
-   real launch, same as the prior two sessions.
+   surrounding-newline manipulation, same as every prior audit. On a CRLF
+   working tree the real emitted `.hermes.md` is ~+160 bytes (one per
+   line); the 20,000 limit is a character limit so the LF measure is the
+   right one. Flagging only so the 18,491 / 18,486 figures are understood
+   as LF-char counts.
+6. **No live exercise** - no launcher run, no model run against the new
+   `.hermes.md`, no `hermes cron` / `doctor`. Deferred to Kenneth's next
+   real launch, same as recent sessions.
 
 ## Status
 
-Needs primary GPT review. The handoff placement is complete and verified:
-diff-vs-HEAD is exactly the 5 stated changes and nothing else; the
-SALES-mode stricter-fallback rule (the one flagged content-loss risk) is
-preserved with all semantic elements intact; both assembled sizes recompute
-to the handoff's exact figures (17,958 FULL / 17,953 SALES) with margin
-restored to ~2,045 from ~790; zero unreplaced markers in either mode; all
-prior launcher fixes (`4b74503`, `2dee2c1`) confirmed present and
-untouched; encoding clean (0 non-ASCII). Repo integrity sound: working
-tree clean after the commit, `.gitignore` correct, 15 skill sources
-unchanged, both `.sh` launchers `bash -n`-clean.
+Needs primary GPT review. Concrete state at session end:
+- `.hermes.template.md` placed and verified: diff is exactly gap 1 (+533
+  chars, one `field_claim_rule` paragraph), no other line touched, no
+  recorded prior fix disturbed; assembled sizes recompute to the handoff's
+  exact figures 18,491 FULL / 18,486 SALES (margins 1,509 / 1,514); zero
+  unreplaced markers; encoding clean (0 non-ASCII, 0 CRLF).
+- `skills-source/shared/kyocera-research/SKILL.md` and
+  `skills-source/shared/daily-brief/SKILL.md` **held, not placed** - each
+  contains changes beyond the three stated gaps; `daily-brief`'s cron
+  change (8 AM -> 2 PM) contradicts the `5e2bc49` recorded decision and
+  the hardcoded schedule in both Zone A launchers, which are not part of
+  this handoff. Two clean paths forward listed above.
+- Gap 3: `research-log/` confirmed absent from `.gitignore` (correct); no
+  `research-log/` folder exists in the working tree, so nothing to commit.
+- Task (B) (`audit/` -> `logs/` rename): **not started, blocked.** Three
+  independent hard problems documented (B-1 / B-2 / B-3). The report was
+  written and committed at its existing path `audit/CLAUDE_CODE_LAST_AUDIT.md`
+  as always; no folder move occurred, so the "read at the new path"
+  verification is not applicable this session.
+- Repo integrity otherwise sound: working tree clean except the one placed
+  file, `.gitignore` correct, 15 skill sources unchanged.
