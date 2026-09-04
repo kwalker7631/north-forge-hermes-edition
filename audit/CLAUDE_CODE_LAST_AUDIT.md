@@ -52,17 +52,40 @@ quote / report session only.
   it excludes `.env`, `.forge-mode`, `.hermes.md`, `.hermes/`, plus the
   `/skills/` guard at line 51 and `logs/` at line 29. Not re-diffed this
   session (no task touched it); assumed intact per `df92049` state.
-- **`hermes doctor`**: run, did NOT return within 120 s, moved to
-  background, then killed. Seventh consecutive session with no usable
-  `hermes doctor` output (prior audits assessed this as an offline /
-  update-check block, `hermes` binary present at
-  `C:\Users\kenw\AppData\Local\hermes\bin\hermes`, not a repo defect).
-- **`hermes skills list --source local`**: not obtained this session -
-  it was chained after the `hermes doctor` call that hung and was killed
-  with it. No independent attempt made afterward. Prior session verified
-  all 15 skill sources intact and wired into the launcher assembly; no
-  reason from this session's inspection to think that changed
-  (`skills-source/**` untouched since).
+- **`hermes doctor`**: run in a chained background command that exceeded
+  the 120 s foreground timeout and was moved to background; I initially
+  reported it as hung and killed. **Correction: it completed with exit
+  code 0 and produced full clean output** (task `bzgfco3qm`, notified
+  after my first response). This BREAKS the "6+ consecutive sessions
+  with no `hermes doctor` output" streak the prior audits recorded - the
+  command works, it is just slow (>120 s) on this machine. Verbatim
+  result:
+  ```
+  ◆ Security Advisories      ✓ No active security advisories
+  ◆ MCP Server Security      ✓ No suspicious MCP stdio commands
+  ◆ Python Environment       ✓ Python 3.11.16   ✓ SQLite 3.53.1
+                             ✓ Virtual environment active
+                             ✓ Version files consistent (0.21.0)
+    state.db WAL 1.0 MB; cron/executions.db WAL 20.0 KB;
+    verification_evidence.db WAL 32.0 KB; kanban.db WAL 116.0 KB
+  ◆ SSL / CA Certificates    ✓ SSL CA certificate bundle is valid
+  ◆ Required Packages        ✓ OpenAI SDK  ✓ Rich  ✓ python-dotenv  ✓ PyYAML
+  ```
+  Hermes version 0.21.0. No issues reported in any section.
+- **`hermes skills list --source local`**: also completed (same
+  background task). **14 local skills, all `local` source, all `local`
+  trust, all `enabled`, 0 disabled** - "0 hub-installed, 0 builtin, 14
+  local". Names as registered:
+  `assist, audit, draft, esc, flush, hl, kb, kyocera-research, log,
+  menu, sales, switch, train, web`.
+  Note: `daily-brief` is NOT in this list - consistent with the prior
+  audit's record that the `daily-brief/SKILL.md` handoff file was HELD,
+  not placed. This live list reflects the last launcher build into
+  `~/.hermes`, not necessarily current `skills-source/`; a fresh launch
+  would rebuild it. `Category` column is blank for every row (no skill
+  sets a `category:` field). Prior audits' "15 skill sources" figure vs.
+  this "14 registered" - flagged below for the primary GPT to reconcile
+  against `skills-source/**`.
 
 ## Zone A changes made
 
@@ -140,7 +163,11 @@ about to author against them.
   file-tree to primary GPT; confirm README has no 'Updating Hermes
   itself' section" - `audit/CLAUDE_CODE_LAST_AUDIT.md` only. Pushed
   `df92049..d9981b3` to `origin/main`.
-- (this hash-fill edit) one further commit on top, same file only.
+- `2f65aaa` - "Audit: fill commit hash d9981b3 into report" - same file.
+- (this third commit) - "Audit: correct hermes doctor/skills-list result
+  (completed clean, not hung)" - same file. The chained background
+  `hermes` command finished with exit 0 after my first response;
+  session-start section and flag 3 corrected accordingly.
 
 ## Uncertain / flagged for primary GPT review
 
@@ -160,10 +187,16 @@ about to author against them.
    history," Claude Code does not modify its contents and does not move
    new files in without an explicit instruction.
 
-3. **`hermes doctor` / `hermes skills list` produced nothing this
-   session** (doctor hung and was killed; skills-list never ran
-   standalone). No live exercise of the launchers or skill assembly this
-   session. Deferred to Kenneth's next real launch, as before.
+3. **`hermes doctor` / `hermes skills list` DID run clean this session**
+   (background task `bzgfco3qm`, exit 0) - I had wrongly reported them as
+   hung/killed in my first pass and have corrected the session-start
+   section above. `hermes doctor` is fully clean at 0.21.0; 14 local
+   skills all enabled + locally trusted. Still no launcher run / no live
+   `.hermes.md` assembly exercise this session. **Reconcile "15 skill
+   sources" (prior audits) vs. "14 registered local skills" (this
+   session's live list) against `skills-source/**`** - likely just
+   `daily-brief` (held, not placed) accounting for the difference, but
+   worth a direct check.
 
 4. **`.gitignore` not re-diffed this session** - no task touched it and
    the working tree was clean, so it was taken as intact at `df92049`.
