@@ -419,10 +419,15 @@ highest-risk item in that list.
 
 ## Commits made this session
 
-- Placement commit (5 handoff files + this report). Hash recorded in the
-  final response block below. `.hermes.template.md` -14/+? net -1,173
-  chars, `full-menu.md` /`sales-menu.md` one line each, both launchers one
-  comment each. Pushed to `origin/main`.
+- `0929a49` - "Place budget-trim handoff: consolidate always-loaded
+  context (~1,253 chars/mode reclaimed)" - the 5 handoff files + this
+  report. `git show --stat`: 6 files changed, 451 insertions(+), 509
+  deletions(-) (the large line counts are the CRLF-vs-LF re-encoding git
+  reports on first touch; the substantive content delta is the 5 stated
+  changes only, as the CR-normalized diff below shows). Pushed to
+  `origin/main` (`6162663..0929a49`).
+- A follow-up commit filling this hash into the report (this line) may
+  appear immediately after `0929a49`; it changes nothing but this file.
 
 ## Uncertain / flagged for primary GPT review
 
