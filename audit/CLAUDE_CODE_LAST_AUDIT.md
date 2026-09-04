@@ -527,13 +527,13 @@ was written to that path and is included in this session's commit.
 
 ## Commits made this session
 
-- `<HASH>` - "Place research-loop-close handoff (partial): field_claim_rule
+- `e869b82` - "Place research-loop-close handoff (partial): field_claim_rule
   research-log check; hold both skill files pending scope confirmation" -
   2 files: `.hermes.template.md` (gap 1, +2 lines / +533 chars,
   assembled 18,491 FULL / 18,486 SALES) and this report. Pushed to
-  `origin/main` (`decef9a..<HASH>`).
-- A follow-up commit filling `<HASH>` into this report's text may appear
-  immediately after; it changes nothing but this file.
+  `origin/main` (`decef9a..e869b82`).
+- This follow-up commit fills `e869b82` into this report's text; it
+  changes nothing but this file.
 
 (The two held skill files - `skills-source/shared/kyocera-research/SKILL.md`,
 `skills-source/shared/daily-brief/SKILL.md` - are NOT in this commit and
