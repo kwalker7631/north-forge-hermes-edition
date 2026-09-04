@@ -8,6 +8,16 @@ if not exist ".readme-shown" (
     echo. > .readme-shown
 )
 
+rem --- first run on this machine: put a real North Forge icon on the Desktop
+rem (Windows twin of the Mac launcher's "North Forge.command" desktop icon).
+rem Points at this launcher wherever the drive is mounted right now.
+if not exist "%USERPROFILE%\Desktop\North Forge.lnk" (
+    powershell -NoProfile -Command ^
+        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut(\"$env:USERPROFILE\Desktop\North Forge.lnk\");" ^
+        "$s.TargetPath='%~f0'; $s.WorkingDirectory='%~dp0';" ^
+        "$s.IconLocation='%~dp0assets\north-forge.ico'; $s.Save()" >nul 2>nul
+)
+
 rem --- assemble live .hermes/skills/ and .hermes.md from source, based on the mode toggle ---
 set "MODE=sales"
 if exist ".forge-mode" (

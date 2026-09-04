@@ -145,3 +145,29 @@ Push note: this push (d0bd80b..443cbd6) also carried the session's earlier
 local-only commits to origin/main: a801cb8 (first research-log pass),
 3418ca9 (USER_MANUAL.md), a1f7fa1 (the fix batch described above). Remote
 is now fully in sync with this handoff document.
+
+## Addendum 2: brand assets + Windows desktop icon (Zone A)
+
+Kenneth supplied two images this session; both are now tracked under a new
+assets/ folder:
+
+- assets/north-forge-icon.png (512x512) - the anvil+flame North Forge app
+  icon (Kyocera red flame, blue accent, dark rounded tile).
+- assets/north-forge.ico - multi-size Windows icon (16-256px) generated
+  from it with Pillow.
+- assets/logo-kyocera-1024.png - official KYOCERA wordmark from
+  Kyocera_Standards (512x512 canvas, transparent).
+- assets/logo-kyocera-128x64.png - content-cropped, centered 128x64
+  render, sized for the KB template's contact-block logo slot (the
+  template's 128x64 placeholder). NOTE for your side: actually wiring
+  this image into the locked HTML template (replacing the logo
+  placeholder) is a Zone B template decision - the asset is staged, the
+  template is untouched.
+
+launch-north-forge.bat gained a first-run block (right after the README
+auto-open block): creates a "North Forge.lnk" on the user's Desktop
+pointing at the launcher with the .ico icon - the Windows twin of the
+Mac launcher's existing "North Forge.command" desktop icon. Skips
+silently if the shortcut already exists. Verified live on this machine
+(shortcut created, parens balanced). The .sh needed no change - its
+desktop-icon block predates this.
