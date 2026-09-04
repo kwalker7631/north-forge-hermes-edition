@@ -292,7 +292,7 @@ not mistaken for an oversight.
   `.hermes.template.md` + this report. Pushed.
 - `084d67b` - "Audit: fill placement commit hash e869b82 into report" -
   this report. Pushed.
-- `<HASH>` - "Archive superseded setup-thumbdrive.ps1; cleanup-pass audit"
+- `88953a7` - "Archive superseded setup-thumbdrive.ps1; cleanup-pass audit"
   - `git mv setup-thumbdrive.ps1 -> archive/` + this report. Push at end
   of session (`084d67b..<HASH>`).
 
