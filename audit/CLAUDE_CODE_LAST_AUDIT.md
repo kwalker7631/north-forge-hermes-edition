@@ -136,11 +136,11 @@ about to author against them.
 
 ## Commits made this session
 
-- (pending) `<HASH>` - "Audit: verbatim relay of Zone A list / recital /
-  README file-tree to primary GPT; confirm README has no 'Updating
-  Hermes itself' section" - `audit/CLAUDE_CODE_LAST_AUDIT.md` only. Will
-  be filled in and pushed at session end per standing Zone A
-  authorization.
+- `d9981b3` - "Audit: verbatim relay of Zone A list / recital / README
+  file-tree to primary GPT; confirm README has no 'Updating Hermes
+  itself' section" - `audit/CLAUDE_CODE_LAST_AUDIT.md` only. Pushed
+  `df92049..d9981b3` to `origin/main`.
+- (this hash-fill edit) one further commit on top, same file only.
 
 ## Uncertain / flagged for primary GPT review
 
