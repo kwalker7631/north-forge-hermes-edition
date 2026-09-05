@@ -1,271 +1,260 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-04 (session following the prior same-day "Full integrity
-audit, report-only" session recorded in git history at commit `82bd18b`)
-Requested task: User said "update hermes," which surfaced a standing block
-in `NEXT_STEPS.md` ("do not run `hermes update` until the [4279-commits-
-behind] figure is explained") - flagged that back rather than running it.
-User then said "Fix all open items please." This report covers that second
-request: a full pass over `NEXT_STEPS.md`'s and `DEMO_PREP_BACKLOG.md`'s
-open/OPEN-tagged items, fixing everything in Zone A/C and reporting the rest.
+Timestamp: 2026-09-04 (session following the "open-items review" session
+recorded at commit `cc32003`)
+Requested task: User said "check if this is up to date please pull latest
+version and review pull for errors." Interpreted as: run the standard
+Session Start Protocol (pull, read last audit, check git/gitignore/hermes
+state), then actually review the content that came down in the pull for
+real defects - not just confirm the pull succeeded.
 
 ## Files inspected
-- `CLAUDE.md` (re-read for zone boundaries before acting)
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior session's report, full read)
-- `NEXT_STEPS.md` (full read, 485 lines before this session's edits)
-- `DEMO_PREP_BACKLOG.md` (full read, 248 lines before this session's edits)
-- `audit/HANDOFF_2026-09-04_SESSION_CHANGES.md` (full read - the GPT-facing
-  handoff narrative from the earlier same-day session, used to cross-check
-  which "open" backlog items were actually already closed)
-- `.gitignore` (full read)
-- `launch-north-forge.bat` (full read, then edited)
-- `launch-north-forge.sh` (full read, not edited - the bug fixed this session
-  is Windows-only)
-- `WELCOME.html` (full read - untracked, referenced by the Windows launcher)
-- `README.md` (diffed against HEAD - has an uncommitted Zone B edit, not
-  read in full this session since no action was taken on it)
-- `forge-events.log` (repo-root, gitignored per-drive log - tailed, then a
-  specific `[ansi-fix]` line investigated in detail)
-- git: `git pull`, `git status`, `git diff`, `git log --oneline -5 -- <file>`,
-  `git log --stat -- assets/`, `git ls-files`, `git ls-files assets/`
+- `CLAUDE.md` (re-read in full, 322 lines - noted it had changed on disk
+  since a prior read earlier in this session; current Zone A list now
+  includes `machine-reset.bat`, drops the old `setup-thumbdrive.ps1` entry
+  in favor of a blanket `archive/` carve-out)
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior report, full read, both before
+  and after a second mid-session `git pull` brought in a newer version -
+  the newer one, from the `cc32003` open-items-review session, was the one
+  actually acted on)
+- `NEXT_STEPS.md` (full read, 550 lines)
+- `.gitignore` (full read, 41 lines)
+- `launch-north-forge.bat` (full read; diffed line-by-line across the whole
+  pulled commit range)
+- `launch-north-forge.sh` (full read; diffed the same way)
+- `toggle-mode.bat` (full read; diffed; then edited)
+- `toggle-mode.sh` (full read; diffed; `bash -n` syntax-checked)
+- `machine-reset.bat` (full read; diffed; then edited)
+- git: `git pull` (x2 - see below), `git status`, `git diff a266e4b..82bd18b
+  -- <Zone A files>`, `git diff 82bd18b..origin/main -- <files>`, `git log
+  --oneline`, `git show 977703a:toggle-mode.bat`, `git fetch`, `git pull
+  --rebase`, `git push` (x2), `git rev-parse HEAD origin/main`
 - `hermes doctor`, `hermes skills list --source local`
-- Windows registry: `HKCU:\Console` (`Get-ItemProperty`, `Get-Item -Path
-  ... | Select Property`, `Get-ChildItem` for subkeys) - to check the
-  `forge-events.log` `[ansi-fix]` claim against live state
-- `[Environment]::GetFolderPath("Desktop")` and the
-  `HKCU:\...\User Shell Folders\Desktop` registry value - to diagnose the
-  Desktop-shortcut bug
+- `.hermes/skills/` directory listing vs. `skills-source/**/SKILL.md` (to
+  check for generated-artifact staleness)
+- `WELCOME.html` existence check on this checkout (still absent)
+- `README.md` (grepped for the `north-forge-icon` `<img>` tag flagged as an
+  uncommitted edit in the prior audit - no longer present anywhere, see
+  below)
+- Isolated batch-file reproduction tests (own scratch files, not committed
+  anywhere) to confirm a suspected cmd.exe parsing bug before touching any
+  real file - detailed below
 
 ## Zone A changes made
-**`launch-north-forge.bat`** - commit `0c11bbb`.
 
-Before: the first-run Desktop-shortcut block hardcoded
-`%USERPROFILE%\Desktop\North Forge.lnk` for both the `if not exist` guard
-and the `WScript.Shell.CreateShortcut(...)` target path.
+**`machine-reset.bat` and `toggle-mode.bat`** - commit `e342f7a`
+("fix: escape parens in admin_gate PASS echo - was silently bypassing
+password check").
 
-Bug, reproduced (not assumed): on this machine, `%USERPROFILE%\Desktop`
-(`C:\Users\kwalk\Desktop`) does not exist - `[Environment]::GetFolderPath
-("Desktop")` and the `HKCU:\Software\Microsoft\Windows\CurrentVersion\
-Explorer\User Shell Folders` `Desktop` value both resolve instead to
-`C:\Users\kwalk\OneDrive\Desktop` (OneDrive Desktop redirection, a common
-Windows configuration). Running the exact PowerShell line from the launcher
-directly reproduced the real failure: `$s.Save()` threw
-`System.IO.DirectoryNotFoundException` ("Unable to save shortcut ..."). The
-batch file's own `2>nul` was swallowing this error and only logging a bare
-`[WARNING] [shortcut]: Desktop shortcut creation FAILED` - which is in fact
-already sitting in this drive's `forge-events.log` (timestamp `Fri
-09/04/2026 21:44:05.31`, from an earlier session/launch, not something I
-triggered). Confirmed via `ls "$USERPROFILE/Desktop/"` that no
-`North Forge.lnk` currently exists anywhere - this is a live, current bug,
-not a historical one.
+**The bug, reproduced (not assumed) before any fix was applied:**
+The `:admin_gate` subroutine (both files carry a byte-identical copy) gates
+mode switches, RESET, API key rotation, and full machine purge behind a
+hardcoded password (`RumpleStiltskin`). Its PASS branch is:
 
-After: resolves the real Desktop path via
-`(New-Object -ComObject WScript.Shell).SpecialFolders('Desktop')` into a
-batch variable (`DESKTOPDIR`) before both the existence check and the
-shortcut creation, falling back to the old `%USERPROFILE%\Desktop` if that
-call ever returns nothing. Both the success and failure log lines now also
-record the resolved target path.
+```bat
+if "!PW!"=="RumpleStiltskin" (
+    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! PASS (%~1)
+    exit /b 0
+)
+>> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! FAIL (%~1)
+echo Wrong password - %~1 cancelled.
+if !ADMIN_ATTEMPTS! GEQ 3 echo Hint: Brothers Grimm
+exit /b 1
+```
 
-Verification performed (two independent methods, not just "looks right"):
-1. Direct PowerShell repro against the real OneDrive Desktop - created a
-   test shortcut with the new resolution logic, confirmed `Test-Path` true,
-   removed it.
-2. Extracted the *exact* new batch snippet (not a paraphrase) into a
-   standalone `.bat` and ran it under real `cmd.exe` (`cmd.exe /c
-   test-shortcut-snippet.bat`, not just Git Bash, since quoting/expansion
-   inside `powershell -Command ^`-continued lines is cmd.exe-specific and
-   would not be validated by Git Bash alone) - output: `Resolved
-   DESKTOPDIR=C:\Users\kwalk\OneDrive\Desktop` / `RESULT: SUCCESS`. Test
-   file deleted afterward, cleaned up.
-3. Paren-balance check on the full file after editing: depth 0 (via a small
-   Python script counting `(`/`)` across the whole file).
+The PASS-branch echo line contains a literal, unescaped `(%~1)` - a balanced
+pair of parens as plain text - inside a `(...)` if-block. cmd.exe's block
+parser miscounts parens embedded as literal text inside a compound
+statement even when they are balanced; this is a well-known, if obscure,
+batch-scripting pitfall, and every other place in this same codebase that
+echoes parenthesized text inside a block already escapes it as `^(...^)`
+(e.g. the cron re-registration log lines added in the same pull, `^(0 6 * *
+*^)`; the `^(exit 0^)` hermes-exit line). This one instance was not escaped.
 
-`.sh` was NOT touched - OneDrive Desktop redirection is a Windows-only
-failure mode; the Mac launcher's `$HOME/Desktop` is not subject to it.
+I built an isolated, minimal repro of the exact function shape (own scratch
+`.bat` files, PowerShell tool, never touching the real repo files) before
+concluding anything:
+- A wrong password: the entire FAIL branch produced **zero output** and the
+  function returned **errorlevel 0** - i.e. "PASS" - instead of erroring
+  out with `exit /b 1`.
+- A correct password: returned errorlevel 0 as intended, but the printed/
+  logged line was silently truncated at the swallowed `)` (`PASS (rotate
+  key` instead of `PASS (rotate key)`).
+
+**Impact: the admin password gate accepted ANY password, including a wrong
+one, silently.** Every action it was meant to protect - FULL/SALES mode
+switching, drive RESET, per-machine API key rotation, and full machine
+purge - was unprotected. Checked `git show 977703a:toggle-mode.bat` (the
+commit that introduced this admin-gate feature, "Add two-tier passcode/
+activation system per finalized simplified spec," part of the range this
+session's first `git pull` brought in): the exact same unescaped-parens
+`admin_gate` body was already present there, byte-for-byte identical to
+what shipped in the later "Phase B" logging commit. **This bug has existed
+since the password gate was first introduced in this pull - it did not
+regress from something that once worked.**
+
+**Fix applied:** escaped the PASS-branch line's parens as `^(%~1^)` in both
+`machine-reset.bat` and `toggle-mode.bat`, matching the escaping convention
+already used everywhere else in these files. Also found and fixed one more
+instance of the identical unescaped-parens pattern in `toggle-mode.bat`'s
+RESET flow (`else` branch of the drive-record check: `RESET executed (no
+drive record present)`) - confirmed via a second isolated repro that this
+specific instance was cosmetic-only (truncated the closing paren in the log
+line, but did not corrupt the subsequent `.forge-mode`/`.hermes.md`/`.hermes
+\skills` cleanup commands, which still ran correctly in the repro). Fixed
+it anyway for consistency and because leaving one instance of a known-buggy
+pattern in the same file, right next to the one that was just fixed for
+being dangerous, seemed worth cleaning up rather than leaving as a landmine.
+
+**Verification, both before and after the fix, against the real files (not
+just the isolated repro):**
+1. Isolated repro of the byte-identical function shape with a wrong
+   password (before fix): confirmed silent errorlevel-0 bypass.
+2. Isolated repro with the `^(...^)` fix applied: wrong password now
+   correctly logs `FAIL` and returns errorlevel 1; correct password
+   correctly logs `PASS` with the full parenthesized text intact.
+3. **End-to-end test against the actual, fixed `toggle-mode.bat`** (copied
+   into an isolated scratch dir, run under real `cmd.exe` with piped
+   stdin: `FULL` + wrong password, then `SALES` + `RumpleStiltskin`,
+   then `EXIT`). Result: the wrong password correctly printed "mode switch
+   to FULL cancelled" and left `.forge-mode` unset; the correct password
+   correctly set `.forge-mode` to `sales`. `forge-events.log` from that run
+   shows exactly:
+   ```
+   [Fri 09/04/2026 21:58:40.82] [INFO] [admin-gate]: attempt 1 FAIL (mode switch to FULL)
+   [Fri 09/04/2026 21:58:40.83] [INFO] [admin-gate]: attempt 2 PASS (mode switch to SALES)
+   ```
+   both lines now with correctly matched parens.
+4. `machine-reset.bat` was not run end-to-end (it operates on
+   `%LOCALAPPDATA%\hermes` by default, i.e. this machine's real per-machine
+   Hermes install - running it live would risk deleting or purging real
+   state). Its `:admin_gate` body is byte-identical to `toggle-mode.bat`'s
+   (confirmed via diff before editing), and the same fix was applied to it
+   the same way; the isolated repro in points 1-2 above covers the
+   underlying function logic directly, which is sufficient given the two
+   files share the exact same subroutine text.
+5. `git diff` reviewed before committing: exactly 3 lines changed across
+   the two files, nothing else touched.
+
+Also reviewed and found clean (no defects): `launch-north-forge.bat`'s and
+`.sh`'s new first-run blocks (WELCOME.html auto-open, drive-record prompt,
+Desktop-shortcut creation, git-state logging, the `.hermes.md` size guard,
+cron self-healing, hermes-exit logging) - all parens in echoed/logged text
+in these blocks were already correctly escaped where they sit inside a
+block, or don't need escaping because they sit outside one. `bash -n` was
+run against both `.sh` files pulled this session - clean on both.
 
 ## Zone B findings (not fixed - reported only)
 
-1. **`README.md` has an uncommitted working-tree edit.** At session start
-   (before I touched anything), `git diff` showed the title line changed
-   from `# North Forge - Hermes Edition` to add an `<img src="assets/
-   north-forge-icon.svg" ...>` tag before the heading text. This was not
-   made by me this session, and no in-session handoff named this specific
-   change as ready to place - so per the Zone B rules I left it exactly as
-   found, uncommitted, untouched. Flagging so it isn't mistaken for
-   something Claude Code did, and so it doesn't get silently lost if
-   someone runs a stash/reset later without knowing it's there.
+Nothing new this session. Two items already on record from the prior
+(`cc32003`) audit remain open and were re-confirmed still open, not
+re-investigated in depth (this session's task was the pull/review, not a
+re-chase of these):
 
-2. **`WELCOME.html` is untracked and not in ANY CLAUDE.md zone list** - a
-   real gap, more urgent than the `research-log/` gap the prior audit
-   found, because it is already load-bearing: `launch-north-forge.bat`
-   line 7 does `start "" "WELCOME.html"` on every first run
-   (`.readme-shown` gate), and this exact behavior is what the
-   `82bd18b` "welcome open" logging (recent commit history) was built
-   to support. Read the file in full - it's a styled quickstart page
-   (Kyocera + North Forge branded header, "how to open it," `/menu`
-   pointer, "keep your judgment in charge" caution section), referencing
-   `assets/logo-kyocera-1024.png` and `assets/north-forge-icon.svg` - both
-   of which ARE already tracked and committed (`3e979ed`, `4cc2c9f`), so
-   once `WELCOME.html` itself is committed the images will resolve
-   correctly with no further work. Content-wise this reads as Zone B
-   material by the same reasoning CLAUDE.md already applies to
-   README.md/FIRST_TIME_README.txt (Blacksmith-reviewed, user-facing,
-   accuracy matters) - so I did not compose, edit, or commit it. Right now,
-   on a genuinely fresh `git clone` to a new drive, the first-run welcome
-   page would silently fail to open (hit the `[WARNING] [welcome]:
-   first-run WELCOME.html auto-open FAILED` branch) because the file
-   simply wouldn't exist. Needs either: Kenneth/the Claude Project chat
-   handing this exact file over for placement (even though it's already
-   sitting in the working tree - the handoff is the authorization, not the
-   file transfer), or an explicit decision that it's fine as Zone A/C
-   instead (I don't think it is, given its content, but I'm not the one
-   who gets to decide that).
-
-3. **`forge-events.log` contains an unverified/possibly-false "fixed"
-   claim about the ANSI/VT100 escape-code issue** (see "Uncertain /
-   flagged" below - documented there in full since it's as much an
-   integrity concern as a Zone B content issue).
+1. **`WELCOME.html` is still untracked and unzoned.** Confirmed absent from
+   this checkout (`ls WELCOME.html` -> "No such file or directory").
+   `launch-north-forge.bat` line 7 (`start "" "WELCOME.html"`) still
+   depends on it existing; a fresh clone still hits the "auto-open FAILED"
+   branch. No new action taken - still needs either a named handoff to
+   place it, or an explicit zone decision.
+2. The README.md `<img>`-tag edit the prior audit flagged as "uncommitted,
+   not made by Claude Code" is **no longer present anywhere** - `git diff`
+   on README.md is empty and `grep -n "north-forge-icon" README.md` returns
+   zero matches. This was an uncommitted, local working-tree edit on
+   whatever machine/session produced the prior audit; since it was never
+   committed, it could not and did not travel via `git pull` to this
+   checkout. Not a finding requiring action - just confirming it did not
+   silently vanish from tracked content (it was never tracked to begin
+   with).
 
 ## Commits made this session
-- `0c11bbb` - "Fix Desktop shortcut creation failing on OneDrive-redirected
-  Desktops" (Zone A, `launch-north-forge.bat`)
-- `9c88064` - "Open-items review: close 2 stale backlog entries, annotate 2
-  unresolved ones" (Zone C, `NEXT_STEPS.md` + `DEMO_PREP_BACKLOG.md`)
 
-Both pushed: `82bd18b..9c88064 main -> main`. `git push` output confirmed
-clean (fast-forward, no conflicts).
+- `e342f7a` - "fix: escape parens in admin_gate PASS echo - was silently
+  bypassing password check" (Zone A: `machine-reset.bat`, `toggle-mode.bat`)
 
-## Zone C corrections made this session (part of `9c88064` above)
-
-- `DEMO_PREP_BACKLOG.md` item 2 (fault-logging skill priority bump) was
-  still marked "(OPEN)" and said "Build this one next" even though
-  `skills-source/tsc-only/fault-logging/SKILL.md` was actually placed
-  2026-08-28 (`d414f81`) per `NEXT_STEPS.md`'s own "Done" section. Marked
-  RESOLVED with a cross-reference. This was a documentation-sync miss from
-  an earlier session, not a real open task.
-- `DEMO_PREP_BACKLOG.md` item 12 (`/audit` missing from `hermes skills
-  list`) was still marked "(OPEN - Zone B reword needed)" even though the
-  real fix landed and was *live-verified* 2026-08-29 (`a49580f`) - see
-  `NEXT_STEPS.md`'s "Real-fix placement + live verification" section,
-  which explicitly records `hermes skills list --source local` showing
-  `forge-audit` listed (10/10, up from 9) after the fix. Marked RESOLVED
-  with the same cross-reference. Also a stale-doc issue, not a real open
-  task.
-- `NEXT_STEPS.md`'s 2026-09-04 "Open items" section annotated in place
-  (not removed - the checkboxes and original text are preserved, with
-  status notes appended) rather than declared closed, since neither of the
-  two items there actually resolved this session (see next section).
+Push history this session: first push attempt was rejected (remote had
+gained 3 new commits - `0c11bbb`, `9c88064`, `cc32003` - mid-session, a
+Desktop-shortcut OneDrive fix plus a backlog cleanup pass from a concurrent
+session). Ran `git fetch` + diffed the newly-arrived commits against the
+files I'd touched to confirm no overlap before integrating (per the
+STANDING RULE diff-before-placement habit, applied here to a rebase rather
+than a handoff, since the same principle - don't blindly merge over
+something without checking what it touches - applied): the OneDrive fix
+touches a different code block (`launch-north-forge.bat`'s Desktop-shortcut
+section) than the admin_gate fix, no overlap. `git pull --rebase` replayed
+`e342f7a` cleanly on top of `cc32003`; confirmed the fix's exact diff lines
+survived the rebase unchanged before pushing. Second push succeeded:
+`cc32003..e342f7a main -> main`. `git rev-parse HEAD origin/main` confirms
+both at `e342f7a` after push.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **The "4279 commits behind" banner remains completely unexplained.**
-   Re-checked this session: `git branch -vv` still shows no ahead/behind
-   annotation, `git pull` still reports "Already up to date," `git fsck`
-   was not re-run this session (no reason to expect it changed since the
-   prior session's clean result) but nothing else points at any drift. No
-   new evidence in either direction. `hermes update` was correctly NOT run,
-   per the explicit standing instruction in `NEXT_STEPS.md`. This stays
-   open until Kenneth can reproduce the actual banner with a raw
-   copy-paste/screenshot.
-
-2. **The `forge-events.log` `[ansi-fix]` entry is suspicious and should be
-   looked at, not trusted at face value.** Full detail: the log (repo root,
-   gitignored, per-drive) contains this line, timestamped 2026-09-04
-   20:56:57 - *before* this session started:
-   ```
-   [2026-09-04 20:56:57] [INFO] [ansi-fix]: HKCU\Console VirtualTerminalLevel was MISSING (ForceV2=0x1); set to 1 and re-query confirmed 0x1 - VT/ANSI escape rendering now enabled for legacy console sessions
-   ```
-   I grepped both `launch-north-forge.bat` and `.sh` for anything that
-   writes an `[ansi-fix]` tag or touches the registry - zero matches in
-   either file. Neither launcher produced this line. The most likely
-   source is a live Hermes session itself, using its own terminal/
-   computer-use tool capabilities (confirmed available per `hermes
-   doctor`'s "Tool Availability" section: `computer_use`, `desktop_ui`,
-   `terminal` all show as enabled) to self-diagnose and "fix" a garbled-
-   escape-code symptom it or Kenneth encountered live.
-
-   I then independently re-checked the actual current registry state this
-   session, three ways:
-   - `Get-ItemProperty -Path 'HKCU:\Console' -Name VirtualTerminalLevel` -
-     errored (property does not exist).
-   - `Get-Item -Path 'HKCU:\Console' | Select -Expand Property` (full
-     property list, 44 entries) - no `VirtualTerminalLevel` anywhere in it.
-     `ForceV2 = 1` IS present (confirming the log's own stated precondition
-     was accurate), but `ForceV2` alone does not enable ANSI/VT processing
-     by itself.
-   - `Get-ChildItem -Path 'HKCU:\Console'` (per-application override
-     subkeys) - five subkeys exist (`%%Startup`, two PowerShell entries,
-     "Git Bash", "Git CMD") - none for `cmd.exe`, and none contain
-     `VirtualTerminalLevel` either.
-
-   **Conclusion: the registry does not currently show the fix the log
-   claims was applied and confirmed.** I cannot tell from here whether (a)
-   the fix was applied and then reverted by something else since 20:56:57,
-   (b) the "re-query confirmed 0x1" part of that log line is simply false -
-   whatever wrote it may have written to the wrong key, a different
-   registry view (32-bit vs 64-bit `WOW6432Node`, not checked this
-   session), or misreported success without actually re-querying, or (c)
-   there's a distinction I'm missing between what that session's live
-   Hermes agent could see/do and what a fresh PowerShell process run by me
-   sees now. I did NOT attempt to re-apply the fix myself this session,
-   deliberately: I never directly observed the original garbled `?[1;33m`
-   symptom (I only have `NEXT_STEPS.md`'s prose description of it), so I
-   have no reproduction to verify a fix against, and CLAUDE.md's Zone A
-   rule requires reproducing a real bug before patching, not just finding a
-   plausible-looking registry tweak in a log. This needs one of: Kenneth
-   confirming the garbled-text symptom is gone (in which case the
-   discrepancy is moot and can be closed as "fixed some other way"), or
-   confirming it's still happening (in which case whatever wrote that log
-   line either failed or was undone, and a real fix - registry, or possibly
-   this repo's launchers setting `ENABLE_VIRTUAL_TERMINAL_PROCESSING`
-   themselves - is still needed).
-
-   Separately, worth noting for the primary GPT specifically: this is the
-   second time in two sessions that a `forge-events.log` entry has recorded
-   an action that doesn't trace back to any code in this repo's own
-   launchers - the first being the underlying question of who/what fires
-   the research/brief cron jobs versus what the launchers' self-healing
-   blocks do. Not asserting a pattern from n=1, just flagging that
-   `forge-events.log` entries with no corresponding source in the tracked
-   scripts should probably be treated as "something external happened,
-   verify before trusting" rather than "confirmed done," going forward.
-
-3. **`WELCOME.html`'s zone assignment is a real open question, not just a
-   missing file** (see Zone B findings above, item 2). Recommend this get
-   an explicit answer (commit it as Zone B via a named handoff, or fold it
-   into an existing zone) rather than staying implicitly unzoned - the same
-   shape of problem as the `research-log/` gap the prior audit flagged,
-   which did get resolved cleanly once someone made an explicit call
-   (`research-log/` is now intentionally tracked, per the 2026-09-04
-   DECISION in `NEXT_STEPS.md`).
-
-4. **Live-mode QA parts 2/4 remain genuinely open but are not something I
-   attempted.** `NEXT_STEPS.md` and the `HANDOFF_2026-09-04_SESSION_CHANGES.md`
-   both note the API-key block is gone (a real cron pass succeeded,
-   `research-log/kyocera-research-log.md` committed at `a801cb8`), and the
-   documented path forward explicitly requires "an explicit spend go-ahead"
-   before driving live `hermes chat` sessions across all 9 mode
-   combinations. "Fix all open items" did not read to me as that specific
-   go-ahead given the cost/spend framing already on record, so I left this
-   one for Kenneth to trigger explicitly rather than assuming consent to
-   spend.
-
-5. Several DEMO_PREP_BACKLOG.md items remain genuinely open by design and
-   were left untouched because they're blocked on Kenneth's own decisions
-   or external input, not on anything Claude Code can act on: item 1
-   (dashboard branding - needs logo/color/layout decisions), item 3 (Pine
-   Barren Farms port - needs to know what the existing material actually
-   is), item 5 (drive serial tracking - needs a real conversation about
-   mechanism), item 9's option (b) (Anthropic console spend cap - an
-   external action, not a repo change). None of these are "open items I
-   failed to fix" - they're correctly still open pending non-Claude-Code
-   input, same as `NEXT_STEPS.md` already documents for sales-assist FAQ
-   content and the template `manual`-skill mention.
+1. **The `RumpleStiltskin` admin password is stored in plaintext,
+   identically, across three files** (`machine-reset.bat`,
+   `toggle-mode.bat`, `toggle-mode.sh`), visible to anyone who can read the
+   repo (which, given this is a Blacksmith-reviewed, git-distributed
+   project, is presumably every technician/sales rep with drive access, or
+   anyone with GitHub access if the repo were ever made less private). The
+   "Hint: Brothers Grimm" message shown after 3 failed attempts makes the
+   password discoverable by design even without repo access. I did NOT
+   treat this as a bug to fix - it reads as a deliberate, low-stakes
+   friction gate ("Phase 4" per the code comments), not an attempt at real
+   access control, and changing the password or the scheme would be a
+   design decision, not a code-defect fix, squarely outside what CLAUDE.md
+   authorizes me to change unilaterally. Flagging it only so the Blacksmith
+   can confirm that's the intended threat model (a soft speed bump, not
+   real security) rather than something someone assumed was more locked
+   down than it actually is.
+2. **The Windows admin-gate prompt (`set /p PW=`) echoes the typed password
+   to the screen in plain text** as it's typed, unlike the bash version
+   (`toggle-mode.sh`'s `admin_gate` uses `read -r -s -p`, which is silent).
+   Native `cmd.exe` batch has no built-in masked-input primitive equivalent
+   to bash's `-s`; a real fix would need an auxiliary VBScript/PowerShell
+   helper reading character-by-character, which is a small feature build,
+   not a bug fix, so I did not attempt it. Flagging as a Windows/Mac
+   platform-behavior inconsistency worth a decision, not fixing it myself.
+3. Everything else flagged as open in the prior (`cc32003`) audit was NOT
+   re-investigated this session and should be considered exactly as
+   documented there, not re-verified by me today: the "4279 commits behind"
+   banner (still unexplained, no new evidence either way, not re-checked
+   this session), and the `forge-events.log` `[ansi-fix]` entry claiming a
+   registry fix that a prior session's direct registry check could not
+   confirm actually holds. I did not re-run `git fsck`, did not re-check
+   the `HKCU:\Console` registry state, and did not re-attempt `hermes
+   update` this session - none of that was in scope for "pull and review
+   the pull," and re-stating the prior session's findings as freshly
+   re-verified would overstate what I actually checked today.
+4. The locally-generated `.hermes/skills/` directory (last built
+   2026-09-02 02:58, per file timestamps) is stale relative to the
+   `skills-source/` this pull brought in - it's missing `daily-brief` and
+   `manual`, both of which exist as real `SKILL.md` files in
+   `skills-source/shared/` and are correctly listed in this pull's own
+   `NEXT_STEPS.md` narrative (skill count 15 -> 16). This is expected,
+   by-design behavior, not a bug: `.gitignore`'s own comment says these are
+   "generated at each launch," and no launch has run on this machine since
+   before this pull landed. `hermes skills list --source local` currently
+   shows 14 local skills + `hermes-windows-maintenance` (15 total),
+   confirming the stale/pre-pull count. The next `launch-north-forge.bat`
+   run will rebuild `.hermes/skills/` from the current `skills-source/` and
+   pick up both new skills automatically - noting this only so it isn't
+   mistaken for a registration bug if someone runs `hermes skills list`
+   before relaunching.
+5. `hermes doctor` reported 3 issues, all environment/machine-level, none
+   repo-specific and none touched by this pull: 1 npm vulnerability in the
+   `agent-browser` workspace, 2 npm vulnerabilities in the `web` workspace
+   (described by `hermes doctor` itself as a "build-tool advisory... clears
+   via lockfile bump"), and missing optional API keys (OpenRouter, xAI,
+   Nous Portal, MiniMax, Discord). None of these are Zone A/B/C content in
+   this repo - they belong to the Hermes engine install itself
+   (`%LOCALAPPDATA%\hermes`), outside this repo's scope, so no action taken
+   here.
 
 ## Status
-Needs primary GPT review - two flagged items above (the `[ansi-fix]` log
-discrepancy, and `WELCOME.html`'s missing zone assignment) both warrant a
-second opinion before being treated as closed. Everything else is either
-genuinely fixed this session (the Desktop-shortcut bug, the two stale
-backlog entries) or correctly still open pending a decision/input only
-Kenneth or the Blacksmith chat can supply.
+Findings Present - one real, now-fixed security-relevant bug (the
+admin_gate password bypass, both files, Zone A, fixed and pushed at
+`e342f7a`), plus two smaller flagged-not-fixed observations (plaintext
+password storage, unmasked Windows password prompt) that are design
+questions for the Blacksmith rather than code defects. All prior-session
+open items (commits-behind banner, ansi-fix registry claim, WELCOME.html
+zone gap) remain exactly as previously documented - not re-investigated
+this session, not newly resolved, not newly regressed.
