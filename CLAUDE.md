@@ -134,6 +134,7 @@ byte-for-byte-safe base on its own.
 Files:
 - `NEXT_STEPS.md`
 - `DEMO_PREP_BACKLOG.md`
+- `CHANGELOG.md`
 
 Reasoning: this is a running work-status log, not field-support content and
 not infrastructure code - it's closer to the audit report than to Zone A or
@@ -153,8 +154,9 @@ assumed ones.
 
 ## Zone B (continued) - user-facing documentation
 
-`README.md`, `ATTRIBUTION.md`, and `FIRST_TIME_README.txt` are ALSO Zone B
-(read-only for Claude Code), in addition to the files already listed above.
+`README.md`, `ATTRIBUTION.md`, `FIRST_TIME_README.txt`, and `USER_MANUAL.md`
+are ALSO Zone B (read-only for Claude Code), in addition to the files
+already listed above.
 Reasoning: these are Blacksmith-reviewed documentation the team and Kenneth
 rely on being accurate as written - not code, not a status log, closer in
 spirit to authored content even though they don't contain field-repair
@@ -229,8 +231,8 @@ state:
 ```text
 NORTH FORGE HERMES EDITION - CLAUDE CODE WORKING RULES ACTIVE
 Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, machine-reset.bat, setup script, provision-new-drive.ps1, .env.example, skins/north-forge.yaml, this audit report, .gitignore
-Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, FIRST_TIME_README.txt, CLAUDE.md
-Zone C (operational docs, may update + commit freely): NEXT_STEPS.md, DEMO_PREP_BACKLOG.md
+Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, FIRST_TIME_README.txt, USER_MANUAL.md, CLAUDE.md
+Zone C (operational docs, may update + commit freely): NEXT_STEPS.md, DEMO_PREP_BACKLOG.md, CHANGELOG.md
 Git: git pull automatically at session start; auto-commit/push for Zone A fixes, Zone C updates, and placing pre-approved Zone B handoffs; never author or edit Zone B content myself
 I will not edit Zone B content, including this file, and will not compose content on Zone B's behalf - only place exactly what I'm handed.
 ```
