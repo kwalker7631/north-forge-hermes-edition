@@ -21,7 +21,12 @@ CRON_BEFORE="$(stat -c '%Y:%s' "$SHARED_HERMES/cron/jobs.tsv")"
 cat > "$BIN/hermes" <<'FAKE'
 #!/usr/bin/env bash
 set -euo pipefail
-home="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))))')"
+# Every caller in this test already passes an absolute, canonical
+# HERMES_HOME, so no realpath/symlink resolution is needed here - avoids a
+# python3 dependency the deliberately-narrow "simulated scheduler" PATH below
+# (env -i ... PATH="$BIN:/usr/bin:/bin") cannot satisfy on a machine where
+# python3 doesn't live under /usr/bin or /bin (e.g. Windows).
+home="${HERMES_HOME:-$HOME/.hermes}"
 cwd="$(pwd -P)"
 printf '%s|%s' "$home" "$cwd" >> "$FAKE_INVOCATION_LOG"
 printf '|%q' "$@" >> "$FAKE_INVOCATION_LOG"
@@ -60,6 +65,26 @@ exit 0
 FAKE
 chmod +x "$BIN/xdg-open"
 
+# ensure_drive_hermes (scripts/ensure-hermes.sh) installs the drive-local
+# engine via a real `curl` download by default, which needs network access
+# this scratch environment may not have. NORTH_FORGE_INSTALLER_SH bypasses
+# that (same fixture mechanism tests/test-drive-hermes-install.sh already
+# uses) with a stub that installs the exact same fake hermes defined above
+# as the drive-local executable, so onboarding's cron/config/skin calls
+# (which go through scripts/hermes-drive.sh, not PATH, once .hermes-home
+# exists) produce cron-store entries in the same format the assertions below
+# already expect.
+INSTALLER="$SCRATCH/installer.sh"
+cat > "$INSTALLER" <<EOF
+#!/usr/bin/env bash
+set -eu
+mkdir -p "\$HERMES_HOME/bin" "\$HERMES_HOME/hermes-agent"
+: > "\$HERMES_HOME/hermes-agent/pyproject.toml"
+cp "$BIN/hermes" "\$HERMES_HOME/bin/hermes"
+chmod +x "\$HERMES_HOME/bin/hermes"
+EOF
+chmod +x "$INSTALLER"
+
 for drive in drive-a drive-b; do
     mkdir "$SCRATCH/$drive"
     (cd "$ROOT" && tar --exclude=.git --exclude=.hermes --exclude=.hermes-home -cf - .) |
@@ -68,6 +93,7 @@ for drive in drive-a drive-b; do
     printf '%s\n%s\n\n' "Owner ${drive#drive-}" "Forge ${drive#drive-}" |
         env HOME="$SHARED_HOME" HERMES_HOME="$SHARED_HERMES" \
             PATH="$BIN:$PATH" FAKE_INVOCATION_LOG="$INVOCATIONS" \
+            NORTH_FORGE_INSTALLER_SH="$INSTALLER" \
             bash "$SCRATCH/$drive/launch-north-forge.sh" > "$SCRATCH/$drive/onboarding.log"
     [ -f "$SCRATCH/$drive/.drive-record.txt" ] || fail "$drive has no drive record"
     [ -f "$SCRATCH/$drive/.provider-choice" ] || fail "$drive has no provider choice"

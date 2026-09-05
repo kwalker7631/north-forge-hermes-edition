@@ -8,29 +8,26 @@ rem ============================================================================
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
 set "HERMES_HOME=%CD%\.hermes-home"
-rem Keep the complete Hermes installation and runtime state on this drive.
-rem Deliberately overwrite any caller-supplied value so shared host state is
-rem never used by North Forge.
-if not exist "%HERMES_HOME%" mkdir "%HERMES_HOME%" >nul 2>nul
-if not exist "%HERMES_HOME%\." (
-    echo ERROR: North Forge could not create its drive-local Hermes home at "%HERMES_HOME%". Check that the drive is connected and allows new folders.
-    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [hermes-home]: could not create drive-local Hermes home at "%HERMES_HOME%"
-    exit /b 1
-)
-set "HERMES_HOME_PROBE=%HERMES_HOME%\.north-forge-write-probe-%RANDOM%-%RANDOM%.tmp"
-> "%HERMES_HOME_PROBE%" echo North Forge write test
+rem Keep the complete Hermes installation, configuration, memory, and cron
+rem database on this drive. Deliberately overwrite any caller-supplied or
+rem inherited machine-wide value so shared host state is never used and two
+rem drives can never silently share state.
+rem Fail fast if this drive is not writable at all, before asking the
+rem operator any questions. Probes %CD% directly - this must NOT create
+rem .hermes-home itself: scripts\ensure-hermes.ps1 treats any pre-existing
+rem .hermes-home as an install to validate or recover, not as "not yet
+rem installed," so creating it here as a side effect made every fresh-drive
+rem install fail with "partial or damaged .hermes-home" before the installer
+rem ever ran (reproduced empirically 2026-09-05 on real Windows; see audit).
+set "WRITE_PROBE=%CD%\.north-forge-write-probe-%RANDOM%-%RANDOM%.tmp"
+> "%WRITE_PROBE%" echo North Forge write test
 if errorlevel 1 (
-    echo ERROR: North Forge cannot write to its drive-local Hermes home at "%HERMES_HOME%". Check the drive's permissions or free space.
-    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [hermes-home]: drive-local Hermes home is not writable at "%HERMES_HOME%"
+    echo ERROR: North Forge cannot write to this drive at "%CD%". Check the drive's permissions or free space.
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [hermes-home]: drive is not writable at "%CD%"
     exit /b 1
 )
-del /q "%HERMES_HOME_PROBE%" >nul 2>nul
-set "HERMES_HOME_PROBE="
-
-rem Each drive owns its Hermes configuration, memory, and cron database.
-rem Deliberately replace any inherited machine-wide value so two drives cannot
-rem silently share state.
-set "HERMES_HOME=%CD%\.hermes-home"
+del /q "%WRITE_PROBE%" >nul 2>nul
+set "WRITE_PROBE="
 
 if /i "%~1"=="--configure-free-provider" (
     call :CONFIGURE_FREE_PROVIDER
@@ -158,7 +155,6 @@ echo North Forge running in %MODE% mode.
 echo Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it.
 
 rem --- require the drive's own validated engine; never fall back to host Hermes ---
-set "HERMES_HOME=%CD%\.hermes-home"
 powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "scripts\ensure-hermes.ps1" -RepoRoot "%CD%"
 if errorlevel 1 (
     set "INSTALL_EXIT=!ERRORLEVEL!"
@@ -166,6 +162,19 @@ if errorlevel 1 (
     exit /b !INSTALL_EXIT!
 )
 set "PATH=%HERMES_HOME%\Scripts;%HERMES_HOME%\bin;%HERMES_HOME%;%PATH%"
+
+rem Every interactive command uses the same explicit drive-local entry point
+rem as cron/gateway registration; PATH can no longer redirect one operation
+rem to a machine-wide Hermes installation. This assignment was present when
+rem originally added (commit c2c7303) but was lost in a later merge that
+rem restructured the install-guard block above it, leaving every %HERMES_CMD%
+rem call site below silently expanding to nothing - cmd.exe would try to run
+rem "skin"/"skills"/etc. as a bare command and fail with "is not recognized".
+rem Restoring this line surfaced a second, previously-unreachable bug in
+rem scripts\hermes-drive.ps1 (a reserved-variable crash) fixed alongside it -
+rem see that file's own comment (reproduced empirically 2026-09-05 on real
+rem Windows).
+set "HERMES_CMD=powershell -NoProfile -ExecutionPolicy Bypass -File scripts\hermes-drive.ps1"
 
 rem --- provider choice: default to zero-config OpenCode Free (no key, no
 rem     account, no block); using your own Anthropic API key is opt-in, not

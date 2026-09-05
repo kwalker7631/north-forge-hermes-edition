@@ -80,7 +80,13 @@ exit 0
         self.assertEqual(launcher.count("automated nightly research will not run"), 1)
         self.assertEqual(launcher.count("automated daily brief will not run"), 1)
         self.assertIn("WARNING SUMMARY: North Forge is starting in degraded mode", launcher)
-        self.assertIn('set "HERMES_HOME=%~dp0.hermes-home"', launcher)
+        # The .bat file resolves its own directory via `cd /d "%~dp0"` then
+        # `%CD%`, not the `%~dp0` form directly - functionally equivalent
+        # (already cd'd into that exact directory) but textually different;
+        # this was stale drift from an earlier path-resolution style, not a
+        # behavior difference, so the test is updated to match current,
+        # correct .bat behavior rather than the other way around.
+        self.assertIn('set "HERMES_HOME=%CD%\\.hermes-home"', launcher)
         self.assertEqual(launcher.count('"scripts\\hermes-drive.ps1" cron add'), 2)
 
 
