@@ -8,6 +8,11 @@ rem ============================================================================
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
 
+rem Each drive owns its Hermes configuration, memory, and cron database.
+rem Deliberately replace any inherited machine-wide value so two drives cannot
+rem silently share state.
+set "HERMES_HOME=%CD%\.hermes-home"
+
 if /i "%~1"=="--configure-free-provider" (
     call :CONFIGURE_FREE_PROVIDER
     exit /b !ERRORLEVEL!

@@ -26,6 +26,7 @@ AGENTS.override.md
 # name Hermes scans for project skills) - unrelated to the user's global
 # ~/.hermes profile directory.
 /.hermes/
+/.hermes-home/
 .hermes.md
 
 # Hermes runtime/state - this repo holds the content layer only,

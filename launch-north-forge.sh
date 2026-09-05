@@ -9,6 +9,12 @@ set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
+# Keep Hermes configuration, memory, and scheduled jobs with this drive.  Do
+# not allow an inherited machine-wide HERMES_HOME to merge two North Forge
+# drives into one profile.
+HERMES_HOME="$(pwd)/.hermes-home"
+export HERMES_HOME
+
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
     echo "Install it, then run this script again."

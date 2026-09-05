@@ -167,7 +167,7 @@ Hermes skills normally refine themselves through use. North Forge's skills are t
 
 `hermes update` updates the Hermes engine on whatever machine you run it on - it has nothing to do with this repo and doesn't touch anything git-tracked. After any update, treat it as a trigger to re-verify, not just install and move on: run `hermes doctor`, `hermes skin list`, and `hermes skills list --source local`, then do one real launch in each mode before trusting it.
 
-**Where Hermes actually lives on a given machine:** `%LOCALAPPDATA%\hermes` on Windows (or `$HERMES_HOME` if that's set, which takes precedence). This folder holds the engine install itself, `config.yaml`, `.env` (the API key Hermes actually reads - separate from this drive's own `.env`), the skin, and all persistent state: `state.db` (memory/sessions), `cron/` (scheduled jobs), `logs/`. None of this is on the drive and none of it is git-tracked.
+**Where Hermes state lives:** each North Forge drive forces Hermes to use its own `.hermes-home` folder at the repository root. This keeps that drive's `config.yaml`, skin, memory/sessions, and `cron/` jobs separate from every other North Forge drive and from the computer's shared Hermes profile. The folder is on the drive but is ignored by Git; do not commit it.
 
 **To stop and remove the background gateway** (the scheduled-task process that keeps cron jobs running even when no session is open) before deleting anything in that folder:
 ```powershell
