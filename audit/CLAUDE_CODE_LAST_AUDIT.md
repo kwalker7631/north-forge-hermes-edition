@@ -1,261 +1,100 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-06 (continuation of the prior HERMES_HOME-isolation
-verification session, same conversation, new user request)
-Requested task: two parts. Part 1 - fix three specifically-flagged
-test/cleanup issues left over from the prior session (launch-north-forge.bat
-duplicate HERMES_HOME assignment, a stale string in
-tests/test_cron_registration.py, and a broken curl stub in
-tests/test-drive-local-hermes.sh plus missing installer-fixture support in
-tests/two-drive-hermes-isolation.sh), then run the full test suite and
-confirm everything passes. Part 2 - structurally fix the "Codex sessions
-sometimes don't leave an audit report" problem by creating AGENTS.md with a
-mandatory-report rule, and add a pointer to it from CLAUDE.md's own
-governance section.
+Timestamp: 2026-09-05 (~13:15 local, America/New_York) - diagnostic-only
+verification session, new user request, no prior session context carried in
+beyond audit/CLAUDE_CODE_LAST_AUDIT.md as it stood before this run.
+
+Requested task: Diagnostic only, explicitly no fixes unless something is
+actually found missing or broken (and if so, flag before fixing). Five
+specific checks:
+1. `git log --oneline -15 --stat` plus `git status`, `git log
+   origin/main..HEAD`, `git log HEAD..origin/main` - confirm the previous
+   session's `CLAUDE.md` edits (Zone A file-list extension + AGENTS.md
+   cross-reference pointer) and `AGENTS.md`'s creation are genuinely
+   committed AND pushed, with nothing sitting local-only or behind.
+2. `ls -la audit/` newest first - confirm the most recent Claude Code
+   session report is present and matches that session's own summary.
+3. Explicitly determine whether any Codex session has run AFTER `AGENTS.md`
+   was created and committed. If not, say so plainly - the mandatory-report
+   rule cannot be exercised until Codex next runs, and "no new Codex report
+   yet" would be expected, not a bug.
+4. `cat AGENTS.md` and the relevant `CLAUDE.md` section - confirm both
+   contain, verbatim, what the last report claimed to have placed.
+5. If all of the above checks out, state plainly that the likely
+   explanation for Kenneth not seeing the work is that he checked
+   `forge-events.log` or a stale local clone rather than `audit/` on a
+   fresh pull - rather than assuming something is broken.
 
 ## Files inspected
 
-- `launch-north-forge.bat` (full read, then edited twice)
-- `scripts/ensure-hermes.ps1`, `scripts/hermes-drive.ps1` (full read; the
-  latter edited)
-- `tests/test_launcher_hermes_home.py`, `tests/test_cron_registration.py`
-  (full read of relevant sections; the latter edited)
-- `tests/test-drive-local-hermes.sh`, `tests/two-drive-hermes-isolation.sh`,
-  `tests/test-drive-hermes-install.sh`, `tests/test-launcher-hermes-home.sh`
-  (full read where not already read last session; two of these rewritten)
-- `audit/CODEX_SECOND_AUDIT_2026-09-05.md`,
-  `audit/HERMES_CRON_GATEWAY_HOME_AUDIT.md` (re-read as structure reference
-  for the new AGENTS.md's report-format guidance)
-- `CLAUDE.md` (re-read; not edited - see "Declined Zone B edit" below)
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (full read of the pre-this-session
+  version, 20936 bytes / 347 lines - the "Fix flagged .bat/test issues..."
+  report matching commit 3c01cd3)
+- `AGENTS.md` (full read - 82 lines, 4930 bytes on disk, repo root)
+- `CLAUDE.md` (full read via project-instructions load; 18954 bytes on
+  disk per `ls -lat`)
+- `.gitignore` (full read - 2164 bytes, version 1.0.1, "Updated:
+  2026-09-05")
+- `forge-events.log` (full read - repo root, 2661 bytes, mtime Sep 4
+  22:28, gitignored)
+- `audit/` directory listing with mtimes (`ls -la audit/`)
+- Repo-root listing with mtimes (`ls -lat`)
+- git, read-only only: `fetch origin`; `status`; `status --porcelain
+  --ignored`; `log --oneline -20`; `log --oneline -15 --stat`; `log
+  --oneline origin/main..HEAD`; `log --oneline HEAD..origin/main`; `branch
+  -vv`; `branch -a`; `rev-parse origin/main HEAD`; `log -5 --format=... --date=iso`;
+  `show de94fc2`; `show 7a96ca7`; `for-each-ref --sort=-committerdate`;
+  `log --oneline -- AGENTS.md`; `log --oneline --all -i --grep=codex
+  3c01cd3..`; `merge-base --is-ancestor b7f08df HEAD`; `rev-list --count
+  b7f08df..HEAD`; `log --oneline b7f08df..HEAD`
+- `hermes doctor` and `hermes skills list --source local` (read-only
+  inspection commands, explicitly allowed by CLAUDE.md's git/hermes policy)
+
+No file in any zone was modified this session except this report.
 
 ## Zone A changes made
 
-### 1. `launch-north-forge.bat` - collapsed triple HERMES_HOME assignment AND fixed a live, currently-shipping install-failure bug found while doing it
+None. This was a diagnostic-only session; the user explicitly asked for no
+fixes unless something was found missing or broken, and nothing was. This
+report is the only file written, per CLAUDE.md's unconditional
+audit-report requirement (a clean, nothing-to-fix session still ends with
+a written report).
 
-**As specifically flagged:** `set "HERMES_HOME=%CD%\.hermes-home"` appeared
-3 times (`tests/test_launcher_hermes_home.py`'s
-`test_windows_home_precedes_every_hermes_operation` expects exactly 1).
-Collapsed to one occurrence, immediately after `cd /d "%~dp0"` (mirroring
-the `.sh` file's `cd`-then-export ordering, which a *different*,
-already-passing part of the same test also enforces for the POSIX file).
+## Diagnostic findings (detail - the five checks)
 
-**Found while doing it, not previously flagged - empirically confirmed on
-real Windows, not just read:** the original write-probe block
-(`if not exist "%HERMES_HOME%" mkdir "%HERMES_HOME%" ...` followed by a
-write-probe *inside* `%HERMES_HOME%`) created `.hermes-home` as a side
-effect before `scripts\ensure-hermes.ps1` ever ran. `ensure-hermes.ps1`'s
-own gate (`if ((Test-Path $homeDir) -or ...) { "partial or damaged
-.hermes-home"; exit 20 }`) then treated that empty, pre-created directory as
-a corrupt existing install and refused to touch it - **this is the exact
-same bug class already fixed in `launch-north-forge.sh` last session, but
-it was never applied to the Windows launcher.**
+### Check 1 - commits present AND pushed: CONFIRMED, fully clean
 
-I did not take this on faith from reading the code - I built a real
-scratch-drive harness and ran the actual `.bat` file via a redirected-I/O
-`System.Diagnostics.Process` (PowerShell tool; a fragile `cmd.exe /c "..."`
-string through the Bash/Git-Bash tool mis-quoted and left a stray idle
-`cmd.exe` process I did not kill, since I could not be certain which of
-several running `cmd.exe` PIDs was mine to safely terminate - flagging this
-tool-usage note in case it recurs). Confirmed exit code 20 with "ERROR: This
-drive has a partial or damaged .hermes-home" on a completely fresh scratch
-drive, before touching anything.
+`git rev-parse HEAD` and `git rev-parse origin/main` are byte-identical:
+`7a96ca7cd291af3448d9ee37c3e248147d676f7c`.
 
-Fixed the same way as the `.sh` file: the probe now writes directly into
-`%CD%` (renamed `HERMES_HOME_PROBE` to `WRITE_PROBE` to match, since it's no
-longer HERMES_HOME-specific), never creating `.hermes-home` itself. Also
-removed the "could not create its drive-local Hermes home" error branch
-entirely (dead code now - `ensure-hermes.ps1` owns creation/validation and
-has its own equivalent error handling), matching the `.sh` file's fix
-exactly. Removed the second (mid-file) and third (pre-`ensure-hermes.ps1`)
-duplicate assignments.
+- `git log --oneline origin/main..HEAD` -> empty output. Nothing is sitting
+  local-only.
+- `git log --oneline HEAD..origin/main` -> empty output. Not behind.
+- `git status` -> `On branch main` / `Your branch is up to date with
+  'origin/main'.` / `nothing to commit, working tree clean`.
+- `git branch -vv` -> `* main 7a96ca7 [origin/main] Extend Zone A file list
+  to cover scripts/, tests/, and full-drive-reset.*`
+- `git status --porcelain --ignored` -> only ignored per-drive state
+  (`.agent-name`, `.drive-record.txt`, `.env`, `.forge-mode`, `.hermes.md`,
+  `.hermes/`, `.readme-shown`, `forge-events.log`, `tests/__pycache__/`).
+  Zero tracked-file modifications, zero untracked non-ignored files.
 
-**Re-verified empirically after the fix**, same real-Windows harness, with
-a `NORTH_FORGE_INSTALLER_PS1` fixture (the `.ps1`-side equivalent of
-`NORTH_FORGE_INSTALLER_SH`, already supported by `ensure-hermes.ps1`):
-`.hermes-home` no longer exists before the installer runs; the fixture
-install completes and "Hermes was installed and validated on this drive."
-prints; `.hermes-home` afterward contains exactly the fixture's real
-installed content, not a stale empty leftover.
+The three commits in question, from `git log -5 --format=... --date=iso`
+and `git log --oneline -15 --stat`:
 
-### 2. `scripts/hermes-drive.ps1` - fixed a second, previously-unreachable bug the above fix uncovered
+| Commit  | Author date (-0400)      | Author                              | Effect |
+|---------|--------------------------|-------------------------------------|--------|
+| 3c01cd3 | 2026-09-05 06:10:56      | kwalker138 <kwalker138@gmail.com>   | Creates `AGENTS.md` (new file, +82). `--stat`: `AGENTS.md | 82 ++++`, plus `audit/CLAUDE_CODE_LAST_AUDIT.md` (745 rewritten), `launch-north-forge.bat` (51), `scripts/hermes-drive.ps1` (22), `tests/test-drive-local-hermes.sh` (57), `tests/test_cron_registration.py` (8), `tests/two-drive-hermes-isolation.sh` (28). 7 files, +532/-461. |
+| de94fc2 | 2026-09-05 06:28:25      | kwalker138 <kwalker138@gmail.com>   | `CLAUDE.md | 12 ++++++++++++`, 1 file, +12/-0. The "Note on AGENTS.md" cross-reference paragraph. |
+| 7a96ca7 | 2026-09-05 12:45:04      | kwalker138 <kwalker138@gmail.com>   | `CLAUDE.md | 14 ++++++++++++++`, 1 file, +14/-0. Zone A file-list extension. |
 
-While re-verifying end-to-end (not just the write-probe fix in isolation),
-fixing item 1 above required also restoring a `set "HERMES_CMD=..."`
-assignment that turned out to be **missing from the current file entirely**
-(confirmed via `grep -in HERMES_CMD launch-north-forge.bat`: referenced 6
-times, assigned nowhere). Git history
-(`git log -p -S "HERMES_CMD=" -- launch-north-forge.bat`) shows this line
-was correctly added in commit `c2c7303` ("Keep Hermes cron state on its
-originating drive") but silently lost in a later merge that restructured
-the install-guard block around it - the same *class* of loss the file's own
-existing comment already documents happening once before to `%PYTHON_CMD%`
-("Restored during merge: ... without it, %PYTHON_CMD% below is empty and
-name_validation.py never runs"). `%HERMES_CMD%` being undefined meant every
-skin/skills/cron/hermes call in the Windows launcher was silently expanding
-to an empty command.
+`git log --oneline -- AGENTS.md` returns exactly one line: `3c01cd3 ...`.
+Nothing has touched `AGENTS.md` since it was created.
 
-Restored `set "HERMES_CMD=powershell -NoProfile -ExecutionPolicy Bypass
--File scripts\hermes-drive.ps1"` in the equivalent position to the `.sh`
-file's `hermes() { scripts/hermes-drive.sh "$@"; }` (after the
-`ensure-hermes.ps1` validation succeeds, not before).
-
-Restoring it exposed a **second, real, previously-never-exercised bug**:
-`scripts/hermes-drive.ps1` line 3 was `$home = Join-Path $repo
-'.hermes-home'` - `$home` is a **reserved PowerShell automatic variable**
-(the user's profile directory) and is read-only in this scope. This
-crashed with "Cannot overwrite variable HOME because it is read-only or
-constant" on the very first real invocation - confirmed empirically (real
-Windows, redirected-I/O process, fixture installer placing a dummy
-`Scripts\hermes.exe`). Because `%HERMES_CMD%` had been silently blank, this
-script was **never actually reached before today**, so this bug had zero
-chance to surface until the missing-assignment fix above put it back in the
-execution path. Fixed by renaming `$home` to `$homeDir` throughout the file
-(matching `ensure-hermes.ps1`'s own already-correct naming for the same
-concept). Re-verified: the fixture run now reaches the real `& $hermes
-@args` execution line and fails only because the test fixture's
-`hermes.exe` is a placeholder file, not a real binary ("not a valid
-application for this OS platform") - a test-fixture limitation, not a
-product bug; both real product bugs are confirmed fixed.
-
-### 3. `tests/test_cron_registration.py` - updated a stale Windows string, per instruction
-
-`test_windows_launcher_has_equivalent_failure_handling` expected the
-literal string `set "HERMES_HOME=%~dp0.hermes-home"`; the `.bat` file
-correctly uses `cd /d "%~dp0"` then `set "HERMES_HOME=%CD%\.hermes-home"`
-(functionally identical, textually different - stale drift from an earlier
-path-resolution style). Updated the test's expected string to
-`'set "HERMES_HOME=%CD%\\.hermes-home"'` per the explicit instruction not to
-change the `.bat` file to match the stale test. Verified: passes.
-
-### 4. `tests/test-drive-local-hermes.sh` - fixed the curl stub to honor `-o`, and rewrote the "broken install" scenario to match current code
-
-The old fake `curl` ignored the real `-o <file>` argument
-`ensure_drive_hermes` passes and just `cat`'d its heredoc to stdout, so the
-test never actually exercised the curl hand-off path - it silently degraded
-into an unrelated failure ("installer exit 127," command not found; I
-reproduced this exact symptom against unmodified HEAD last session before
-today's fix). New stub parses `$@` for `-o <path>` and writes the fake
-installer script there, matching real `curl` usage.
-
-While fixing this I found the *second* scenario in the same file
-("broken install: successful exit without runtime markers") referenced
-`NORTH_FORGE_HERMES_READY_ONLY` and log strings ("verified drive-local
-checkout", "installer reported success", "installer exited 0 but required
-markers were absent") that **do not exist anywhere in current production
-code** - confirmed via repo-wide grep, zero matches outside the test file
-itself. This scenario predates the current `ensure_drive_hermes`
-architecture entirely and was never updated. Rewrote it to exercise the
-same intent (a curl that reports success but produces no valid install)
-against the actual current code path: a curl stub that exits 0 but writes
-an *empty* file to `-o`'s target, so `bash "$installer"` trivially succeeds
-but `hermes_home_valid` still fails - hitting `ensure_drive_hermes`'s real
-"installation failed or did not pass validation" message and its real
-`.hermes-install-incomplete` marker behavior. Verified: both scenarios pass.
-
-### 5. `tests/two-drive-hermes-isolation.sh` - added installer-fixture support; also removed a python3 dependency the fix exposed
-
-Added a `NORTH_FORGE_INSTALLER_SH` fixture (same mechanism
-`tests/test-drive-hermes-install.sh` already uses) that installs a copy of
-the test's existing fake `hermes` script as the drive-local executable, so
-onboarding's `scripts/hermes-drive.sh`-mediated calls produce cron-store
-entries in the exact format the test's existing assertions already expect
-(no other assertions needed to change). This replaces the prior behavior of
-attempting a real, unauthenticated network install
-(`https://hermes-agent.nousresearch.com/install.sh`) with no fixture at
-all, which failed silently under `set -e` inside a subshell whose output
-went to a log file deleted by the script's own cleanup trap before the
-exit code was ever visible - I could reproduce the silent failure but not
-usefully diagnose it further without this fix.
-
-While verifying, hit a *different*, pre-existing portability bug the fix
-exposed: the fake `hermes` script's `home="$(python3 -c
-'...os.path.realpath...')"` line failed with `python3: command not found`
-during the test's later "simulated scheduler" sections, which deliberately
-run with a narrowed `PATH="$BIN:/usr/bin:/bin"` (to prove a real scheduler
-with no inherited launcher state still resolves correctly). On Linux,
-`/usr/bin/python3` commonly exists, so this narrow PATH still finds it; on
-this Windows/Git-Bash machine it does not (`python3` resolves only under
-`AppData\Local\Microsoft\WindowsApps`). Since every caller in this test
-already passes an already-absolute, already-canonical `HERMES_HOME` (no
-symlinks involved anywhere in the fixture), the realpath step is
-unnecessary here - replaced it with a plain `"${HERMES_HOME:-$HOME/.hermes}"`
-and removed the python3 dependency entirely. Verified: passes.
-
-## Full test suite run after all of Part 1's fixes
-
-Not just the four specifically-touched files - ran everything runnable in
-this environment:
-
-- `bash -n launch-north-forge.sh` - syntax OK
-- `tests/test-launcher-hermes-home.sh` - PASS
-- `tests/test-drive-hermes-install.sh` - PASS (5 scratch scenarios,
-  unaffected by today's changes - re-run as a regression check)
-- `tests/test-drive-local-hermes.sh` - PASS (both scenarios, rewritten)
-- `tests/two-drive-hermes-isolation.sh` - PASS (rewritten)
-- `python3 -m unittest tests.test_launcher_hermes_home` - all 3 tests OK
-- `python3 -m unittest tests.test_cron_registration.CronRegistrationWarningsTest`
-  - both tests OK (the class's two static/subprocess-on-bash tests; these
-    run fine under Windows Python since they invoke `bash` explicitly)
-
-**Not run, same environment limitation noted last session:**
-`tests.test_cron_registration.DriveLocalCronIsolationTest` and
-`tests.test_drive_hermes_contract` use `subprocess.run()` on a `.sh` path
-directly or lack `unittest.TestCase` classes (pytest-style bare functions,
-and no `pytest` is installed here) - native Windows Python cannot execute a
-shebang script directly (`WinError 193`), and `python3 -m unittest` finds
-zero tests in a pytest-style module. I did not silently skip verifying
-`test_drive_hermes_contract`'s assertions, though: manually grepped every
-string it requires (`ensure_drive_hermes "$PWD"`, the single
-`HERMES_HOME=%CD%...` assignment, `scripts\ensure-hermes.ps1`, absence of
-`where hermes`) against the files as they stand after all of today's edits -
-all still hold. This is a real, standing gap in what I can verify in this
-environment, not a claim that those tests pass - flagging again since it
-was flagged last session too and nothing has changed about the environment.
-
-## Zone A / new-file work for Part 2
-
-### `AGENTS.md` (new file, repo root) - created
-
-Not on CLAUDE.md's enumerated file list for any zone (it didn't exist
-before this session). Judged this to be reasonable to author directly,
-unlike a Zone B edit: its content is process/governance for how Codex
-conducts a session in this repo (report format, when a report is required,
-commit sequencing) - not authored field-support or customer-facing
-technical content, and not an edit to any existing Blacksmith-reviewed
-file. Content follows the four hard requirements given verbatim in this
-session's request (mandatory report per session including no-change
-sessions, committed alongside any code changes, structure matching existing
-`audit/` reports, and explicit-not-implicit tradeoff writeups), plus a
-"Relationship to CLAUDE.md" section that points at `CLAUDE.md` as the single
-source of truth for zone definitions rather than duplicating them, so the
-two files don't drift out of sync with each other over time.
-
-### CLAUDE.md governance pointer - DECLINED, drafted for review instead
-
-The request asked me to "add a short pointer in CLAUDE.md's own governance
-section noting that AGENTS.md exists." I did not do this directly.
-`CLAUDE.md` explicitly lists itself as Zone B ("`CLAUDE.md` (this file,
-itself)") and is explicit that Claude Code composing or editing any part of
-it - including "not even when explicitly asked to 'fix any issues' in the
-repo broadly" - is not permitted regardless of how specific or reasonable
-the request is, *unless* the content is a named handoff Kenneth identifies
-as originating from the Claude Project chat (the CONFIRMED 2026-08-26
-trigger). This request is a specific, well-reasoned, directly-stated
-instruction from Kenneth in-session, but it asks me to *compose* new text
-for CLAUDE.md, not to *place* pre-authored text handed to me as originating
-from the Claude Project chat - it does not satisfy the confirmed trigger's
-own terms. There is direct precedent for this exact call in this repo's own
-history: commit `713b2c3`, "Decline direct CLAUDE.md edit request (Zone B,
-no Claude-Project-chat handoff), draft proposed testing-safety rule for
-review." I followed that same pattern rather than treating a direct,
-specific ask as sufficient on its own - CLAUDE.md's whole reasoning for
-locking even itself is precisely to prevent exactly this kind of "it's just
-a small, obviously-reasonable addition" edit from becoming the quiet
-precedent that erodes the boundary.
-
-**Drafted text, for Kenneth or the Claude Project chat to place** (proposed
-insertion point: right after the "Note on Hermes's own context-file
-discovery" paragraph near the top of `CLAUDE.md`, before "## Zone A"):
+`git show de94fc2` - the diff is a pure insertion at `CLAUDE.md` line ~20,
+immediately after the "Note on Hermes's own context-file discovery"
+paragraph and before the `---` / `## Zone A` heading. No existing line
+modified or removed. Full inserted block:
 
 > Note on AGENTS.md: this repo also has an `AGENTS.md` at its root, which
 > plays the equivalent role for Codex sessions that this file plays for
@@ -269,78 +108,234 @@ discovery" paragraph near the top of `CLAUDE.md`, before "## Zone A"):
 > zone definitions themselves change, update them here only - AGENTS.md
 > refers to this file rather than keeping its own copy.
 
-If Kenneth confirms this text (or the Claude Project chat's own revision of
-it) as originating from the Claude Project chat with an instruction to
-place it, I can commit it in a follow-up with no further discussion needed,
-per the already-confirmed trigger.
+de94fc2's commit message states: "Zone B placement per the confirmed
+2026-08-26 handoff trigger: text originates from the Claude Project chat,
+confirmed in-session by Kenneth, placed verbatim (pure insertion, no other
+lines touched - see diff)."
 
-## This session's own report, as the first real test of the rule this session created
+`git show 7a96ca7` - pure insertion into the Zone A `Files:` list, after
+the `.gitignore` entry: seven new bullet lines (`scripts/*.sh`,
+`scripts/*.ps1`, `scripts/*.py`, `tests/*.sh`, `tests/*.py`,
+`full-drive-reset.sh`, `full-drive-reset.bat`) plus a blank line and a
+five-line "Extended 2026-09-06 to explicitly include the seven..."
+explanatory paragraph. No existing list entry modified. Commit message:
+"Zone B placement per the confirmed 2026-08-26 handoff trigger: named
+handoff from the Claude Project chat, no further approval-ask given. Closes
+the zone-boundary gap flagged across the last two audit reports..."
 
-Per CLAUDE.md's own unconditional audit-report requirement (which already
-existed before today, and which today's `AGENTS.md` extends the same
-underlying discipline to Codex), this file itself is that report for this
-session - written and about to be committed alongside every code change
-described above, not after the fact. There's a small irony worth naming
-directly: this session was asked to fix "Codex doesn't always leave a
-report" by creating a rule for Codex, while operating under a rule that
-already required exactly this of Claude Code. The new `AGENTS.md` doesn't
-invent a new discipline - it extends one that was already being enforced on
-one agent to also cover the other.
+Stale-report note: the pre-this-session `CLAUDE_CODE_LAST_AUDIT.md` records
+the `CLAUDE.md` AGENTS.md-pointer edit as DECLINED and drafted-for-review
+(its "CLAUDE.md governance pointer - DECLINED, drafted for review instead"
+section, and "Uncertain / flagged" item 1). Commit `de94fc2` - authored
+18 minutes after that file's 06:10 mtime - then placed that exact drafted
+text, citing the confirmed 2026-08-26 handoff trigger in its message. So
+the prior report is accurate as of when it was written but is now stale on
+that one point: the pointer was placed shortly after, and `7a96ca7` later
+also placed the Zone A extension the same report flagged as an open
+zone-boundary gap (its "Uncertain / flagged" item 4). Neither `de94fc2`
+nor `7a96ca7` is described by any committed audit report - they were placed
+between this session and the last one.
+
+### Check 2 - audit/ folder: current report present, matches its session
+
+`ls -la audit/`, newest mtime first:
+
+```
+-rw-r--r-- 20936  Sep  5 06:10  CLAUDE_CODE_LAST_AUDIT.md
+-rw-r--r-- 20574  Sep  5 03:31  CODEX_SECOND_AUDIT_2026-09-05.md
+-rw-r--r--  1789  Sep  5 05:11  HERMES_CRON_GATEWAY_HOME_AUDIT.md
+-rw-r--r--  1738  Sep  5 01:53  FORGE_EVENT_LOG.md
+-rw-r--r-- 16465  Sep  5 01:29  HANDOFF_2026-09-05_SESSION_CHANGES.md
+-rw-r--r-- 15510  Sep  4 21:52  HANDOFF_2026-09-04_SESSION_CHANGES.md
+```
+
+`CLAUDE_CODE_LAST_AUDIT.md` mtime 06:10 aligns with commit `3c01cd3`'s
+author time 06:10:56. Its content matches that session's described work:
+Part 1 = `launch-north-forge.bat` triple-`HERMES_HOME` collapse plus a
+write-probe premature-`.hermes-home` bug, `scripts/hermes-drive.ps1`
+missing `HERMES_CMD` restore plus `$home` reserved-variable rename,
+`tests/test_cron_registration.py` stale string, `tests/test-drive-local-hermes.sh`
+curl-stub `-o` fix + scenario-2 rewrite, `tests/two-drive-hermes-isolation.sh`
+installer fixture + python3 removal; Part 2 = `AGENTS.md` created,
+`CLAUDE.md` pointer drafted-not-placed. Internally consistent with what
+was requested.
+
+### Check 3 - Codex session after AGENTS.md: NONE. Expected, not a bug.
+
+Plainly: no Codex session has run in this repo since `AGENTS.md` was
+committed at `3c01cd3` (2026-09-05 06:10:56 -0400). Supporting evidence:
+
+- `git log --oneline -- AGENTS.md` -> only `3c01cd3`. Nothing since.
+- `git branch -a` -> `main`, `remotes/origin/HEAD -> origin/main`,
+  `remotes/origin/main`. No `codex/*` branches, local or remote.
+- `git for-each-ref --sort=-committerdate` -> the only three refs
+  (`main`, `origin`, `origin/main`) all point at `7a96ca7` @ 2026-09-05
+  12:45:04. No newer ref anywhere.
+- `git log --oneline --all -i --grep=codex 3c01cd3..` -> single result,
+  `7a96ca7`, which only mentions Codex in its body ("Multiple Claude Code
+  and Codex sessions...") - it is a Claude Code handoff-placement commit
+  by kwalker138, not a Codex PR merge.
+- All Codex PR merges in history (PR #1 `ef4cb12` through PR #17 merges,
+  last being `ed411ef` @ 2026-09-05 05:08:36) predate `3c01cd3`.
+- No `audit/CODEX_*.md` file has an mtime after 06:10. Newest Codex-authored
+  audit artifacts: `CODEX_SECOND_AUDIT_2026-09-05.md` (03:31) and
+  `HERMES_CRON_GATEWAY_HOME_AUDIT.md` (05:11, from commit `c2c7303`).
+
+Conclusion: `AGENTS.md`'s mandatory-audit-report rule has not yet had an
+opportunity to be tested, because no Codex session has run with the file
+present. "No new Codex report" is the correct, expected state and is not
+evidence of anything broken. It becomes testable only on the next Codex
+session in this repo.
+
+### Check 4 - AGENTS.md and CLAUDE.md contain what was claimed: CONFIRMED
+
+`AGENTS.md` (repo root, 82 lines, 4930 bytes). Section structure as read:
+
+- Title: "# AGENTS.md - North Forge Hermes Edition - Codex Working Rules"
+- Scope paragraph - names itself the Codex-equivalent of `CLAUDE.md`,
+  states the two files are kept aware of each other.
+- "Note on Hermes's own context-file discovery" - `.hermes.md` before
+  `AGENTS.md` before `CLAUDE.md`, so Hermes never actually loads this file
+  either; it's for Codex only.
+- "## Why this file exists" - describes the prior Codex session that made
+  the `launch-north-forge.sh` HERMES_HOME write-probe fix but committed no
+  report, leaving a later Claude Code session to reverse-engineer intent
+  from the diff.
+- "## Mandatory audit report - hard requirement, no exceptions" - numbered
+  1-4: (1) every Codex session that reads or modifies the repo MUST write
+  `audit/CODEX_<short-topic>_<YYYY-MM-DD>.md` before the session is
+  complete, including no-code-change sessions; (2) the report must be
+  committed in the same commit(s) as the code it describes; (3) structure
+  should match existing `audit/` reports (cites
+  `CODEX_SECOND_AUDIT_2026-09-05.md` and `HERMES_CRON_GATEWAY_HOME_AUDIT.md`),
+  minimum contents enumerated (request, files inspected, findings with
+  severity, empirical verification, status line); (4) tradeoff/design
+  investigations must be written into the report explicitly, not left
+  implicit in code. Plus a trailing paragraph: a no-change session still
+  writes a report under the same naming convention with a
+  reflective-of-actual-work topic name.
+- "## Relationship to CLAUDE.md" - `CLAUDE.md` is the single source of
+  truth for the Zone A/B/C model; this file does not restate the zone
+  definitions; if Codex is unsure whether a file is Zone B authored
+  content, read `CLAUDE.md`'s zone lists rather than guessing and say so
+  in the report.
+
+This matches the pre-this-session report's "AGENTS.md (new file, repo
+root) - created" description (its "Content follows the four hard
+requirements given verbatim in this session's request... plus a
+'Relationship to CLAUDE.md' section that points at CLAUDE.md as the single
+source of truth").
+
+`CLAUDE.md` on disk contains both placed pieces, matching `git show`
+output above exactly:
+- The "Note on AGENTS.md:" paragraph sits after the "Note on Hermes's own
+  context-file discovery" paragraph and before the `---` above `## Zone A`.
+- The Zone A `Files:` list includes `scripts/*.sh`, `scripts/*.ps1`,
+  `scripts/*.py`, `tests/*.sh`, `tests/*.py`, `full-drive-reset.sh`,
+  `full-drive-reset.bat`, followed by the "Extended 2026-09-06 to
+  explicitly include the seven `scripts/`/`tests/`/`full-drive-reset.*`
+  entries above..." paragraph.
+
+Both the placed text and the on-disk state are verbatim consistent with
+what the prior report and the two intervening commit messages describe.
+
+### Check 5 - likely explanation: forge-events.log / stale clone, not a defect
+
+All of checks 1-4 pass. The state is internally consistent and fully
+pushed. The likely reason the work appeared absent is that a
+non-git-history artifact was consulted:
+
+`forge-events.log` (repo root, 2661 bytes, gitignored via both `*.log` and
+an explicit `.gitignore` entry). Its final line is timestamped
+`[Fri 09/04/2026 22:28:30.06]` - the evening of Sept 4, before any Sept 5
+work. Every `[git]: launch at commit ...` line in the file reads
+`b7f08df`. `git merge-base --is-ancestor b7f08df HEAD` -> true;
+`git rev-list --count b7f08df..HEAD` -> `73`. So `forge-events.log`'s most
+recent recorded launch is 73 commits behind current `HEAD` (`7a96ca7`).
+That log is only appended to when `launch-north-forge.*` runs on this
+drive, not when commits are made or pushed, so it will keep showing
+`b7f08df` and the Sept 4 timestamp until North Forge is next launched on
+this drive. `.hermes.md` (18749 bytes) and `.env` (800 bytes) on this
+drive are likewise dated Sep 4 22:28 - same stale-runtime-state picture.
+
+Anyone reading `forge-events.log` or this drive's running state - rather
+than `git log` / `git status` / `audit/CLAUDE_CODE_LAST_AUDIT.md` after a
+fresh `git pull` - would see an old commit hash and no mention of
+`AGENTS.md`, which looks like the work never landed even though it did. A
+second, equally consistent possibility is a stale local clone on a
+different drive or machine that has not pulled since before `3c01cd3`;
+that cannot be inspected from this working copy, but this working copy
+itself is fully current and fully pushed (HEAD == origin/main, clean
+tree, nothing ahead/behind).
+
+## Zone A changes made
+
+None (restated - diagnostic-only session).
+
+## Zone B findings (not fixed - reported only)
+
+1. One-day date drift in placed Zone B text and a committed root file.
+   All three relevant commits are dated 2026-09-05 (America/New_York
+   author dates), and the harness clock for this session is also
+   2026-09-05. But: `AGENTS.md`'s "## Why this file exists" era and its
+   parenthetical in the CLAUDE.md "Note on AGENTS.md" paragraph both say
+   the report rule was "added 2026-09-06"; `CLAUDE.md`'s Zone A insertion
+   says "Extended 2026-09-06 to explicitly include the seven..."; and the
+   pre-this-session `CLAUDE_CODE_LAST_AUDIT.md` header line reads
+   "Timestamp: 2026-09-06 (continuation of...)". This is a consistent
+   one-day-ahead labeling across four places, baked into (a) Zone B
+   content in `CLAUDE.md` that Claude Code may not edit, and (b) `AGENTS.md`
+   at repo root. It has zero behavioral effect - it is a date label only.
+   Not fixed: CLAUDE.md wording is Zone B; `AGENTS.md` wording, while not
+   on any zone list, is governance content placed via handoff and not
+   something to silently rewrite in a diagnostic session that was told not
+   to fix anything. Flagging for the primary GPT in case the "2026-09-06"
+   dates should be normalized to "2026-09-05" in a future handoff.
+
+No other Zone B inconsistency, drift, or missing content was observed in
+the files inspected this session. (Scope was deliberately narrow -
+`CLAUDE.md`, `AGENTS.md`, `.gitignore`, `forge-events.log`, `audit/`. Skill
+files, mode blocks, templates, and user-facing docs were not re-audited
+this session.)
 
 ## Commits made this session
 
-- Pending - all Zone A fixes and the new `AGENTS.md` file are committed
-  together in this session's commit(s) immediately following this report,
-  per standing Zone A/audit-report authorization. `.gitignore`-covered
-  per-drive state (`.env`, `.agent-name`, `.provider-choice`,
-  `.drive-record.txt`, `.forge-mode`, `.readme-shown`, `forge-events.log`)
-  confirmed absent from `git status --porcelain` before staging - none of
-  it was ever a candidate for this commit.
+- <FILLED IN BY THE COMMIT THAT INCLUDES THIS FILE> - "Audit: diagnostic
+  verification session - AGENTS.md + CLAUDE.md commits confirmed present
+  and pushed, no Codex session since". Single file: `audit/CLAUDE_CODE_LAST_AUDIT.md`.
+  No other file staged. Gitignored per-drive state confirmed absent from
+  `git status --porcelain` before staging.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **The declined CLAUDE.md edit** (above) - confirm the drafted text (or a
-   revision of it) is acceptable, and relay it back as a named
-   Claude-Project-chat-originated handoff if so, per the file's own
-   established mechanism.
-2. **Two real, previously-unnoticed Windows bugs were fixed beyond what was
-   specifically flagged** (the `.bat` write-probe's premature `.hermes-home`
-   creation, and `hermes-drive.ps1`'s `$home` reserved-variable crash). Both
-   were confirmed via real execution on this machine's actual Windows
-   environment, not just static reading. Flagging for a second opinion
-   specifically because this went beyond the literal ask (which only named
-   the duplicate-assignment count issue) - I judged this to be squarely
-   within "fix everything currently flagged" plus the standing "fix a real
-   bug your own testing surfaces" authorization from last session, applied
-   here for the first time to a file (`launch-north-forge.bat`) rather than
-   a test, and to `scripts/hermes-drive.ps1` which isn't on CLAUDE.md's
-   enumerated Zone A list either (same standing zone-boundary gap flagged
-   last session, not yet resolved).
-3. **Tool-usage note**: a `cmd.exe /c "..."` invocation through the
-   Bash/Git-Bash tool mis-quoted and left an idle interactive `cmd.exe`
-   process running (harmless - sitting at an idle prompt, never executed
-   anything, in a scratch directory). I did not `taskkill` it since I could
-   not distinguish it from other legitimate `cmd.exe` processes already
-   running on this machine, and switched to the PowerShell tool's own
-   `System.Diagnostics.Process` for reliable redirected I/O instead.
-   Flagging so Kenneth can close that stray window manually if he notices
-   it, and so a future session knows to prefer the PowerShell tool for this
-   kind of redirected-I/O `.bat` testing rather than nested `cmd.exe`
-   quoting through Bash.
-4. **The zone-boundary gap flagged last session** (`scripts/`, `tests/` not
-   on CLAUDE.md's enumerated Zone A list) is now touched by an even wider
-   set of real fixes this session and still hasn't been formally resolved.
-   Recommend closing this explicitly rather than letting each session
-   re-flag it.
+1. `de94fc2` and `7a96ca7` are not described by any committed audit
+   report. The pre-this-session report describes the CLAUDE.md pointer as
+   *declined and drafted*; `de94fc2` then placed it, and `7a96ca7` placed
+   the Zone A extension the same report flagged as an open gap. Both commit
+   messages assert placement under "the confirmed 2026-08-26 handoff
+   trigger" with text "originating from the Claude Project chat." Nothing
+   in the working tree or history contradicts that, and the diffs are pure
+   additive insertions consistent with the drafted text in the prior
+   report - but the primary GPT is the right party to confirm those two
+   handoffs were legitimate and that the placed text matches what the
+   Claude Project chat intended, since no report covers them.
+2. Date drift (Zone B findings item 1) - "2026-09-06" appears where
+   "2026-09-05" would be accurate, in `AGENTS.md`, two spots in `CLAUDE.md`,
+   and the prior audit report's header. Cosmetic; flagged for a possible
+   normalization handoff.
+3. Nothing else. This was a routine, read-only diagnostic session and the
+   committed/pushed state is internally consistent and complete.
 
 ## Status
-Needs primary GPT review - primarily item 1 (the declined CLAUDE.md edit,
-now drafted and waiting on a proper handoff) and the standing zone-boundary
-gap (item 4, and last session's Finding 1/2 about the missing Codex report,
-which `AGENTS.md` now structurally addresses going forward). All of Part
-1's fixes are verified: the three specifically-flagged issues are fixed and
-passing, plus two additional real, empirically-confirmed bugs found and
-fixed along the way (documented above, not silently folded in). Part 2's
-`AGENTS.md` is created and about to be committed; its companion CLAUDE.md
-pointer is deliberately not placed by me and is drafted above for Kenneth's
-or the Claude Project chat's actual placement.
+
+Clean - routine diagnostic session, no defect found in the committed or
+pushed state. `AGENTS.md` creation (`3c01cd3`), the CLAUDE.md AGENTS.md
+pointer (`de94fc2`), and the CLAUDE.md Zone A extension (`7a96ca7`) are all
+committed, all pushed, and `HEAD == origin/main == 7a96ca7` with a clean
+working tree and nothing ahead or behind. No Codex session has run since
+`AGENTS.md` landed, which is expected. The likely cause of the work
+appearing absent is a stale non-git artifact (`forge-events.log`, last
+entry Sep 4 22:28, 73 commits behind) or a stale clone elsewhere, not a
+repo problem. Two items flagged for primary GPT awareness (unreported
+handoff commits `de94fc2`/`7a96ca7`; one-day date drift) - neither is a
+defect and neither was changed.
