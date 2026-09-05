@@ -160,7 +160,7 @@ you which one you have.
 
 To change a drive's mode: exit the session, run `toggle-mode.bat` (or
 `.sh`), pick FULL or SALES, then relaunch. The third option, RESET, is a
-credential/config reset: after you type `YES`, it removes the API-key file,
+fast onboarding/content reset: after you type `YES`, it removes the API-key file,
 mode and provider choices, drive and assistant names, welcome marker, and
 generated Hermes context/skills so that first-use setup runs again. It checks
 that all eight targets were removed and reports an error if the reset is
@@ -170,6 +170,15 @@ RESET is **not** a privacy or history wipe. `forge-events.log` is intentionally
 retained as an accountability record and can contain names entered by prior
 users. If that record needs separate handling, follow your organization's
 record-retention policy rather than relying on RESET.
+
+RESET also preserves `.hermes-home`. Hermes credentials, memory, sessions, and
+scheduled cron jobs (automatic jobs) remain there. To remove all drive-local
+Hermes data, run `full-drive-reset.bat` on Windows or `bash full-drive-reset.sh`
+on macOS/Linux and type the complete path it displays. This stops/uninstalls
+that drive's gateway before deleting exactly `<repo>/.hermes-home`. Help: `YES`
+will not work at this safety prompt; copy the displayed path. Tip: **Ctrl+C**
+cancels before deletion. `machine-reset.bat` is different: it maintains only
+the Windows host's `%LOCALAPPDATA%\hermes` and ignores leaked `HERMES_HOME`.
 
 ---
 
