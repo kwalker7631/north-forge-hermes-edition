@@ -1,457 +1,408 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-05 (~15:40-16:20 America/New_York), on the `F:` drive clone
-Requested task: Initially none beyond session start (first user message was the
-harness attribution/system reminder only). After the session-start report,
-Kenneth followed up: "Please do what's best moving forward, act as my expert,
-suggest to me the best choice with best outcome" - i.e. resolve the
-`stash@{0}` disposition question I had flagged rather than leaving it open.
-This report covers both: the Session Start Protocol run, and my expert
-recommendation on the stash + the README title-icon question.
+Timestamp: 2026-09-05 (evening, America/New_York), on the `E:` drive clone
+Requested task: "Investigate and improve the visual/organizational first
+impression of a provisioned drive's root folder" - a 4-part request:
+(1) investigate + categorize every root file/folder before changing anything;
+(2) move admin/support-only tools into an `Advanced/` subfolder and fix every
+internal path reference; (3) generate a real-icon `North Forge.lnk` at the
+drive root at provisioning/first-run time; (4) give a recommendation (not an
+implementation) on whether numbered `1-`/`2-`/`3-` file naming helps.
+Explicit instruction: report Part 1 before changing anything; report before
+implementing Part 3/4 (field-user-visible); Part 1/2 fine to implement
+directly. Standing UX-change-needs-review practice invoked by the user.
 
-## Follow-up: expert recommendation on `stash@{0}` and the README `<img>` title icon (2026-09-05, second half of session)
+## Outcome
 
-Kenneth delegated the call and asked for a recommendation. Mine:
+Part 1 investigated and reported in chat before any change. A clarifying
+question was put to Kenneth because Part 2 as framed had two problems he had
+not weighed: (a) the move is a 6-script working-directory refactor, not a
+flat `git mv` - every admin script `cd`s to its own dir then uses relative
+paths for `.forge-mode`, the credential dotfiles, `.hermes/skills`,
+`forge-events.log`, and `scripts/` helpers; (b) `README.md` + `USER_MANUAL.md`
+are Zone B (read-only for Claude Code) so I cannot compose their reference
+updates. Kenneth chose **"Zone A now + I hand you doc diffs."**
 
-**1. `stash@{0}` - drop it. Both halves are obsolete.**
-- `WELCOME.html` half: the upstream-committed `WELCOME.html` (PR #2) already
-  won and ships to every drive; it is strictly more complete than the stashed
-  139-line draft. The draft has no remaining use and would *conflict* on any
-  `git stash pop` now that the file is tracked. Zero reason to keep it.
-- `README.md` half: the one-line `<img>` title edit is preserved verbatim in
-  this report (quoted in full under "Zone B findings" item 1) AND in git's
-  own object DB via the stash commit sha `git rev-parse` would show (loose
-  object, recoverable with `git stash apply <sha>` for ~2-4 weeks even after
-  a drop). Nothing is lost by dropping the stash. Keeping a one-drive-local
-  stash indefinitely is fragile (dies on `git stash clear` / a reset / just
-  being forgotten) and is a latent foot-gun.
+Implemented and pushed as commit **`b744b10`** (Zone A + Zone C): the
+`Advanced/` move with all 6 scripts re-anchored, Part 3's root `North
+Forge.lnk` in both `provision-new-drive.ps1` and `launch-north-forge.bat`,
+`.gitignore` exclusion, two test-file updates, CHANGELOG.md + NEXT_STEPS.md
+entries. Part 4: recommended against numbered naming (rationale below and in
+CHANGELOG.md). `README.md` + `USER_MANUAL.md` NOT touched - exact drop-in
+replacement text handed to Kenneth in chat for a Zone B handoff.
 
-  **Status of the drop: DONE this session.** My first attempt
-  (`git stash drop stash@{0}` via the Bash tool) was denied by the Claude
-  Code auto-mode permission classifier (destructive git operation); I did not
-  work around it. Kenneth then ran it himself from the prompt:
-  `git stash drop stash@{0}` -> `Dropped stash@{0}
-  (de954fc75c25e42ebae65983adee56d094cb7c09)`. Verified afterward:
-  `git stash list` empty, `git status -sb` -> `## main...origin/main` (clean,
-  no file lines), `README.md` line 1 still `# North Forge - Hermes Edition`,
-  `WELCOME.html` still the tracked upstream version. The dropped stash commit
-  `de954fc75c25e42ebae65983adee56d094cb7c09` is still a loose object in the
-  DB (`git cat-file -t` -> `commit`) and can be restored with
-  `git stash apply de954fc75c25e42ebae65983adee56d094cb7c09` until git gc
-  prunes it (~2 weeks default). The `README.md` `<img>` hunk also remains
-  quoted verbatim under "Zone B findings" item 1 as the durable record.
+## Session start / concurrency note
 
-**2. The README title icon itself - my recommendation is DON'T add it.**
-- This repo is private and unpublished (README's own "Repo governance"
-  section states this). A logo-next-to-the-H1 is a public-repo polish move;
-  here the README audience is Kenneth + a few team members + the
-  GPT/Claude-Code/Blacksmith review loop.
-- The current upstream `README.md` already opens cleanly: `# North Forge -
-  Hermes Edition` followed immediately by the Blacksmith attribution line.
-  It reads fine as-is.
-- `assets/north-forge-icon.svg` already earns its keep where team members
-  actually see it: the tracked `WELCOME.html` quick-start page and the CLI
-  skin (`skins/north-forge.yaml`). The README title bar is not a
-  high-value surface.
-- The `<img>` edit was made against a base 3 days + 87 commits stale, and
-  nobody carried it forward through multiple *deliberate* README handoffs
-  (`6173c65`, `b620661`). That is the content authors implicitly not wanting
-  it.
-- Net value: near zero. Cost: a Zone B handoff cycle. Not worth it.
-- If Kenneth disagrees and does want it: it is a ~30-second change. Re-issue
-  it as a Zone B handoff *against current HEAD* (`d80d409`+), fitted to the
-  new line 1 + attribution-line structure - not a blind re-apply of the
-  stale hunk. I will place exactly what is handed over.
+This session did NOT run the Session Start Protocol as its own first step -
+the immediately-preceding task in this same conversation ("pull /logs from
+git codex audit") had already done `git pull` (to `8b06653`), read the prior
+audit, and confirmed `.gitignore`. At the time this task's work was
+committed, `git push` was rejected repeatedly: a second Claude Code session
+(on the `F:` drive clone, user `kwalker138`) was concurrently pushing a
+chain of audit-report commits - `d80d409`, `0b80d9c`, `dcbedef`, `0a68f22` -
+**every one of which touches only `logs/CLAUDE_CODE_LAST_AUDIT.md`**
+(verified via `git show --stat` on each); none touches any file this task
+changed. Resolved by `git pull --rebase` each time. My code change replayed
+cleanly onto `0b80d9c` and pushed as **`b744b10`**. This report's commit hit
+a content conflict in `logs/CLAUDE_CODE_LAST_AUDIT.md` against the F:
+session's evolving report; resolved by taking this session's full report
+(`git checkout --theirs`) - it is the authoritative record of the
+substantive repo change, and the F: session's own report content survives in
+git history at `d80d409..0a68f22`. Facts carried forward from that session
+so nothing is lost: (a) it hit `fatal: detected dubious ownership` on `F:`
+and fixed it with a machine-local `git config --global --add safe.directory`
+(git client setting, not a repo change); (b) a drive-local `stash@{0}` on
+the F: clone (never shared via git; `git stash list` is empty on this E:
+clone) held a stale `README.md` `<img>` title-icon change + an obsolete
+`WELCOME.html` draft - **Kenneth dropped it this session** (`dcbedef`;
+dropped stash commit `de954fc`, still a loose object, recoverable ~2 weeks);
+(c) that session's standing recommendation is NOT to add the README `<img>`
+title icon. That README `<img>` item and this task's drive-root `North
+Forge.lnk` are two different "icon" threads - not conflated.
 
-I did NOT touch `README.md` or `WELCOME.html` this session. This section is a
-recommendation only.
+## Part 1 - root inventory + categorization (reported in chat, reproduced here)
 
-## Summary
+How a provisioned drive's root is populated: `provision-new-drive.ps1` does
+`git clone` then runs `launch-north-forge.bat`. So the root = the exact
+tracked tree + runtime files the launcher generates. There is no
+provision-only file.
 
-The session-start `git pull` was blocked twice and is now resolved:
+Categories: (a) field user should see/might click; (b) Kenneth/support only;
+(c) must exist, never needs to be seen.
 
-1. **`fatal: detected dubious ownership in repository at 'F:/north-forge-hermes-edition'`**
-   - `F:` is a filesystem that does not record ownership; git 2.51.2 refused
-   to operate. Fixed with `git config --global --add safe.directory
-   F:/north-forge-hermes-edition` (a machine-local git *client* setting, not a
-   repo file - noted here for transparency, not a Zone A change).
+### Tracked files at root (pre-move)
+| File | Cat | Note |
+|---|---|---|
+| `launch-north-forge.bat` / `.sh` | a | the launcher(s) |
+| `WELCOME.html` | a | auto-opens once, fine to open manually |
+| `FIRST_TIME_README.txt` | a | plain-language quickstart, "for whoever gets handed one" |
+| `toggle-mode.bat` / `.sh` | b | mode switch + RESET, admin-gated |
+| `machine-reset.bat` | b | host-PC Hermes purge / key rotation, admin-gated |
+| `full-drive-reset.bat` / `.sh` | b | unrecoverable drive-engine purge, path-confirm gated |
+| `provision-new-drive.ps1` | b | drive creation; ships on every drive; contains an embedded token line |
+| `README.md` | b/dev | dev/admin doc; Zone B |
+| `USER_MANUAL.md` | a-ish | user reference, Zone B, not something to click |
+| `ATTRIBUTION.md` | c | MIT-license obligation |
+| `CLAUDE.md`, `AGENTS.md` | c | agent working rules |
+| `CHANGELOG.md`, `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md` | c | dev status logs |
+| `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` | c | locked KB template consumed by `/kb` |
+| `.env.example`, `.gitignore` | c | config templates |
 
-2. **Local working-tree contents collided with an 87-commit fast-forward.**
-   `git pull` aborted with:
-   ```
-   error: Your local changes to the following files would be overwritten by merge:
-   	README.md
-   error: The following untracked working tree files would be overwritten by merge:
-   	WELCOME.html
-   ```
-   Both were pre-existing artifacts on THIS drive, neither created by me, both
-   already recorded in this drive's last audit report (commit `cc32003`, the
-   local pre-pull HEAD). I set both aside into `stash@{0}` (details below),
-   fast-forwarded, and left the stash intact. The stashed `README.md` change is
-   a Zone B item carried forward unresolved; the stashed `WELCOME.html` is now
-   definitively superseded by an upstream-committed `WELCOME.html`.
+### Tracked directories at root
+`assets/` (c - holds `north-forge.ico`), `skills-source/` `mode-blocks/`
+`skins/` (c - authored source), `scripts/` (c - helpers the launcher/admin
+tools call), `tests/` (c), `fallback/` (c), `research-log/` (c - cron-
+appended, committed on purpose), `kb-images/` (c - `/kb` image intake,
+shared), `logs/` (c - audit reports), `archive/` (c -
+`setup-thumbdrive.ps1`, superseded; CLAUDE.md marks `archive/` never-touch).
 
-After stashing: `git pull --ff-only` fast-forwarded `main` from `cc32003` to
-`8b06653` - 58 files changed, +4068 / -625. Working tree is clean
-(`git status --porcelain` empty, `git diff` empty). CLAUDE.md itself changed
-in the pull (zone-list extensions + `audit/` -> `logs/` rename) and was
-re-read in full. No Zone B content was edited or composed by me this session.
-Only this audit report was written and committed.
+### Generated/runtime items at a provisioned root (all gitignored, all cat c)
+`.hermes-home/`, `.hermes/`, `.hermes.md`, `.forge-mode`, `.agent-name`,
+`.provider-choice`, `.readme-shown`, `.drive-record.txt`, `.env` (once
+created), `forge-events.log`, `install-logs/`, and transients
+(`.hermes-install-staging/`, `.hermes-install-incomplete`,
+`.north-forge-write-probe-*.tmp`). Desktop shortcut (`North Forge.lnk` on
+Windows / `North Forge.command` on Mac) lands on the **Desktop**, not the
+drive root.
 
-## Session Start Protocol results
+### Part 1 finding that reshaped the task
+The task's stated Part 2 goal - "root should end up close to just: the one
+launcher, WELCOME.html, FIRST_TIME_README.txt, and the new admin subfolder"
+- is **not reachable by moving admin scripts alone**. The root is a git
+working tree: ~13 `.md`/config files and ~11 source subdirectories remain.
+The realistic and real win: removing the 6 admin `.bat`/`.ps1` (the files a
+nervous non-technical user is most likely to click) and adding one blessed
+icon (Part 3). A non-technical user disregards `.md` files and folders like
+`skills-source/`.
 
+## Zone A changes made (commit `b744b10`)
+
+### 1. `git mv` - 6 admin scripts -> `Advanced/` (history preserved)
+`git diff --cached -M --summary` scored: `toggle-mode.bat` 93%,
+`toggle-mode.sh` 92%, `machine-reset.bat` 92%, `full-drive-reset.bat` 89%,
+`full-drive-reset.sh` 88%, `provision-new-drive.ps1` 82% (similarity below
+100% because each carries the re-anchor edit below; all still detected as
+renames, `git log --follow` will cross the move). `git mv` initially failed
+on this Windows/git-bash combo when the target dir did not exist
+(`fatal: renaming ... failed: No such file or directory`); worked after an
+explicit `mkdir -p Advanced` then per-file `git mv`.
+
+### 2. Working-directory re-anchor (the non-cosmetic part)
+Every moved script previously anchored to its own directory (`cd /d "%~dp0"`
+/ `cd "$(dirname "$0")"`) then used **relative** paths. Left unfixed, from
+`Advanced/`: `toggle-mode` RESET would `del`/`rm` in `Advanced/` (nothing
+there), find no targets, and **report success** - silently breaking the
+"genuine first run" / credential-scrub guarantee; `machine-reset.bat` would
+fail at its first line (`%~dp0scripts\machine-reset-safety.ps1` ->
+`Advanced\scripts\...` does not exist); `full-drive-reset.*` would compute
+`REPO`/`CANDIDATE` under `Advanced/`. Fixes applied:
+
+| File | Before | After |
+|---|---|---|
+| `Advanced/toggle-mode.bat` L?(setlocal block) | `cd /d "%~dp0"` | `cd /d "%~dp0.."` + 4-line explanatory comment |
+| `Advanced/toggle-mode.sh` | `cd "$(dirname "$0")"` | `cd "$(dirname "$0")/.." \|\| exit 1` + comment (added `\|\| exit 1` - RESET deletes files, must fail closed) |
+| `Advanced/machine-reset.bat` | `cd /d "%~dp0"` | `cd /d "%~dp0.."` + comment |
+| `Advanced/machine-reset.bat` x3 (Validate/RemoveEnv/Purge) | `-File "%~dp0scripts\machine-reset-safety.ps1"` | `-File "%~dp0..\scripts\machine-reset-safety.ps1"` (replace_all, exactly 3 occurrences) |
+| `Advanced/full-drive-reset.bat` L3 | `cd /d "%~dp0"` | `cd /d "%~dp0.."` + comment |
+| `Advanced/full-drive-reset.sh` L4 | `cd "$(dirname "$0")" \|\| exit 1` | `cd "$(dirname "$0")/.." \|\| exit 1` + comment |
+| `Advanced/provision-new-drive.ps1` | (no cd to own dir; builds all paths from the chosen drive letter) | **body unchanged** |
+
+After the re-anchor, every downstream relative path (`scripts\...`,
+`forge-events.log`, `.forge-mode`, the RESET dotfile list, `.hermes\skills`)
+resolves against the drive root exactly as before the move. Echo/guidance
+text inside the scripts that names sibling tools by bare filename
+("run `launch-north-forge.bat`", "run `full-drive-reset.bat` instead") was
+left unchanged - it is human guidance, not a code-resolved path, and still
+points the user to a findable file one level up. Recorded as a deliberate
+minimal-diff choice.
+
+### 3. Version-header bumps (repo convention for Zone A functional changes)
+`Advanced/toggle-mode.bat` 1.1.0 -> 1.2.0; `Advanced/toggle-mode.sh`
+1.1.0 -> 1.2.0; `Advanced/machine-reset.bat` 1.1.0 -> 1.2.0;
+`Advanced/provision-new-drive.ps1` 1.0.1 -> 1.1.0 (Part 3 step added);
+`launch-north-forge.bat` 1.2.1 -> 1.3.0 (Part 3 step added).
+`full-drive-reset.bat`/`.sh` carry no version header - none added.
+`launch-north-forge.sh` untouched (Part 3 scope was the Windows `.lnk` only).
+
+### 4. Part 3 - drive-root `North Forge.lnk`
+Added to **two** places (idempotent "create if missing", mirroring how the
+existing Desktop-shortcut code already works):
+- `Advanced/provision-new-drive.ps1`, new block after the launcher-exists
+  check + `Set-Location`, before `& $launcherPath` (lines ~126-147): builds
+  `$rootShortcut = Join-Path $repositoryPath "North Forge.lnk"`, and if
+  absent creates it via `WScript.Shell` COM with `TargetPath = $launcherPath`,
+  `WorkingDirectory = $repositoryPath`, `IconLocation = ...assets\north-forge.ico`,
+  `Description = "North Forge - double-click to start"`. Wrapped in
+  try/catch so `$ErrorActionPreference = "Stop"` cannot abort provisioning
+  if the COM call fails; on failure it prints a note that the launcher will
+  retry.
+- `launch-north-forge.bat`, new block right after the Desktop-shortcut block
+  (lines ~97-113): same `powershell -NoProfile -Command` one-liner form the
+  Desktop block already uses, target `%~f0`, workdir `%~dp0`, icon
+  `%~dp0assets\north-forge.ico`, destination `%~dp0North Forge.lnk`; logs
+  `[INFO]`/`[WARNING] [shortcut]: drive-root North Forge.lnk ...` to
+  `forge-events.log`.
+Rationale: a `.bat` can never display a custom icon in Explorer; only a
+`.lnk` can. The target path is drive-letter-specific, so it is generated,
+never committed. `provision-new-drive.ps1` makes it present the instant
+provisioning finishes (before the field user's first Explorer open); the
+launcher block self-heals direct-clone drives and deletions.
+
+### 5. `.gitignore` (+4 lines)
+Added under the per-drive-markers block:
 ```
-SESSION START CHECK
-Pulled: Yes - cc32003..8b06653, 58 files, +4068/-625, fast-forward. Required
-  git safe.directory fix first, then a stash of 2 local artifacts to unblock.
-Last audit read: Yes - logs/CLAUDE_CODE_LAST_AUDIT.md (the 8b06653 version,
-  "pull /logs from git codex audit" session). Status was "Clean - routine
-  pull + verify"; flagged a dead commit hash in CODEX_PUSH_LOG.md and an
-  un-runnable native-Windows/PowerShell test pass.
-Uncommitted at start: README.md (modified - 1 line, Zone B, not mine);
-  WELCOME.html (untracked - not mine). Both stashed to stash@{0} to allow the
-  fast-forward. Nothing else.
-.gitignore: OK - present, v1.0.1 / "Updated: 2026-09-05", 69 lines. Excludes
-  .env, *.env, .forge-mode, .hermes.md, /.hermes/, /.hermes-home/. All four
-  Session-Start-Protocol-required exclusions satisfied.
-hermes doctor: Not run - hermes is not installed on this machine at all
-  (%LOCALAPPDATA%\hermes does not exist; `command -v hermes` empty). Same as
-  every prior session on this drive per audit history.
-Project skills: hermes not installed - cannot list.
+# Drive-root launcher shortcut - generated per drive by launch-north-forge.bat
+# and provision-new-drive.ps1; its target path is drive-letter-specific, so it
+# must never be committed (same reason as the per-drive markers above).
+/North Forge.lnk
 ```
+Anchored (`/North Forge.lnk`) - root only. `git check-ignore -v "North
+Forge.lnk"` -> `.gitignore:25:/North Forge.lnk` after the change.
 
-## Files inspected
+### 6. Tests (Zone A)
+- `tests/reset-integration.sh`: `make_fixture` now `mkdir -p
+  "$fixture/Advanced"` and `cp "$REPO_ROOT/Advanced/toggle-mode.sh"
+  "$fixture/Advanced/"`; the 3 invocations now
+  `bash "$X/Advanced/toggle-mode.sh"`. State files still created at
+  `$fixture/` (the drive-root the re-anchored script `cd`s up into). 3-line
+  header comment added. **Passes** (see verification).
+- `tests/provision-new-drive.Tests.ps1` L7: `$sourceScript = Join-Path
+  $repositoryRoot "provision-new-drive.ps1"` -> `"Advanced\provision-new-drive.ps1"`.
+  L18's flat temp-copy path left as-is (the script has no dir-relative deps -
+  the test itself proves this by copying it to a flat temp dir and running it).
+- No other test references these scripts. `tests/machine-reset-safety.Tests.ps1`
+  points at `..\scripts\machine-reset-safety.ps1` (unmoved) - unaffected.
+  `tests/test-free-provider.sh` / `tests/test-skill-assembly.sh` do full-repo
+  or `skills-source`-only copies and never invoke the admin scripts -
+  unaffected.
 
-Read in full this session:
-- `CLAUDE.md` (386 lines - re-read after the pull modified it; see "CLAUDE.md
-  changes delivered by the pull" below)
-- `logs/CLAUDE_CODE_LAST_AUDIT.md` (250 lines / the `8b06653` version - prior
-  session's report; overwritten by this report as the final step)
-- `logs/FORGE_EVENT_LOG.md` (full - 1 event block, 2026-09-05 01:53:12 EDT,
-  "Live rule-consistency regression pass", all 8 areas PASS, no faults)
-- `.gitignore` (full, `cat -A` to confirm line endings and exact rules)
+## Zone C changes made (commit `b744b10`)
 
-Read partially (head) for continuity awareness, not actioned:
-- `logs/HANDOFF_2026-09-05_SESSION_CHANGES.md` (first 60 of 367 lines - the
-  "final batch" handoff: Phase 1 machine-local `hermes config set
-  model.default claude-sonnet-4-6`; Phase 2 commit `5291b86` OpenCode Free
-  onboarding default; mentions 2 cron jobs `model_snapshot` drift left
-  un-repinned)
-- `logs/CODEX_SECOND_AUDIT_2026-09-05.md` (first 50 lines - NF-CX-01 HIGH:
-  `machine-reset.bat` accepts env-controlled `HERMES_HOME` verbatim and its
-  full-purge marker check is too weak; NF-CX-02 MEDIUM: drive RESET leaves
-  `.provider-choice` / `.agent-name` / `.readme-shown` behind)
-- `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` (referenced via prior audit
-  only this session - not re-read line by line)
-- `logs/HERMES_CRON_GATEWAY_HOME_AUDIT.md` (first 40 lines - conservative
-  cron/gateway `HERMES_HOME` reasoning, build container had no hermes)
+- `CHANGELOG.md`: new `### Reorganized (later session, Claude Code - drive-root
+  first impression)` subsection at the top of `## [Unreleased] - 2026-09-05`,
+  4 bullets (the move + re-anchor, the `.lnk`, the Zone B not-done note, the
+  Part 4 recommendation). File-voice-matched to the existing long-form entries.
+- `NEXT_STEPS.md`: one bullet appended under `## Done` after the
+  `toggle-mode.bat/.sh RESET option` bullet, summarizing the pass and
+  pointing at CHANGELOG.md + this report for detail.
 
-Inspected via git / shell (read-only):
-- `git config --global --add safe.directory F:/north-forge-hermes-edition`
-  (the one client-config write; everything else read-only or the stash)
-- `git pull` (aborted x2), `git pull --ff-only` (succeeded), `git status`,
-  `git status --porcelain` (before/after), `git diff` / `git diff --stat`
-  (empty after pull), `git log --oneline -15`, `git log --oneline origin/main
-  -90`
-- `git stash list`, `git stash push --include-untracked -m "..." -- README.md
-  WELCOME.html`, `git stash show --stat stash@{0}`, `git stash show -p
-  stash@{0}`, `git show stash@{0}^3 --stat`
-- `git show origin/main:README.md` / `git show origin/main:WELCOME.html` /
-  `git show HEAD:README.md` (into scratchpad, then `diff` with CR-stripping)
-- `git show HEAD` (post-pull), `git ls-files assets/ logs/ WELCOME.html`
-- `command -v hermes` -> nothing; `which hermes` -> "no hermes in ..." (full
-  PATH quoted in session); `ls -la /c/Users/kwalk/AppData/Local/hermes*` ->
-  "No such file or directory" (hermes entirely absent on this machine)
-- `python --version` -> 3.11.9
-- `ls -la` on repo root - confirmed per-drive dot-state files present (all
-  gitignored, none staged): `.agent-name` (7 B), `.drive-record.txt` (40 B),
-  `.env` (798 B), `.forge-mode` (6 B), `.hermes.md` (18584 B),
-  `.readme-shown` (3 B). No `.hermes-home/`, no `install-logs/`, no
-  `.hermes-install-incomplete` on this drive (see flag 3).
-- `file README.md` -> "ASCII text, with very long lines (795), with CRLF line
-  terminators"; scratchpad copy of `origin/main:README.md` -> "Unicode text,
-  UTF-8 text ... very long lines (795)" (LF). The all-lines-differ raw `diff`
-  was a CRLF/LF artifact; the CR-stripped `diff` is the real content delta.
+## Part 4 - numbered `1-`/`2-`/`3-` naming: RECOMMENDATION = do not
 
-Backed up byte-for-byte to the session scratchpad (ephemeral, will not
-survive session cleanup - the durable records are `stash@{0}` and the exact
-quotes in this report):
-- `.../scratchpad/README.local-uncommitted.md` (24600 bytes)
-- `.../scratchpad/WELCOME.local-untracked.html` (4456 bytes)
-- `.../scratchpad/readme-origin.md` (24202 bytes - `origin/main:README.md`)
+Reported in chat and recorded in CHANGELOG.md. Reasoning:
+- After the move, the root has exactly **one** thing a field user runs (the
+  launcher / its `.lnk`). There is no ordered sequence to encode; a number
+  prefix implies a multi-step process that does not exist.
+- `1-launch-north-forge.bat` would churn every reference - `WELCOME.html`,
+  `FIRST_TIME_README.txt`, `README.md`, `USER_MANUAL.md`,
+  `provision-new-drive.ps1`'s `$launcherPath`, multiple tests - and desync
+  the name from every doc and from muscle memory, for cosmetic gain.
+- Inside `Advanced/` the tools are **situational, not sequential** (you run
+  `toggle-mode` OR `full-drive-reset` OR `machine-reset` by need) - a `1/2/3`
+  prefix would impose a false order.
+- If extra in-folder signal is wanted: a static
+  `Advanced/WHEN-TO-USE-THESE.txt` is more informative and touches zero
+  existing references. (Not created this session - flagged as a small
+  optional follow-up; it would be a new file, roughly Zone A category but
+  arguably worth a Kenneth nod since it is user-visible text.)
 
-## Zone A changes made
+## Verification performed
 
-None. No Zone A repo file was edited this session. The only non-read git
-operations were:
-- `git config --global --add safe.directory ...` - machine-local git client
-  config, not a file in this repo.
-- `git stash push ...` - moved 2 non-Zone-A working-tree artifacts aside;
-  recoverable, nothing deleted.
-- `git pull --ff-only` - session-start protocol step 1.
-- The commit of this audit report (Zone A standing authorization - the audit
-  report is Claude Code's own operational record).
+All on the real `E:` Windows drive.
 
-## Zone B findings (not fixed - reported only)
+- `bash tests/reset-integration.sh` -> `PASS: RESET removes exactly eight
+  state targets, retains the accountability log, rejects refusal, and reports
+  incomplete deletion.` (exit 0) - confirms `toggle-mode.sh` re-anchor.
+- `bash tests/repository-hygiene.sh` -> pass (`.provider-choice` + `.env`
+  ignored, `.env` unstaged).
+- `bash -n Advanced/toggle-mode.sh Advanced/full-drive-reset.sh` -> clean.
+- **`full-drive-reset.sh` from `Advanced/`** (scratch copy, fed a
+  non-matching path): printed the TARGET as
+  `<scratchroot>/.hermes-home` (drive root, NOT `<scratchroot>/Advanced/.hermes-home`),
+  reached the safety validator with no "python: can't open file" error, then
+  `Cancelled - the path did not match; nothing was changed.` exit 1. Works
+  invoked from the repo root AND from inside `Advanced/`.
+- **`toggle-mode.bat` RESET from `Advanced/`** (scratch copy, piped
+  `RESET`/`RumpleStiltskin`/`YES` via `cmd /c "bat < input.txt"`): all 8
+  state targets removed from the **parent** dir, `forge-events.log` retained
+  in the parent, `Advanced\.forge-mode` NOT created (no leak), log line
+  `RESET executed by Tester` (proves it read the parent's
+  `.drive-record.txt`). `exit /b 0` path, no `pause` hang.
+- **`machine-reset.bat` from `Advanced/`** (scratch copy): the
+  `%~dp0..\scripts\machine-reset-safety.ps1 -Action Validate` call **ran the
+  helper** - output was the helper's own domain message ("Safety check
+  failed: the target directory does not exist" -> `%LOCALAPPDATA%\hermes`
+  genuinely absent on this machine), NOT a PowerShell "cannot find path"
+  error. Path re-anchor confirmed. (The NativeCommandError wrapper in the
+  transcript is PowerShell `2>&1` noise around exit code 2 = the designed
+  safe-stop.)
+- **`full-drive-reset.bat` from `Advanced/`** (scratch copy, wrong path):
+  TARGET printed as `<scratchroot>\.hermes-home`, `scripts\drive-reset-safety.py`
+  resolved (no file-not-found), `Cancelled - the path did not match`.
+- **Part 3 `.lnk`** generated on the real `E:` root via the exact
+  `provision-new-drive.ps1` COM sequence: `TargetPath =
+  E:\north-forge-hermes-edition\launch-north-forge.bat`, `WorkingDirectory =
+  E:\north-forge-hermes-edition`, `IconLocation =
+  ...\assets\north-forge.ico,0`; target + icon both `Test-Path` True;
+  `git status --porcelain -- "North Forge.lnk"` empty; `git check-ignore -v`
+  -> `.gitignore:25:/North Forge.lnk`. Then removed (tree left pristine).
+- `toggle-mode.bat` run once against the real `E:` root (blank input = quit):
+  menu showed `Current mode file: full` - i.e. from `Advanced/` it read the
+  real drive-root `.forge-mode`. Read-only, no modification.
+- PowerShell `Parser::ParseFile` on `Advanced/provision-new-drive.ps1`,
+  `scripts/machine-reset-safety.ps1`, `tests/provision-new-drive.Tests.ps1`
+  -> all OK.
+- `python -m unittest tests.test_launcher_hermes_home` (4 tests) OK;
+  `tests/test_drive_hermes_contract.py` module functions OK.
+- `git diff --check` -> clean.
+- Post-push: `HEAD == origin/main` true; `git ls-tree HEAD Advanced/` lists
+  all 6; repo-wide grep for a root-path reference to the moved scripts in
+  `tests/`, `scripts/`, `launch-north-forge.*` returns only the (correct)
+  `Advanced\provision-new-drive.ps1` line and the intentional flat temp-copy
+  path in the same test.
 
-### 1. `README.md` has a 1-line uncommitted `<img>` edit, now orphaned against 87 commits of upstream evolution. Carried in `stash@{0}`.
+### NOT verified (environment limits)
+- `tests/provision-new-drive.Tests.ps1` end-to-end - needs Pester/pwsh and a
+  writable fake-drive harness; only parse-checked + the single path line
+  reviewed. It reads `$sourceScript` once at the top; the rest uses a flat
+  temp copy, so the L7 change is the whole surface.
+- Native double-click behaviour of the generated `.lnk` in Explorer (icon
+  render, launch) - the COM properties are all correct and resolve, but an
+  actual Explorer double-click was not performed.
+- `machine-reset.bat` / `full-drive-reset.bat` past their `hermes`-on-PATH
+  gate - `hermes` is not installed on this machine; both stop safely at that
+  gate as designed. The path re-anchor (the only thing this change affects)
+  was verified before that gate.
 
-This is the same finding as commit `cc32003`'s audit ("Zone B findings" item
-1) and the audit before it. At this session's start `git diff` showed exactly
-one hunk, base blob `d8e8a23` -> `a72f631`:
+## Zone B findings (NOT fixed - reported only; drop-in text handed to Kenneth)
 
-```diff
-diff --git a/README.md b/README.md
-index d8e8a23..a72f631 100644
---- a/README.md
-+++ b/README.md
-@@ -1,4 +1,4 @@
--# North Forge - Hermes Edition
-+# <img src="assets/north-forge-icon.svg" alt="North Forge anvil and flame mark" height="32"> North Forge - Hermes Edition
- 
- A field-support AI built specifically for Kyocera Document Solutions technicians and sales reps - carries KB authoring, hotline ticket handling, escalation packets, and pre-sales product guidance, runs from your own PC or a portable drive, and never asks you to remember a slash command you don't already know.
-```
+`README.md` and `USER_MANUAL.md` are Zone B. Both still show the pre-move
+root paths and need a Blacksmith / Claude Project chat handoff. Exact
+replacement text was given to Kenneth in this session's chat. Locations:
 
-That is the entire change: an inline `<img>` of `assets/north-forge-icon.svg`
-(which IS tracked - `git ls-files assets/` confirms `assets/north-forge-icon.svg`
-plus `.png`/`.ico` variants) prepended to the H1 text on line 1.
+1. **`README.md` file-tree diagram (lines ~62-64, 69)** - `toggle-mode.bat /
+   .sh`, `full-drive-reset.bat / .sh`, `machine-reset.bat`, and
+   `provision-new-drive.ps1` are listed as flat root entries; they need to be
+   re-nested under a new `Advanced/` node.
+2. **`README.md` line 131** - the fenced example ```` .\provision-new-drive.ps1 ````
+   becomes ```` .\Advanced\provision-new-drive.ps1 ````. Also line 128, 136,
+   175, 211 name `provision-new-drive.ps1` / `toggle-mode.bat` in prose -
+   prose is arguably fine as bare names, but line 131 is a literal command
+   and line 211 ("paste it into the line that sets `$cloneUrl` near the top
+   of `provision-new-drive.ps1`") now needs the `Advanced\` qualifier for
+   someone to find the file.
+3. **`USER_MANUAL.md` line 166** - "run `toggle-mode.bat` (or `.sh`)" ->
+   "run `Advanced\toggle-mode.bat` (or `Advanced/toggle-mode.sh`)".
+4. **`USER_MANUAL.md` lines 181-182** - "run `full-drive-reset.bat` on
+   Windows or `bash full-drive-reset.sh`" -> `Advanced\` / `Advanced/`
+   prefixes.
+5. **`USER_MANUAL.md` line 185** - "`machine-reset.bat` is different:" ->
+   "`Advanced\machine-reset.bat` is different:".
 
-**Why it is now orphaned:** the diff base is `cc32003`'s README. Since then,
-`README.md` moved forward on `origin/main` through Blacksmith/Claude-Project-chat
-handoffs - visible in the log as `6173c65` "Place README.md file-tree audit/
--> logs/ fix (confirmed handoff)" and `b620661` "Update audit report: record
-the README.md handoff placement". The current post-pull `README.md` line 1 is:
-
-```
-# North Forge - Hermes Edition
-
-North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC.
-```
-
-i.e. no `<img>` tag, and a new Blacksmith attribution line was added directly
-beneath the title. The `<img>` edit was never pushed, never referenced in any
-of the 87 pulled commits, and was made on a drive (`F:`) that had not synced
-since 2026-09-04. Full CR-stripped `README.md`-working-tree vs
-`origin/main:README.md` diff (run this session) shows the working tree is
-simply the *old* README plus the one `<img>` line - every other difference is
-upstream content the working tree was missing (`.hermes-home` rewrite of the
-thumb-drive section, `full-drive-reset.*` additions, `audit/` -> `logs/` in
-the file tree, RESET-section rewrite, "Updating Hermes" rewrite).
-
-**Disposition:** left in `stash@{0}`, not applied, not dropped. Applying it
-would be editing Zone B without a handoff. Dropping it is not authorized and
-would be hard to reverse. `git stash show -p stash@{0}` reproduces the exact
-one-liner above; this report quotes it verbatim as the primary durable record
-(the scratchpad copy is ephemeral). **Decision needed from the Blacksmith /
-primary GPT:** either (a) the `<img>`-in-title idea is abandoned and the
-current upstream `README.md` is authoritative - in which case `stash@{0}` can
-be dropped - or (b) hand the `<img>` line-1 change over as a proper Zone B
-handoff *against current HEAD* (`8b06653`), where it would need re-checking
-against the new line 1 + attribution line, not blind-applied.
-
-### 2. `WELCOME.html` - the local untracked draft is now superseded by an upstream-committed `WELCOME.html`; the stale draft sits in `stash@{0}` and is safe to discard.
-
-At `cc32003`'s audit this was flagged (Zone B findings item 2 / Uncertain
-item 3) as "untracked and not in ANY CLAUDE.md zone - a real gap ... already
-load-bearing" because `launch-north-forge.bat` opens it on first run. That
-gap is now closed upstream: `git log` shows PR #2 `2f5f2fb`
-("Merge ... codex/move-welcome.html-to-repository-root"), `912798d`
-("Validate welcome assets and retry failed opens"), `30e5721` ("Welcome
-added."), and the fast-forward stat line reads `create mode 100644
-WELCOME.html`. `git ls-files WELCOME.html` now returns it - it is tracked.
-
-The two versions are materially different (full `diff` run this session,
-local-untracked vs `origin/main:WELCOME.html`):
-- Local draft: 4456 bytes / 139 lines, `<meta charset="utf-8">`, a `<style>`
-  block, `.brand-header` with both logos, example code `"... U240 code after
-  the last firmware update"`.
-- Upstream committed: 6208 bytes / ~211 lines, `<meta charset="UTF-8">`,
-  `<title>North Forge - Quick Start</title>`, inline styles, adds an
-  attribution paragraph, an ENTER-vs-`OWNKEY` provider-choice section, a
-  premium/credits-gated-model warning, and changes the example code to
-  `"... C6000 code after the last firmware update"`.
-
-The upstream version is strictly the more complete, more current one and is
-what every drive now gets. The stashed local draft (`stash@{0}^3`, a 139-line
-untracked blob) has no remaining purpose and would in fact *conflict* on any
-`git stash pop` now that `WELCOME.html` is tracked. **Safe to discard with
-the stash** once finding 1's disposition is decided (they share the one
-stash entry).
-
-### 3. Nothing else in Zone B was touched, read, or changed.
-
-The pull moved no Zone B *content* file. `git pull` stat covers `README.md`
-(Zone B, evolved via handoff upstream - not by me), `WELCOME.html`,
-`ATTRIBUTION.md` (+2), `FIRST_TIME_README.txt` (+10), `USER_MANUAL.md` (+29),
-`.hermes.template.md` (+1), `KYO_KB_TITAN_...html` (+1),
-`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` (+2) - all delivered by
-upstream commits, none edited locally. I did not open the skill sources,
-mode-blocks, the KYO_KB_TITAN template, or the fallback paste file this
-session (no reason to).
-
-## CLAUDE.md changes delivered by the pull (Zone B file - reviewed, not edited)
-
-The harness flagged CLAUDE.md as changed on disk mid-session; I re-read the
-full 386-line post-pull version. Deltas vs the `cc32003` version this drive
-had:
-- **New "Note on AGENTS.md"** (lines 20-30): `AGENTS.md` at repo root is the
-  Codex-session equivalent of CLAUDE.md, points back to CLAUDE.md's zone
-  defs as the single source of truth, adds a Codex-only mandatory-audit-
-  report rule (dated 2026-09-06 in-file).
-- **Zone A file list extended** (lines 36-69): now explicitly enumerates
-  `logs/CLAUDE_CODE_LAST_AUDIT.md`, `logs/FORGE_EVENT_LOG.md`, `.gitignore`,
-  `AGENTS.md`, `scripts/*.sh`, `scripts/*.ps1`, `scripts/*.py`,
-  `tests/*.sh`, `tests/*.py`, `full-drive-reset.sh`, `full-drive-reset.bat`.
-  Two dated rationale paragraphs (2026-09-05 for the logs/AGENTS additions,
-  2026-09-06 for the scripts/tests/full-drive-reset additions) note these
-  "closes a recurring gap rather than establishing new policy."
-- **Zone C extended** (line 172): `CHANGELOG.md` added.
-- **Zone B (continued) extended** (line 192): `USER_MANUAL.md` added
-  alongside `README.md` / `ATTRIBUTION.md` / `FIRST_TIME_README.txt`.
-- **`audit/` -> `logs/` rename** reflected throughout: Session Start
-  Protocol step 2 and the audit-report path are now
-  `logs/CLAUDE_CODE_LAST_AUDIT.md` (lines 209, 333).
-- **New "Standing rule - no PATH-shadowing for verification"** section
-  (lines 261-286, dated 2026-09-05) - documents a prior-session incident
-  where a PATH-shadow attempt to fake a failing `hermes` was defeated by
-  the shell command-hash cache and mutated Kenneth's real hermes config
-  twice; mandates `HERMES_HOME` isolation or a same-name shell
-  function/batch label instead.
-
-All of the above are governance/zone-definition changes authored upstream
-(Blacksmith / Claude Project chat / Codex-process). Nothing for Claude Code
-to act on - noted so the primary GPT can confirm the pulled CLAUDE.md is the
-intended state. I did not edit it.
+`WELCOME.html` (Zone B) and `FIRST_TIME_README.txt` (Zone B) reference ONLY
+`launch-north-forge.bat`/`.sh`, which did not move - no change needed there.
+`.hermes.template.md`, `mode-blocks/`, `skills-source/` - grep confirms zero
+references to any of the 6 moved scripts. `archive/setup-thumbdrive.ps1`
+left untouched (CLAUDE.md: `archive/` is never-touch).
 
 ## Commits made this session
 
-All three touch only `logs/CLAUDE_CODE_LAST_AUDIT.md` (this report). Zone A
-standing authorization.
+- **`b744b10`** - "Move admin tooling into Advanced/; generate a real-icon
+  North Forge.lnk at drive root". 12 files: 6 renames into `Advanced/` (with
+  re-anchor edits + version bumps), `M launch-north-forge.bat` (root `.lnk`
+  block + version bump), `M .gitignore` (+4), `M CHANGELOG.md` (+5 lines /
+  Zone C), `M NEXT_STEPS.md` (+1 line / Zone C), `M tests/reset-integration.sh`,
+  `M tests/provision-new-drive.Tests.ps1`. `12 files changed, 92 insertions(+),
+  19 deletions(-)`. Rebased onto `0b80d9c` (clean) before push; final SHA
+  `b744b10`, pushed `0b80d9c..b744b10`.
+- **This report** - `logs/CLAUDE_CODE_LAST_AUDIT.md` overwritten (separate
+  commit, Zone A standing authorization).
 
-1. **`d80d409`** - "Update Claude Code session audit report: session-start
-   pull (87 commits) + stash of 2 stale local artifacts". The main
-   session-start writeup. Pushed `8b06653..d80d409`.
-2. **`0b80d9c`** - "Audit report: add expert recommendation on stash@{0} +
-   README title-icon question" (after Kenneth asked for a recommendation).
-   Pushed `d80d409..0b80d9c`.
-3. **`bbf01e1` -> rebased to `dcbedef`** - "Audit report: close the stash@{0}
-   loop - Kenneth dropped it this session". First push attempt was rejected
-   (non-fast-forward): a concurrent commit **`b744b10`** ("Move admin tooling
-   into `Advanced/`; generate a real-icon `North Forge.lnk` at drive root")
-   had landed on `origin/main` from another session/drive while this session
-   ran. `git pull --rebase origin main` replayed the audit-report commit
-   cleanly on top (zero file overlap - `b744b10` touches `.gitignore`,
-   `CHANGELOG.md`, `NEXT_STEPS.md`, `launch-north-forge.bat`, `Advanced/*`,
-   `tests/*`; this commit touches only the audit report), giving `dcbedef`.
-   Pushed `b744b10..dcbedef`.
-
-`b744b10` was pulled into this working tree by that rebase but was authored
-elsewhere and is not reviewed in this report (out of scope - it landed after
-the session's work was done). Flagging its existence only so the next
-session / primary GPT knows the `Advanced/` restructure happened concurrently
-and is already local. Post-rebase: `git status -sb` -> `## main...origin/main`
-(clean, in sync).
-
-Nothing else staged or committed. `.env` (present, 798 B) is gitignored and
-was never staged. `stash@{0}` was created and then dropped this session (see
-Follow-up + Uncertain item 1); `git stash list` is now empty.
+`.env` never staged (not present on this drive; `tests/repository-hygiene.sh`
+re-confirms it is ignored + unstaged). `.hermes-install-incomplete` and
+`install-logs/` remain untracked and untouched (a `git add -A` mid-session
+briefly staged them; caught immediately and `git restore --staged`d before
+any commit - they are in NO commit this session).
 
 ## Uncertain / flagged for primary GPT review
 
-### 1. `stash@{0}` - RESOLVED this session, no longer open. (Zone B findings 1 & 2 below are the pre-resolution record.)
-
-I created the stash this session, deliberately and documented, purely to
-unblock the mandatory session-start fast-forward. It held:
-- `README.md` - the orphaned 1-line `<img>` title edit (finding 1).
-- `WELCOME.html` - a 139-line stale draft (finding 2), superseded by the
-  tracked upstream `WELCOME.html`.
-
-Kenneth asked for a recommendation, I recommended dropping it (both parts
-obsolete; the `README.md` `<img>` hunk preserved verbatim in finding 1 and
-recoverable from git object `de954fc75c25e42ebae65983adee56d094cb7c09` until
-gc), and Kenneth ran `git stash drop stash@{0}` himself from the prompt.
-Post-drop state verified: `git stash list` empty, working tree clean against
-`origin/main`, `README.md` / `WELCOME.html` unchanged (tracked upstream
-versions). Nothing further needed. The README title-icon idea is recommended
-*against* (see the "Follow-up" section near the top) but that is advice only -
-no Zone B change was made or is pending, so there is nothing here for the
-primary GPT to adjudicate.
-
-### 2. `hermes` is not installed on THIS machine at all - Session Start Protocol step 5 cannot run here, ever, in its current form.
-
-Not `command -v hermes` returning nothing while a broken install sits on
-disk (which is what prior audits from the *other* drive describe) - here
-`%LOCALAPPDATA%\hermes` does not exist as a directory. `hermes doctor` /
-`hermes skills list --source local` have never been runnable on the `F:`
-drive. Not new, not blocking, flagged for completeness and so the primary
-GPT does not read "Project skills: hermes not installed" as a regression.
-
-### 3. This `F:` drive is NOT in the partial-install state the last two upstream audits describe.
-
-`logs/CLAUDE_CODE_LAST_AUDIT.md` (both the `039de26` and `8b06653` versions)
-repeatedly reference "two long-standing untracked install artifacts on this
-drive" - `.hermes-install-incomplete` (empty marker) and `install-logs/`
-(a `hermes-install-*.log` + `hermes-installer-*.ps1`). **Neither is present
-on the `F:` drive** (`ls -la` repo root, checked explicitly). Combined with
-`hermes` being entirely absent here, this confirms those upstream audit
-sessions ran from a *different* clone/drive. The `F:` drive's own last
-session was `cc32003` (2026-09-04, "open-items review"); everything between
-`cc32003` and `8b06653` (87 commits: many Codex PRs, the `audit/` -> `logs/`
-rename, README/WELCOME handoffs, CLAUDE.md zone extensions) arrived in this
-session's single fast-forward. Flagging because the audit report is a shared
-channel across drives with no other continuity - the "on this drive"
-language in the inherited report does not describe the drive this session
-actually ran on.
-
-### 4. New Codex findings pulled in this session are noted but not re-verified (not requested).
-
-`logs/CODEX_SECOND_AUDIT_2026-09-05.md`: NF-CX-01 (HIGH) `machine-reset.bat`
-accepting env-controlled `HERMES_HOME` with a weak marker check before
-`rmdir /s /q`; NF-CX-02 (MEDIUM) drive RESET leaving `.provider-choice` /
-`.agent-name` / `.readme-shown`. `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md`:
-HIGH interrupted-install recovery still a field gap (Codex recommended, did
-not implement, an R/K/C quarantine dialog - Kenneth's call).
-Subsequent pulled commits appear to address several of these
-(`scripts/machine-reset-safety.ps1`, `full-drive-reset.*`, `toggle-mode.*`
-extensions, `.gitignore` additions for the three RESET-leftover markers), but
-I did not trace each finding to its fix this session - no repair was
-requested and `hermes`/PowerShell-Pester/bash-harness are all unavailable on
-this drive to verify against. Recommend the native-Windows + PowerShell
-acceptance pass Codex asked for still be scheduled on a capable machine.
-
-### 5. Minor, not fixed: `.gitignore` has cosmetic redundancy.
-
-`/.hermes-home/` appears 4 times (lines ~29, 32, 36, and again implied);
-`config.yaml`, `state.db`, `state.db-*`, `sessions/`, `memories/`, `cron/`
-are listed un-anchored so they match at any depth, not just under
-`.hermes-home/`. All four Session-Start-Protocol-required exclusions (`.env`,
-`.forge-mode`, `.hermes.md`, `/.hermes/`) are present and correct, so this is
-not a protocol-step-4 failure and not a bug (duplicate ignore rules are
-harmless; un-anchored rules are broader than necessary but not wrong). Not
-touched - it does not meet CLAUDE.md's "confirmed a real bug, actually
-reproduce it first" bar for a Zone A edit. Flagged only so a future tidy-up
-handoff can consolidate it intentionally.
+1. **The `Advanced/` folder name is provisional.** Kenneth was offered a
+   rename option and did not take it, so "Advanced" stands, but the task text
+   says "Kenneth can rename if he prefers something else (IT-Tools,
+   Support-Only, ...)". If he renames later it is another `git mv` + the same
+   set of reference updates (README/USER_MANUAL Zone B, the two tests, the
+   CHANGELOG/NEXT_STEPS prose). Cheap now, cheaper before the Zone B docs are
+   updated to say `Advanced/`.
+2. **Echo/guidance text inside the moved scripts still says bare
+   "run `launch-north-forge.bat`" / "run `full-drive-reset.bat`".** Left
+   unchanged deliberately (human guidance, not a resolved path; the file is
+   findable one level up). If the Blacksmith would rather these read
+   "`..\launch-north-forge.bat`" or "the launcher in the drive's main
+   folder", that is a small Zone A follow-up - flagged rather than assumed.
+3. **`launch-north-forge.sh` got no Part 3 equivalent.** The task scoped Part
+   3 to the Windows `.lnk` explicitly ("Windows can't assign a custom
+   icon..."). A Mac `North Forge.command` at the drive root is possible but
+   exFAT can't carry its exec bit (the existing Mac flow puts it on the
+   Desktop for that reason). Not done; noting the asymmetry.
+4. **`tests/provision-new-drive.Tests.ps1` not run** (no Pester/pwsh harness
+   here). The change is one path line; the rest of the test uses a flat temp
+   copy. Low risk but unverified end-to-end.
+5. **Part 4 optional follow-up not done:** a static
+   `Advanced/WHEN-TO-USE-THESE.txt`. It would be user-visible text, so I did
+   not compose it unprompted. Recommend Kenneth decide if he wants it.
+6. **Concurrent F: session's `stash@{0}`** (README `<img>` title-icon + stale
+   WELCOME.html draft) is still un-dropped on that clone - not this task's
+   scope, not on this E: clone, but it and this task are the two live "icon"
+   threads and should not be conflated. That session already recommended
+   dropping the stash and NOT adding the README `<img>`.
 
 ## Status
 
-Clean / one trivial loose end for Kenneth. `main` fast-forwarded `cc32003` ->
-`8b06653` (87 commits, all Zone A / Codex-process / operational records /
-upstream Blacksmith handoffs), working tree clean, CLAUDE.md re-read after
-its in-pull changes, no Zone B content edited or composed by Claude Code.
-`hermes` unavailable on this drive so protocol step 5 did not run.
-
-Kenneth asked for an expert recommendation on the `stash@{0}` question rather
-than leaving it open. Recommendation (full reasoning in the "Follow-up"
-section near the top): **drop `stash@{0}`** - both halves are obsolete
-(`WELCOME.html` superseded by the committed upstream version; the `README.md`
-`<img>` hunk preserved verbatim in this report + git object DB), and **do
-not add the README title icon** - low-value on a private/unpublished repo,
-the icon already lives on the surfaces team members actually see
-(`WELCOME.html`, the CLI skin). **Kenneth acted on the first part this
-session:** he ran `git stash drop stash@{0}` himself from the prompt
-(`Dropped stash@{0} (de954fc75c25e42ebae65983adee56d094cb7c09)`) after the
-Bash-tool attempt was blocked by the permission classifier. `git stash list`
-is now empty; working tree is clean against `origin/main`; `README.md` and
-`WELCOME.html` are unchanged (the tracked upstream versions). The README
-title-icon recommendation (don't add it) stands as advice only - no Zone B
-change was made or is pending. Nothing here needs primary-GPT adjudication.
+Needs primary GPT review + a Zone B handoff. Parts 1, 2 (Zone A half), 3, and
+4 are complete and pushed (`b744b10`). The drive root no longer shows the 6
+admin `.bat`/`.ps1`; a generated real-icon `North Forge.lnk` gives one
+obvious thing to open. All re-anchored scripts verified on real Windows to
+still operate on the drive root. **Outstanding: `README.md` +
+`USER_MANUAL.md` still show pre-move paths** and need the drop-in text
+(handed to Kenneth) placed via handoff - until then those two docs point one
+folder too high. Part 4 recommendation (no numbered naming) is advisory,
+awaiting Kenneth's acceptance.
