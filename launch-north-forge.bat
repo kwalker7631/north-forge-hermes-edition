@@ -8,6 +8,10 @@ rem ============================================================================
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
 
+rem Keep the engine, configuration, credentials, memory, and setup choices on
+rem this physical drive. setlocal ensures a caller's HERMES_HOME is not changed.
+set "HERMES_HOME=%CD%\.hermes-home"
+
 if /i "%~1"=="--configure-free-provider" (
     call :CONFIGURE_FREE_PROVIDER
     exit /b !ERRORLEVEL!
@@ -136,7 +140,7 @@ echo Want a different AI model or provider? Run 'hermes model' any time - it rem
 rem --- install Hermes FIRST if missing - nothing below this works without it ---
 where hermes >nul 2>nul
 if errorlevel 1 (
-    echo Hermes not found on this machine - installing now...
+    echo Hermes not found for this drive - installing its engine now...
     powershell -NoProfile -ExecutionPolicy Bypass -Command "iex (irm https://hermes-agent.nousresearch.com/install.ps1)"
     echo.
     echo Install finished. Close this window and double-click this launcher again.

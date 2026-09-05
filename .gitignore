@@ -26,10 +26,11 @@ AGENTS.override.md
 # name Hermes scans for project skills) - unrelated to the user's global
 # ~/.hermes profile directory.
 /.hermes/
+/.hermes-home/
 .hermes.md
 
-# Hermes runtime/state - this repo holds the content layer only,
-# not per-machine state, memory, sessions, or logs
+# Drive-local Hermes runtime/state is intentionally untracked. The launcher keeps
+# its engine, configuration, memory, sessions, and logs under .hermes-home/
 config.yaml
 state.db
 state.db-*

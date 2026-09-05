@@ -21,8 +21,10 @@ Mac/Linux: the first time only, open Terminal and drag
 "launch-north-forge.sh" into the window, then press Enter. After that
 first time, use the icon it creates on your Desktop.
 
-The first time you open it on a new computer, it may take a minute or two
-to install - that's normal, just wait for it to finish.
+The first time you open this physical drive, it may take a minute or two
+to install - that's normal, just wait for it to finish. Each drive carries
+its own Hermes engine and remembers its own setup choices. It will not use,
+change, or erase a Hermes setup already stored on the computer.
 
 --------------------
 WHAT TO DO ONCE IT'S OPEN

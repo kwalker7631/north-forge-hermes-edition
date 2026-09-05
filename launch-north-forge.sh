@@ -9,6 +9,10 @@ set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
+# Keep the engine, configuration, credentials, memory, and setup choices on
+# this physical drive without changing the parent shell's HERMES_HOME.
+export HERMES_HOME="$(pwd)/.hermes-home"
+
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
     echo "Install it, then run this script again."
@@ -212,7 +216,7 @@ echo "Want a different AI model or provider? Run 'hermes model' any time - it re
 
 # --- install Hermes FIRST if missing - nothing below this works without it ---
 if ! command -v hermes >/dev/null 2>&1; then
-    echo "Hermes not found on this machine - installing now..."
+    echo "Hermes not found for this drive - installing its engine now..."
     curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
     echo ""
     echo "Install finished. Open a new terminal and run this script again:"
