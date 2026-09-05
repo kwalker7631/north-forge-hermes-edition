@@ -2,43 +2,43 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: launch-north-forge.sh | Script version: 1.1.0 | Updated: 2026-09-05
+# File: launch-north-forge.sh | Script version: 1.1.1 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "python3 is required for this launcher and wasn't found on this machine."
+    echo "Install it, then run this script again."
+    exit 1
+fi
+
 # --- first run on this drive: pop open the styled quickstart once ---
 if [ ! -f ".readme-shown" ]; then
-    if command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
-    elif command -v open >/dev/null 2>&1; then
-        open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
+    if [ ! -f "WELCOME.html" ]; then
+        WELOPEN="failed: WELCOME.html is missing"
+    elif command -v xdg-open >/dev/null 2>&1 && xdg-open "WELCOME.html"; then
+        WELOPEN=ok
+    elif command -v open >/dev/null 2>&1 && open "WELCOME.html"; then
+        WELOPEN=ok
     else
-        WELOPEN="no opener available"
+        WELOPEN="failed: no working opener available"
     fi
-    touch .readme-shown
+    if [ "$WELOPEN" = "ok" ]; then
+        touch .readme-shown
+    fi
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$([ "$WELOPEN" = "ok" ] && echo INFO || echo WARNING)] [welcome]: first-run WELCOME.html auto-open: $WELOPEN" >> "forge-events.log"
 fi
 
+# Names are capped at 64 characters and allow letters, numbers, spaces, and
+# apostrophe, hyphen, period, comma, and parentheses. The shared helper strips
+# ASCII controls and rejects parsing/log metacharacters before anything is used.
+# Help: Enter a normal person's name; press Enter to keep the shown default.
 # --- user tier: who-has-this-drive record (accountability only, never blocks) ---
 log_event() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] [$1]: $2" >> "forge-events.log"; }
-if [ ! -f ".drive-record.txt" ]; then
-    DRIVENAME=""
-    read -p "First launch: your name for this drive's record: " DRIVENAME || DRIVENAME=""
-    [ -z "$DRIVENAME" ] && DRIVENAME="Unregistered"
-    printf '%s\n%s\n' "$DRIVENAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
-    log_event "drive-record" "CREATE: registered to $DRIVENAME"
-else
-    CURNAME="$(sed -n 1p ".drive-record.txt")"
-    NEWNAME=""
-    read -p "Still $CURNAME? [Enter to continue / type a new name to re-register]: " NEWNAME || NEWNAME=""
-    if [ -n "$NEWNAME" ]; then
-        printf '%s\n%s\n' "$NEWNAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
-        log_event "drive-record" "RE-REGISTER: $CURNAME -> $NEWNAME"
-    fi
-fi
+python3 scripts/name_validation.py drive
 
 # --- log repo state at launch (no git pull happens here by design - drives
 # update manually; this records what code the session ran on) ---
@@ -85,33 +85,92 @@ if [ "$MODE" != "full" ] && [ "$MODE" != "sales" ]; then
     MODE="sales"
 fi
 
-rm -rf .hermes/skills
-mkdir -p .hermes/skills
-cp -r skills-source/shared/. .hermes/skills/ 2>/dev/null || true
-if [ "$MODE" = "full" ]; then
-    cp -r skills-source/tsc-only/. .hermes/skills/ 2>/dev/null || true
-fi
+assemble_skills() {
+    local skills_parent=".hermes" live
+    live="$skills_parent/skills"
+    local stage backup source_count stage_count skill
+    local shared_skills="daily-brief flush kyocera-research manual menu sales-assist switch web-navigator"
+    local tsc_skills="assist-intake draft-writer escalation-packet fault-logging forge-audit hotline-ticket kb-builder training-guide"
 
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "python3 is required for this launcher and wasn't found on this machine."
-    echo "Install it (e.g. 'brew install python3' on Mac, or your distro's package manager on Linux), then run this script again."
-    exit 1
-fi
-
-if [ ! -f ".agent-name" ]; then
-    echo ""
-    echo "First launch on this drive: you can give your assistant a personal"
-    echo "name if you'd like - it still runs as North Forge underneath, this"
-    echo "just changes what it calls itself when talking to you."
-    echo ""
-    read -p "Name your assistant (press Enter to keep 'North Forge'): " CUSTOMNAME || CUSTOMNAME=""
-    if [ -z "$CUSTOMNAME" ]; then
-        echo "North Forge" > ".agent-name"
-    else
-        echo "$CUSTOMNAME" > ".agent-name"
+    if [ ! -d "skills-source/shared" ] || { [ "$MODE" = "full" ] && [ ! -d "skills-source/tsc-only" ]; }; then
+        log_event "skills" "FAILURE: required skills-source directory is missing; current build preserved"
+        echo "ERROR: A required skills-source folder is missing. Your existing skills were left untouched."
+        return 1
     fi
-    echo ""
-fi
+    if ! mkdir -p "$skills_parent"; then
+        echo "ERROR: Could not create .hermes. Check drive permissions; existing skills were not changed."
+        return 1
+    fi
+    stage="$skills_parent/.skills-staging-$$-${RANDOM:-0}"
+    backup="$skills_parent/.skills-backup-$$-${RANDOM:-0}"
+    rm -rf -- "$stage" "$backup"
+    if ! mkdir "$stage"; then
+        echo "ERROR: Could not create the temporary skills folder. Existing skills were not changed."
+        return 1
+    fi
+    # Always clean abandoned staging. A backup is only removed after a verified
+    # success, or after it has restored the last-known-good build.
+    trap "rm -rf -- $(printf '%q' "$stage"); if [ -d $(printf '%q' "$backup") ] && [ ! -e $(printf '%q' "$live") ]; then mv -- $(printf '%q' "$backup") $(printf '%q' "$live") || true; fi" EXIT
+
+    if [ "${NORTH_FORGE_TEST_FAIL_COPY:-0}" = 1 ] || ! cp -R "skills-source/shared/." "$stage/"; then
+        log_event "skills" "FAILURE: shared skill copy failed; current build preserved"
+        echo "ERROR: Could not copy shared skills. Your existing skills were left untouched."
+        return 1
+    fi
+    if [ "$MODE" = "full" ]; then
+        if ! cp -R "skills-source/tsc-only/." "$stage/"; then
+            log_event "skills" "FAILURE: TSC-only skill copy failed; current build preserved"
+            echo "ERROR: Could not copy FULL-mode skills. Your existing skills were left untouched."
+            return 1
+        fi
+    fi
+    for skill in $shared_skills; do
+        if [ ! -d "$stage/$skill" ] || [ ! -f "$stage/$skill/SKILL.md" ]; then
+            log_event "skills" "FAILURE: staged shared skill '$skill' is incomplete; current build preserved"
+            echo "ERROR: Shared skill '$skill' is incomplete (folder or SKILL.md missing). Existing skills were left untouched."
+            return 1
+        fi
+    done
+    if [ "$MODE" = "full" ]; then
+        for skill in $tsc_skills; do
+            if [ ! -d "$stage/$skill" ] || [ ! -f "$stage/$skill/SKILL.md" ]; then
+                log_event "skills" "FAILURE: staged FULL skill '$skill' is incomplete; current build preserved"
+                echo "ERROR: FULL-mode skill '$skill' is incomplete (folder or SKILL.md missing). Existing skills were left untouched."
+                return 1
+            fi
+        done
+    fi
+    source_count=$(find skills-source/shared -type f | wc -l | tr -d ' ')
+    [ "$MODE" = "full" ] && source_count=$((source_count + $(find skills-source/tsc-only -type f | wc -l | tr -d ' ')))
+    stage_count=$(find "$stage" -type f | wc -l | tr -d ' ')
+    if [ "$source_count" -eq 0 ] || [ "$stage_count" -ne "$source_count" ]; then
+        log_event "skills" "FAILURE: partial staged build ($stage_count of $source_count files); current build preserved"
+        echo "ERROR: Skill validation found a zero-file or partial build ($stage_count of $source_count files). Existing skills were left untouched."
+        return 1
+    fi
+
+    if [ -e "$live" ] && ! mv -- "$live" "$backup"; then
+        echo "ERROR: Could not back up the current skills. Nothing was changed."
+        return 1
+    fi
+    if [ "${NORTH_FORGE_TEST_FAIL_SWAP:-0}" = 1 ] || ! mv -- "$stage" "$live"; then
+        [ ! -e "$live" ] && [ -e "$backup" ] && mv -- "$backup" "$live"
+        log_event "skills" "FAILURE: final skill swap failed; previous build restored"
+        echo "ERROR: Could not activate the staged skills. The previous build was restored."
+        return 1
+    fi
+    if [ -e "$backup" ] && ! rm -rf -- "$backup"; then
+        echo "WARNING: Skills activated, but the temporary backup could not be removed: $backup"
+        log_event "skills" "WARNING: activated skills but could not remove backup $backup"
+    fi
+    trap - EXIT
+    log_event "skills" "SUCCESS: activated validated $MODE build ($stage_count files)"
+}
+
+assemble_skills || exit 1
+[ "${NORTH_FORGE_ASSEMBLE_ONLY:-0}" = 1 ] && exit 0
+
+python3 scripts/name_validation.py agent
 
 python3 - "$MODE" << 'PYEOF'
 import sys, os
@@ -122,12 +181,9 @@ with open(f"mode-blocks/{mode}-banner.md", "r", encoding="utf-8") as f:
     banner = f.read()
 with open(f"mode-blocks/{mode}-menu.md", "r", encoding="utf-8") as f:
     menu = f.read()
-agent_name = "North Forge"
-if os.path.exists(".agent-name"):
-    with open(".agent-name", "r", encoding="utf-8") as f:
-        n = f.read().strip()
-        if n:
-            agent_name = n
+from scripts.name_validation import read_validated
+from pathlib import Path
+agent_name, _ = read_validated(Path(".agent-name"), "North Forge")
 tmpl = tmpl.replace("{{MODE_BANNER_BLOCK}}", banner).replace("{{COMMAND_MENU_BLOCK}}", menu).replace("{{AGENT_NAME}}", agent_name)
 size = len(tmpl)
 if size >= 20000:
@@ -181,9 +237,7 @@ if [ ! -f ".provider-choice" ]; then
     if [ "$(printf '%s' "$PROVIDERCHOICE" | tr '[:lower:]' '[:upper:]')" = "OWNKEY" ]; then
         echo "ownkey" > ".provider-choice"
     else
-        echo "free" > ".provider-choice"
-        hermes config set model.provider opencode-free >/dev/null 2>&1 || true
-        hermes config unset model.default >/dev/null 2>&1 || true
+        configure_free_provider || exit $?
     fi
 fi
 
@@ -241,21 +295,38 @@ hermes skills trust .
 # Self-healing scheduled jobs - re-adds the research and daily-brief cron
 # entries if either is missing (e.g. after an AppData flush wiped them).
 # No manual /cron add ever needed again.
+CRON_DEGRADED=""
+report_cron_failure() {
+    job_name="$1"
+    automation="$2"
+    exit_status="$3"
+    raw_diagnostic="$4"
+    diagnostic="$(printf '%s' "$raw_diagnostic" | tr '\r\n' '  ' | LC_ALL=C sed 's/[^[:print:]\t]/?/g' | cut -c1-500)"
+    [ -n "$diagnostic" ] || diagnostic="no diagnostic output"
+    warning="WARNING: Could not schedule $job_name (exit $exit_status; diagnostic: $diagnostic). Interactive North Forge can continue, but the $automation will not run. Check Hermes with 'hermes cron list', then relaunch North Forge to try again."
+    printf '%s\n' "$warning"
+    printf '[%s] [WARNING] [cron]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$warning" >> "forge-events.log"
+    CRON_DEGRADED="${CRON_DEGRADED}${CRON_DEGRADED:+; }$job_name"
+}
 if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    if hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1; then
+    if CRON_DIAGNOSTIC="$(hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED" >> "forge-events.log"
+        report_cron_failure "nightly-kyocera-research" "automated nightly research" "$?" "$CRON_DIAGNOSTIC"
     fi
 fi
 if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    if hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >/dev/null 2>&1; then
+    if CRON_DIAGNOSTIC="$(hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED" >> "forge-events.log"
+        report_cron_failure "daily-kyocera-brief" "automated daily brief" "$?" "$CRON_DIAGNOSTIC"
     fi
+fi
+
+if [ -n "$CRON_DEGRADED" ]; then
+    echo "WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job(s): $CRON_DEGRADED. Interactive North Forge is still available; run 'hermes cron list' to check Hermes, then relaunch to retry."
 fi
 
 # Plain call instead of exec so the exit status can be logged after the
