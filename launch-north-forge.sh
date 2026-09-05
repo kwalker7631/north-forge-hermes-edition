@@ -8,6 +8,11 @@
 set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
+# Persist the canonical drive home when `cron add` asks Hermes to install its
+# launchd/systemd gateway. Do not let a later clean scheduler environment fall
+# back to the operator's shared ~/.hermes store.
+export HERMES_HOME="$(pwd -P)/.hermes-home"
+mkdir -p "$HERMES_HOME"
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
@@ -211,7 +216,7 @@ echo "North Forge running in $MODE mode."
 echo "Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it."
 
 # --- install Hermes FIRST if missing - nothing below this works without it ---
-if ! command -v hermes >/dev/null 2>&1; then
+if ! { [ -x "$HERMES_HOME/hermes-agent/venv/bin/hermes" ] || [ -x "$HERMES_HOME/hermes-agent/.venv/bin/hermes" ] || [ -x "$HERMES_HOME/venv/bin/hermes" ] || [ -x "$HERMES_HOME/bin/hermes" ]; }; then
     echo "Hermes not found on this machine - installing now..."
     curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
     echo ""
@@ -219,6 +224,11 @@ if ! command -v hermes >/dev/null 2>&1; then
     echo "  bash launch-north-forge.sh"
     exit 0
 fi
+
+# Every interactive command uses the same explicit drive-local entry point as
+# cron/gateway registration; PATH can no longer redirect one operation to a
+# machine-wide Hermes installation.
+hermes() { scripts/hermes-drive.sh "$@"; }
 
 # --- provider choice: default to zero-config OpenCode Free (no key, no
 # account, no block); using your own Anthropic API key is opt-in, not the
@@ -364,17 +374,17 @@ report_cron_failure() {
     printf '[%s] [WARNING] [cron]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$warning" >> "forge-events.log"
     CRON_DEGRADED="${CRON_DEGRADED}${CRON_DEGRADED:+; }$job_name"
 }
-if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
+if ! scripts/hermes-drive.sh cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    if CRON_DIAGNOSTIC="$(hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
+    if CRON_DIAGNOSTIC="$(scripts/hermes-drive.sh cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
         report_cron_failure "nightly-kyocera-research" "automated nightly research" "$?" "$CRON_DIAGNOSTIC"
     fi
 fi
-if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
+if ! scripts/hermes-drive.sh cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    if CRON_DIAGNOSTIC="$(hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
+    if CRON_DIAGNOSTIC="$(scripts/hermes-drive.sh cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
         report_cron_failure "daily-kyocera-brief" "automated daily brief" "$?" "$CRON_DIAGNOSTIC"

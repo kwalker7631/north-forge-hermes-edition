@@ -13,6 +13,7 @@ class CronRegistrationWarningsTest(unittest.TestCase):
         launcher = (ROOT / "launch-north-forge.sh").read_text(encoding="utf-8")
         block = "CRON_DEGRADED=" + launcher.split("CRON_DEGRADED=", 1)[1]
         block = block.split("# Plain call instead of exec", 1)[0]
+        block = block.replace("scripts/hermes-drive.sh", "hermes")
 
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)
@@ -69,10 +70,72 @@ exit 0
         launcher = (ROOT / "launch-north-forge.bat").read_text(encoding="utf-8")
         for job in ("nightly-kyocera-research", "daily-kyocera-brief"):
             self.assertIn(f"WARNING: Could not schedule {job} (exit ", launcher)
-        self.assertEqual(launcher.count("Add-Content -LiteralPath 'forge-events.log'"), 2)
+        self.assertGreaterEqual(launcher.count("Add-Content -LiteralPath 'forge-events.log'"), 2)
         self.assertEqual(launcher.count("automated nightly research will not run"), 1)
         self.assertEqual(launcher.count("automated daily brief will not run"), 1)
         self.assertIn("WARNING SUMMARY: North Forge is starting in degraded mode", launcher)
+        self.assertIn('set "HERMES_HOME=%~dp0.hermes-home"', launcher)
+        self.assertEqual(launcher.count('"scripts\\hermes-drive.ps1" cron add'), 2)
+
+
+class DriveLocalCronIsolationTest(unittest.TestCase):
+    def make_drive(self, parent, name):
+        repo = parent / name
+        (repo / "scripts").mkdir(parents=True)
+        (repo / ".hermes-home/bin").mkdir(parents=True)
+        (repo / ".hermes-home/logs").mkdir()
+        (repo / ".hermes.template.md").write_text("fixture", encoding="utf-8")
+        wrapper = repo / "scripts/hermes-drive.sh"
+        wrapper.write_text((ROOT / "scripts/hermes-drive.sh").read_text(encoding="utf-8"), encoding="utf-8")
+        wrapper.chmod(0o755)
+        fake = repo / ".hermes-home/bin/hermes"
+        fake.write_text(
+            """#!/usr/bin/env bash
+set -eu
+if [ "$1 $2" = "cron add" ]; then
+  printf '%s\\n' "$*" >> "$HERMES_HOME/cron-jobs"
+  printf '#!/usr/bin/env bash\\nexec %q cron run\\n' "$PWD/scripts/hermes-drive.sh" > "$HERMES_HOME/service"
+  chmod +x "$HERMES_HOME/service"
+elif [ "$1 $2" = "cron run" ]; then
+  cat "$HERMES_HOME/config.yaml" > "$PWD/execution-result"
+fi
+""",
+            encoding="utf-8",
+        )
+        fake.chmod(0o755)
+        (repo / ".hermes-home/config.yaml").write_text(name, encoding="utf-8")
+        return repo
+
+    def test_clean_scheduler_keeps_each_drive_cron_and_config_isolated(self):
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            drives = [self.make_drive(parent, name) for name in ("drive-a", "drive-b")]
+            for repo in drives:
+                subprocess.run(
+                    [str(repo / "scripts/hermes-drive.sh"), "cron", "add", "daily", repo.name],
+                    cwd="/", env={"PATH": "/usr/bin:/bin"}, check=True,
+                )
+            for repo in drives:
+                service = (repo / ".hermes-home/service").read_text(encoding="utf-8")
+                self.assertIn(str(repo / "scripts/hermes-drive.sh"), service)
+                subprocess.run([str(repo / ".hermes-home/service")], cwd="/", env={"PATH": "/usr/bin:/bin"}, check=True)
+                self.assertEqual((repo / "execution-result").read_text(encoding="utf-8"), repo.name)
+                self.assertIn(repo.name, (repo / ".hermes-home/cron-jobs").read_text(encoding="utf-8"))
+                other = drives[1] if repo == drives[0] else drives[0]
+                self.assertNotIn(other.name, (repo / ".hermes-home/cron-jobs").read_text(encoding="utf-8"))
+
+    def test_missing_home_fails_without_recreating_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = self.make_drive(Path(directory), "removed-drive")
+            home = repo / ".hermes-home"
+            subprocess.run(["rm", "-rf", str(home)], check=True)
+            result = subprocess.run(
+                [str(repo / "scripts/hermes-drive.sh"), "cron", "run"],
+                cwd="/", env={"PATH": "/usr/bin:/bin"}, text=True, capture_output=True,
+            )
+            self.assertEqual(result.returncode, 72)
+            self.assertIn("drive-local .hermes-home is unavailable", result.stderr)
+            self.assertFalse(home.exists())
 
 
 if __name__ == "__main__":
