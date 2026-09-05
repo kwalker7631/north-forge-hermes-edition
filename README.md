@@ -85,7 +85,7 @@ CLAUDE.md                       <- Claude Code's working rules for this repo (Zo
 NEXT_STEPS.md                   <- what's built vs. still to build
 DEMO_PREP_BACKLOG.md            <- running punch-list for demo prep, polish, and things flagged for later
 CHANGELOG.md                     <- plain-language running history of what changed and why, distinct from git log and from the audit report below
-audit/
+logs/
   CLAUDE_CODE_LAST_AUDIT.md    <- most recent Claude Code session's audit report, overwritten each session
 ```
 
