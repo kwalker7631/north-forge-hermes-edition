@@ -1,15 +1,17 @@
 # Claude Code Session Audit
 
 Timestamp: 2026-09-05 (~14:20 local, America/New_York; extended by follow-up
-in-session requests through ~15:30). Three related requests this session:
+in-session requests through ~16:00). Four related requests this session:
 (1) rename `audit/` -> `logs/` and update references in editable files;
 (2) a Blacksmith handoff to apply the same rename inside `CLAUDE.md` (Zone
 B); (3) a Blacksmith handoff to apply the same rename in `README.md`'s
-file-tree diagram (Zone B). All three landed and are pushed - the rename is
-now fully consistent across the repo. No prior session context carried in
-beyond `logs/CLAUDE_CODE_LAST_AUDIT.md` (formerly
-`audit/CLAUDE_CODE_LAST_AUDIT.md`) as it stood at session start - the
-"diagnostic verification session" report matching commit `cbf4baa`.
+file-tree diagram (Zone B); (4) a Blacksmith handoff extending `CLAUDE.md`'s
+Zone A enumerated file list to include `logs/FORGE_EVENT_LOG.md` and
+`AGENTS.md`. All four landed and are pushed - the rename is fully consistent
+across the repo and the two long-standing zone-ambiguity flags are closed.
+No prior session context carried in beyond `logs/CLAUDE_CODE_LAST_AUDIT.md`
+(formerly `audit/CLAUDE_CODE_LAST_AUDIT.md`) as it stood at session start -
+the "diagnostic verification session" report matching commit `cbf4baa`.
 
 Requested task (verbatim intent): Rename the `audit/` folder to `logs/`
 throughout the repo, preserving git history (`git mv`, not delete+recreate).
@@ -283,6 +285,17 @@ verified none of the replaced strings were substrings of `forge-audit/`, and
 
 Full verbatim diffs for all three Zone C files are in this session's commit.
 
+### 6. `logs/FORGE_EVENT_LOG.md` lines 15-19 - stale zone-status self-description (commit `d8bb3c2`)
+
+A follow-on to the fourth request's `CLAUDE.md` Zone A list extension.
+`logs/FORGE_EVENT_LOG.md` became a Zone A file in that same commit, and its
+own header's "not yet in any of CLAUDE.md's explicit zone lists; flagged
+... to formally place in Zone A" clause was made false by it. Corrected to
+state it is now in Zone A as of 2026-09-05. Full detail and the before/after
+text are in the "Zone B placement" section below (kept together with the
+`CLAUDE.md` change that necessitated it). `-5 / +4`, no log entries or other
+prose touched.
+
 ## Zone B placement (in-session handoff, applied)
 
 ### `CLAUDE.md` - 3 `audit/` -> `logs/` path-token updates (commit `39800c1`)
@@ -374,6 +387,53 @@ an audit report; only its folder moved) and was not in scope. Post-edit,
 the only `audit/` left in `README.md` is line 55's `forge-audit/SKILL.md` -
 the unrelated skill folder, correctly untouched.
 
+### `CLAUDE.md` Zone A list extension + `logs/FORGE_EVENT_LOG.md` (commit `d8bb3c2`)
+
+Trigger: fourth in-session request - named Blacksmith handoff extending
+Zone A's enumerated `Files:` list to explicitly include
+`logs/FORGE_EVENT_LOG.md` and `AGENTS.md`, with a rationale that both are
+Claude-Code-maintained operational/governance records (event log; Codex
+process rules), not authored field-support or customer-facing content, and
+both have already been edited directly by Claude Code across multiple
+sessions. Zone B placement of a described change to `CLAUDE.md`, same
+mechanism and precedent as commit `7a96ca7` (which appended the seven
+`scripts/`/`tests/`/`full-drive-reset.*` entries plus a dated "Extended
+..." note).
+
+What was placed in `CLAUDE.md` (`+9`, no deletions):
+- two new bullets in the Zone A `Files:` list - `logs/FORGE_EVENT_LOG.md`
+  (directly under `logs/CLAUDE_CODE_LAST_AUDIT.md`) and `AGENTS.md`
+  (directly under `.gitignore`)
+- a new paragraph after the existing "Extended 2026-09-06 ..." note:
+  "Extended 2026-09-05 to also include `logs/FORGE_EVENT_LOG.md` and
+  `AGENTS.md`: both are Claude-Code-maintained operational/governance
+  records - the forge event log and the Codex process rules respectively -
+  not authored field-support or customer-facing content, and both have
+  already been edited directly by Claude Code across multiple sessions in
+  practice. This closes the standing zone-ambiguity flagged for both
+  files." (Wording tracks the handoff's own rationale text, fitted to the
+  file's existing "Extended YYYY-MM-DD ..." sentence style.)
+
+Diff-before-placement check (2026-08-29 STANDING RULE): additive only. The
+two bullets are inserted, none removed or reworded; the new note is
+appended after `7a96ca7`'s note, which is untouched, and all seven of
+`7a96ca7`'s entries remain. No other zone definition (Zone B list, Zone C
+list, the placement-exception clauses) is altered. `CLAUDE.md` still lists
+itself in Zone B; `AGENTS.md` and `logs/FORGE_EVENT_LOG.md` were on no zone
+list before, so nothing is being moved out of Zone B.
+
+Follow-on Zone A fix - `logs/FORGE_EVENT_LOG.md` lines 15-19 (`-5 / +4`).
+That file's own header read "... not authored field content - not yet in
+any of CLAUDE.md's explicit zone lists; flagged for the primary
+GPT/Blacksmith to formally place in Zone A alongside the audit report if
+this becomes a recurring pattern." As of `d8bb3c2` that self-description is
+false. `logs/FORGE_EVENT_LOG.md` is itself now a Zone A file, so this is an
+in-zone factual correction, not authored-content editing: the clause now
+reads "... not authored field content. Placed in CLAUDE.md's Zone A
+enumerated file list on 2026-09-05, alongside
+`logs/CLAUDE_CODE_LAST_AUDIT.md` and `AGENTS.md`." No log entries or other
+prose touched.
+
 ## Post-change QUICK CHECK results
 
 `grep -rn "audit/"` across the working tree (excluding `.git`, `.hermes`,
@@ -462,7 +522,7 @@ resolution recorded rather than deleted, so the trail is legible.
 
 ## Commits made this session
 
-Six commits, all on `main`, all pushed. The rename was split from its own
+Eight commits, all on `main`, all pushed. The rename was split from its own
 audit report so the 6 file moves stay pristine 100%/95% renames rather than
 being buried under a large same-path content rewrite of
 `CLAUDE_CODE_LAST_AUDIT.md`; each subsequent Zone B handoff got its own
@@ -490,11 +550,20 @@ placement commit plus an audit-report update.
    CLAUDE.md "Zone B placement" subsection, marks CLAUDE.md items resolved).
 5. **`6173c65`** - "Place README.md file-tree audit/ -> logs/ fix (confirmed
    handoff)". 1 file: `README.md` line 88, `+1/-1`. Zone B placement.
-6. **`<this commit>`** - "Update audit report: record the README.md handoff
+6. **`b620661`** - "Update audit report: record the README.md handoff
    placement; rename now fully consistent". 1 file:
    `logs/CLAUDE_CODE_LAST_AUDIT.md` (adds the README.md "Zone B placement"
-   subsection, marks all rename items resolved). Hash recorded in `git log`
-   / stated in the session-ending chat response.
+   subsection, marks all rename items resolved).
+7. **`d8bb3c2`** - "Extend CLAUDE.md Zone A list: logs/FORGE_EVENT_LOG.md +
+   AGENTS.md (confirmed handoff)". 2 files: `CLAUDE.md` (`+9` - two list
+   bullets + a dated "Extended 2026-09-05 ..." note; Zone B placement) and
+   `logs/FORGE_EVENT_LOG.md` (`-5/+4` - stale zone-status clause corrected;
+   Zone A follow-on).
+8. **`<this commit>`** - "Update audit report: record the CLAUDE.md Zone A
+   list extension". 1 file: `logs/CLAUDE_CODE_LAST_AUDIT.md` (adds the Zone
+   A list-extension placement subsection, marks the FORGE_EVENT_LOG.md /
+   AGENTS.md zone-ambiguity flag resolved). Hash recorded in `git log` /
+   stated in the session-ending chat response.
 
 Never staged: `.hermes-install-incomplete`, `install-logs/` (untracked,
 unrelated to this task, pre-existing at session start). `.env` not present
@@ -537,14 +606,19 @@ on this drive, never staged (`git diff --cached --name-only | grep -E
    preference is to keep historical entries verbatim and only fix live
    forward-pointers, `CHANGELOG.md` lines 33/61/79 are the ones to revert.
 
-4. **`logs/FORGE_EVENT_LOG.md` still self-describes as "not yet in any of
-   CLAUDE.md's explicit zone lists; flagged ... to formally place in Zone A."**
-   Unchanged by this session. It has now been edited by Claude Code twice
-   (once here) as an operational record. Worth the primary GPT/Blacksmith
-   actually placing it in a zone (Zone A or Zone C) so its status stops being
-   ambiguous. Same open question applies to `AGENTS.md` itself, which is also
-   on no zone list but was edited this session as "Codex-process content" per
-   the request.
+4. **`logs/FORGE_EVENT_LOG.md` and `AGENTS.md` zone status - RESOLVED this
+   session.** Both were flagged here as on no CLAUDE.md zone list despite
+   being edited directly by Claude Code across sessions. The fourth
+   in-session handoff added both to Zone A's enumerated list (`d8bb3c2`),
+   and `logs/FORGE_EVENT_LOG.md`'s own now-false "not yet in any of
+   CLAUDE.md's explicit zone lists" self-description was corrected in the
+   same commit. No longer ambiguous. Minor, not acted on: `CLAUDE.md`'s
+   "## Required first response" block paraphrases the Zone A list ("launch
+   scripts, toggle scripts, ...") and is not a full enumeration - it
+   already omitted `scripts/*`, `tests/*`, and `full-drive-reset.*` after
+   `7a96ca7`, and still omits the two new entries. Left as-is to match how
+   `7a96ca7` was handled; flag if the Blacksmith wants that summary kept in
+   exact sync with the enumerated list.
 
 5. **Codex sandbox re-audit report path.** Per the request's item 4, the
    in-progress Codex re-audit should now write
@@ -555,13 +629,14 @@ on this drive, never staged (`git diff --cached --name-only | grep -E
 
 ## Status
 
-Rename complete and fully consistent across the repo. All three requests
-this session landed and are pushed. `git mv` at 100%/95% similarity for all
-6 files; `git log --follow` verified to cross the rename
-(`logs/CLAUDE_CODE_LAST_AUDIT.md` traces back through `cbf4baa`, `3c01cd3`,
-...); `logs/` complete; `.env` never staged; `.gitignore` fixed so the new
-folder is trackable. Both Zone B files (`CLAUDE.md`, `README.md`) were
-placed via named in-session handoffs (`39800c1`, `6173c65`). A repo-wide
+Rename complete and fully consistent across the repo; both long-standing
+zone-ambiguity flags closed. All four in-session requests landed and are
+pushed. `git mv` at 100%/95% similarity for all 6 files; `git log --follow`
+verified to cross the rename (`logs/CLAUDE_CODE_LAST_AUDIT.md` traces back
+through `cbf4baa`, `3c01cd3`, ...); `logs/` complete; `.env` never staged;
+`.gitignore` fixed so the new folder is trackable. Both Zone B files
+(`CLAUDE.md`, `README.md`) and the Zone A list extension were placed via
+named in-session handoffs (`39800c1`, `6173c65`, `d8bb3c2`). A repo-wide
 `grep -rn "audit/"` now returns only: git history / old commit messages,
 point-in-time text inside `logs/` reports, the unrelated `forge-audit/`
 skill folder, the `/audit` mode-name token, and this session's own
@@ -570,7 +645,7 @@ skill folder, the `/audit` mode-name token, and this session's own
 Needs primary GPT review only for the open judgment calls, none blocking:
 (a) the `.gitignore` anchoring approach vs. an explicit `!/logs/` negation
 (flag 1); (b) confirming the deliberate Zone C historical-entry rewrite
-(flag 3) is acceptable, with the revert target named if not; (c) the
-still-unplaced zone status of `logs/FORGE_EVENT_LOG.md` and `AGENTS.md`
-(flag 4). Six commits made and pushed: `6e6fb9c`, `49adaf2`, `39800c1`,
-`0b89ca2`, `6173c65`, and the commit carrying this updated report.
+(flag 3) is acceptable, with the revert target named if not. Flags 2 and 4
+are now resolved. Eight commits made and pushed: `6e6fb9c`, `49adaf2`,
+`39800c1`, `0b89ca2`, `6173c65`, `b620661`, `d8bb3c2`, and the commit
+carrying this updated report.
