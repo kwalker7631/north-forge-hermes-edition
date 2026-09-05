@@ -1,250 +1,366 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-05 (~evening, America/New_York)
-Requested task: "pull /logs from git codex audit" - i.e. run the session-start
-`git pull` and bring the newly-pushed Codex sandbox re-audit report (and
-whatever landed with it) into the local working tree, then report state. No
-repair or handoff was requested; this is a pull + verify + report session.
+Timestamp: 2026-09-05 (~15:40-16:00 America/New_York), on the `F:` drive clone
+Requested task: None beyond session start. User message was the harness
+attribution/system reminder only - no repair, no handoff, no question. Per
+CLAUDE.md ("If none was given, a clean session-start check IS the whole task -
+write the audit report and stop"), this session is: run the Session Start
+Protocol, resolve whatever blocks the mandatory `git pull`, report state.
 
 ## Summary
 
-`git pull` fast-forwarded `main` from `039de26` to `7f75347` (merge of PR #18,
-`codex/update-logging-structure-and-conduct-sandbox-re-audit`). The Codex work
-arrived as a single squashed commit `34785f1` ("Record Codex sandbox re-audit
-commit", parent `039de26`) under merge commit `7f75347`. 11 files changed,
-+302 / -8. All of it is Zone A (infrastructure/tests), Codex-process content
-in `AGENTS.md`, or Codex operational report files under `logs/`. Nothing
-landed in Zone B. Nothing was uncommitted in the working tree before or after
-the pull except the two pre-existing untracked artifacts noted below. Claude
-Code made no code or content changes this session - only this audit report.
+The session-start `git pull` was blocked twice and is now resolved:
+
+1. **`fatal: detected dubious ownership in repository at 'F:/north-forge-hermes-edition'`**
+   - `F:` is a filesystem that does not record ownership; git 2.51.2 refused
+   to operate. Fixed with `git config --global --add safe.directory
+   F:/north-forge-hermes-edition` (a machine-local git *client* setting, not a
+   repo file - noted here for transparency, not a Zone A change).
+
+2. **Local working-tree contents collided with an 87-commit fast-forward.**
+   `git pull` aborted with:
+   ```
+   error: Your local changes to the following files would be overwritten by merge:
+   	README.md
+   error: The following untracked working tree files would be overwritten by merge:
+   	WELCOME.html
+   ```
+   Both were pre-existing artifacts on THIS drive, neither created by me, both
+   already recorded in this drive's last audit report (commit `cc32003`, the
+   local pre-pull HEAD). I set both aside into `stash@{0}` (details below),
+   fast-forwarded, and left the stash intact. The stashed `README.md` change is
+   a Zone B item carried forward unresolved; the stashed `WELCOME.html` is now
+   definitively superseded by an upstream-committed `WELCOME.html`.
+
+After stashing: `git pull --ff-only` fast-forwarded `main` from `cc32003` to
+`8b06653` - 58 files changed, +4068 / -625. Working tree is clean
+(`git status --porcelain` empty, `git diff` empty). CLAUDE.md itself changed
+in the pull (zone-list extensions + `audit/` -> `logs/` rename) and was
+re-read in full. No Zone B content was edited or composed by me this session.
+Only this audit report was written and committed.
+
+## Session Start Protocol results
+
+```
+SESSION START CHECK
+Pulled: Yes - cc32003..8b06653, 58 files, +4068/-625, fast-forward. Required
+  git safe.directory fix first, then a stash of 2 local artifacts to unblock.
+Last audit read: Yes - logs/CLAUDE_CODE_LAST_AUDIT.md (the 8b06653 version,
+  "pull /logs from git codex audit" session). Status was "Clean - routine
+  pull + verify"; flagged a dead commit hash in CODEX_PUSH_LOG.md and an
+  un-runnable native-Windows/PowerShell test pass.
+Uncommitted at start: README.md (modified - 1 line, Zone B, not mine);
+  WELCOME.html (untracked - not mine). Both stashed to stash@{0} to allow the
+  fast-forward. Nothing else.
+.gitignore: OK - present, v1.0.1 / "Updated: 2026-09-05", 69 lines. Excludes
+  .env, *.env, .forge-mode, .hermes.md, /.hermes/, /.hermes-home/. All four
+  Session-Start-Protocol-required exclusions satisfied.
+hermes doctor: Not run - hermes is not installed on this machine at all
+  (%LOCALAPPDATA%\hermes does not exist; `command -v hermes` empty). Same as
+  every prior session on this drive per audit history.
+Project skills: hermes not installed - cannot list.
+```
 
 ## Files inspected
 
 Read in full this session:
-- `logs/CLAUDE_CODE_LAST_AUDIT.md` (pre-session: 36121 bytes - the 2026-09-05
-  `audit/` -> `logs/` rename report, `git log` chain ending at `039de26`;
-  overwritten by this report as the final step)
-- `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` (NEW from the pull; 19711
-  bytes / 209 lines - the Codex report this session was asked to pull)
-- `logs/CODEX_PUSH_LOG.md` (NEW from the pull; 173 bytes / 2 lines - the
-  append-only quick index the new `AGENTS.md` rule mandates)
-- `.gitignore` (post-pull: 69 lines / v1.0.1 / "Updated: 2026-09-05" -
-  unchanged by the pull; re-verified against Session Start Protocol step 4)
+- `CLAUDE.md` (386 lines - re-read after the pull modified it; see "CLAUDE.md
+  changes delivered by the pull" below)
+- `logs/CLAUDE_CODE_LAST_AUDIT.md` (250 lines / the `8b06653` version - prior
+  session's report; overwritten by this report as the final step)
+- `logs/FORGE_EVENT_LOG.md` (full - 1 event block, 2026-09-05 01:53:12 EDT,
+  "Live rule-consistency regression pass", all 8 areas PASS, no faults)
+- `.gitignore` (full, `cat -A` to confirm line endings and exact rules)
+
+Read partially (head) for continuity awareness, not actioned:
+- `logs/HANDOFF_2026-09-05_SESSION_CHANGES.md` (first 60 of 367 lines - the
+  "final batch" handoff: Phase 1 machine-local `hermes config set
+  model.default claude-sonnet-4-6`; Phase 2 commit `5291b86` OpenCode Free
+  onboarding default; mentions 2 cron jobs `model_snapshot` drift left
+  un-repinned)
+- `logs/CODEX_SECOND_AUDIT_2026-09-05.md` (first 50 lines - NF-CX-01 HIGH:
+  `machine-reset.bat` accepts env-controlled `HERMES_HOME` verbatim and its
+  full-purge marker check is too weak; NF-CX-02 MEDIUM: drive RESET leaves
+  `.provider-choice` / `.agent-name` / `.readme-shown` behind)
+- `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` (referenced via prior audit
+  only this session - not re-read line by line)
+- `logs/HERMES_CRON_GATEWAY_HOME_AUDIT.md` (first 40 lines - conservative
+  cron/gateway `HERMES_HOME` reasoning, build container had no hermes)
 
 Inspected via git / shell (read-only):
-- `git pull` (fast-forward `039de26..7f75347`, 11 files, +302/-8)
-- `git status` / `git status --porcelain` - before and after the pull
-- `git diff` (empty - clean tree) / `git log --oneline -15`
-- `git diff 039de26..7f75347 -- AGENTS.md launch-north-forge.sh
-  scripts/ensure-hermes.ps1 scripts/ensure-hermes.sh tests/` (full unified
-  diff, read in full - quoted in the "What the pull delivered" section below)
-- `git diff 039de26..7f75347 --stat`
-- `git log --oneline --graph -6 7f75347`; `git show 34785f1 --stat`;
-  `git rev-list --parents -n 1 34785f1` (parent = `039de26`, single parent -
-  squash, not a real branch history)
-- `git cat-file -t 6dd58ab71b6e3b33887bffbbe3d44a1e3185b182` ->
-  `fatal: could not get object info`; `git merge-base --is-ancestor
-  6dd58ab... HEAD` -> `fatal: Not a valid commit name` (see flag 1)
-- `ls -la logs/` - 8 files present after pull (6 originals + the 2 new Codex
-  files); byte counts recorded above
-- `command -v hermes` -> not on PATH (consistent with every prior session on
-  this drive); `hermes doctor` / `hermes skills list` not run
-- `python --version` -> 3.11.9; `python -m pytest` -> `No module named
-  pytest`; `python -m unittest discover -s tests -p "test_*.py"` -> Ran 12,
-  5 errors (all `OSError: [WinError 193] %1 is not a valid Win32
-  application` - the tests `subprocess.run` `.sh` scripts and this native
-  Windows environment has no bash shim to execute them; environmental, not a
-  regression - see flag 2)
-- Targeted re-run of the two Python test files Codex actually modified:
-  - `tests/test_launcher_hermes_home.py` - 4 tests, all OK (includes the new
-    `test_posix_welcome_is_marked_shown_only_after_success`)
-  - `tests/test_drive_hermes_contract.py` - module-level `def test_*`
-    functions, invoked directly: `test_both_launchers_force_the_drive_local_home`
-    PASS, `test_windows_guard_has_three_states_staging_and_diagnostics` PASS
-    (this is the test whose asserted strings Codex extended; the pulled
-    `scripts/ensure-hermes.ps1` contains every new marker it now requires)
+- `git config --global --add safe.directory F:/north-forge-hermes-edition`
+  (the one client-config write; everything else read-only or the stash)
+- `git pull` (aborted x2), `git pull --ff-only` (succeeded), `git status`,
+  `git status --porcelain` (before/after), `git diff` / `git diff --stat`
+  (empty after pull), `git log --oneline -15`, `git log --oneline origin/main
+  -90`
+- `git stash list`, `git stash push --include-untracked -m "..." -- README.md
+  WELCOME.html`, `git stash show --stat stash@{0}`, `git stash show -p
+  stash@{0}`, `git show stash@{0}^3 --stat`
+- `git show origin/main:README.md` / `git show origin/main:WELCOME.html` /
+  `git show HEAD:README.md` (into scratchpad, then `diff` with CR-stripping)
+- `git show HEAD` (post-pull), `git ls-files assets/ logs/ WELCOME.html`
+- `command -v hermes` -> nothing; `which hermes` -> "no hermes in ..." (full
+  PATH quoted in session); `ls -la /c/Users/kwalk/AppData/Local/hermes*` ->
+  "No such file or directory" (hermes entirely absent on this machine)
+- `python --version` -> 3.11.9
+- `ls -la` on repo root - confirmed per-drive dot-state files present (all
+  gitignored, none staged): `.agent-name` (7 B), `.drive-record.txt` (40 B),
+  `.env` (798 B), `.forge-mode` (6 B), `.hermes.md` (18584 B),
+  `.readme-shown` (3 B). No `.hermes-home/`, no `install-logs/`, no
+  `.hermes-install-incomplete` on this drive (see flag 3).
+- `file README.md` -> "ASCII text, with very long lines (795), with CRLF line
+  terminators"; scratchpad copy of `origin/main:README.md` -> "Unicode text,
+  UTF-8 text ... very long lines (795)" (LF). The all-lines-differ raw `diff`
+  was a CRLF/LF artifact; the CR-stripped `diff` is the real content delta.
+
+Backed up byte-for-byte to the session scratchpad (ephemeral, will not
+survive session cleanup - the durable records are `stash@{0}` and the exact
+quotes in this report):
+- `.../scratchpad/README.local-uncommitted.md` (24600 bytes)
+- `.../scratchpad/WELCOME.local-untracked.html` (4456 bytes)
+- `.../scratchpad/readme-origin.md` (24202 bytes - `origin/main:README.md`)
 
 ## Zone A changes made
 
-None by Claude Code this session. The pull itself delivered the following
-Zone A content (authored and pushed by Codex, reviewed here read-only for
-zone-correctness and internal consistency):
-
-### What the pull delivered
-
-1. **`scripts/ensure-hermes.ps1` (+20/-3) and `scripts/ensure-hermes.sh`
-   (+19/-3)** - stage-level install logging. Both guards now write a
-   timestamped `install-logs/hermes-install-<stamp>.log` with explicit
-   records at each boundary: `[START]`, `[PASS] Drive write check passed`,
-   `[STAGE] Incomplete-install marker created`, `[STAGE] Installation
-   staging folder created`, `[STAGE] Installer download/copy started`,
-   `[PASS] Installer acquired; installer invocation started`, then either
-   `[FAIL] Installer/validation failed (installer exit N; ...)` or
-   `[PASS] Validation passed` -> `[COMPLETE]` (or `[ABORT]` if the
-   validated stage cannot be `Move-Item`/`mv`-activated). In the PS1 the
-   `$stamp`/`$log` creation was hoisted up into the write-probe `try` block
-   (previously it sat after the block). The partial/damaged-home refusal
-   path (exit 20) now enumerates `install-logs/hermes-install-*.log`; if
-   none exists it prints "Diagnostic finding: no Hermes install log exists.
-   The setup stopped before logging began, or the logs were removed."
-   instead of pointing at an empty directory. The three-way safety gate
-   (valid / partial-or-damaged / genuinely-fresh) is unchanged - no
-   weakening, no automatic deletion of operator data.
-
-2. **`launch-north-forge.sh` (+1)** - one line added inside the
-   `if [ ! -f ".readme-shown" ]` first-run block:
-   `[ "$WELOPEN" != "ok" ] || : > ".readme-shown"`. POSIX now writes the
-   one-time WELCOME marker only after a successful opener, matching what the
-   Windows launcher already did and what the block's own comment already
-   claimed. Prior behavior: WELCOME.html reopened on every Mac/Linux launch.
-
-3. **`tests/` (5 files, +42/-2 net)**:
-   - `test-drive-hermes-install.sh` (+28/-2): new log-content assertions on
-     the fresh-install and installer-failure cases, plus a genuinely new
-     scenario - launches a 30s sleeping fake installer, polls the log until
-     "installer invocation started" is durable, `kill -KILL`s the setup
-     process, then relaunches and asserts the marker survived, the log's
-     last durable stage is recorded, and the relaunch refuses with
-     "Recovery:" guidance. Final banner updated.
-   - `test_drive_hermes_contract.py` (+6): the Windows-guard string-contract
-     test now also requires the six new stage markers / the "no Hermes
-     install log exists" line to be present in `ensure-hermes.ps1`.
-   - `test_launcher_hermes_home.py` (+6): new
-     `test_posix_welcome_is_marked_shown_only_after_success` - asserts the
-     exact new launcher line and that the first-run block writes
-     `.readme-shown` exactly once.
-   - `test-free-provider.sh` (+1): fixture repair - the fake valid
-     `.hermes-home` now also `: >`-touches `hermes-agent/pyproject.toml`,
-     the validity sentinel current production code requires.
-   - `test-skill-assembly.sh` (+3/-1): fixture repair - the isolated
-     launcher scratch case now `mkdir`s `scripts/` and copies
-     `scripts/name_validation.py` (the launcher needs that helper).
-
-4. **`AGENTS.md` (+15)** - new "## Mandatory push log - hard requirement"
-   section: every Codex session must append one `[YYYY-MM-DD HH:MM] <hash> -
-   <summary> (full report: logs/<file>.md)` line to `logs/CODEX_PUSH_LOG.md`
-   per pushed commit, never overwriting. This is a Codex-process change to a
-   Codex-process file. Per CLAUDE.md's "Note on AGENTS.md" ("AGENTS.md's own
-   audit-report requirement ... is a Codex-process change and doesn't need
-   to route through this file"), and given `AGENTS.md` is itself a Zone A
-   file as of the 2026-09-05 extension, this is squarely in-bounds for Codex
-   to have authored and pushed. No CLAUDE.md zone definition was touched.
-
-5. **`logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` (new, 209 lines)** and
-   **`logs/CODEX_PUSH_LOG.md` (new, 2 lines)** - Codex operational records.
-   The re-audit report's own headline findings: HIGH - interrupted-install
-   recovery is still a real field-support gap and the hidden-folder cleanup
-   instructions are not appropriate for a non-technical operator (Codex
-   *recommends but did NOT implement* a quarantine-based R/K/C recovery
-   dialog - flagged for Kenneth); MEDIUM - install logs now cover every
-   stage; MEDIUM - absent-log case is now stated plainly; LOW - setup
-   decision points could be consolidated (recommended, not implemented);
-   CLEAN - drive isolation, mode assembly, cron self-heal, RESET
-   boundaries, provider persistence, generated-skill atomic replace all
-   still sound in tested paths. Codex ran `pytest -q` (19 + 3 subtests) and
-   ~10 bash test scripts green in its Linux env; it could not run
-   PowerShell/Pester or ShellCheck there and explicitly asks for a native
-   Windows acceptance pass on the PS1 interruption points.
+None. No Zone A repo file was edited this session. The only non-read git
+operations were:
+- `git config --global --add safe.directory ...` - machine-local git client
+  config, not a file in this repo.
+- `git stash push ...` - moved 2 non-Zone-A working-tree artifacts aside;
+  recoverable, nothing deleted.
+- `git pull --ff-only` - session-start protocol step 1.
+- The commit of this audit report (Zone A standing authorization - the audit
+  report is Claude Code's own operational record).
 
 ## Zone B findings (not fixed - reported only)
 
-None. The pull touched no Zone B file. `git diff 039de26..7f75347 --stat`
-lists only `AGENTS.md`, `launch-north-forge.sh`, `scripts/ensure-hermes.*`,
-`tests/*`, and `logs/CODEX_*` - every one Zone A or a Codex operational
-record. `CLAUDE.md`, `README.md`, `.hermes.template.md`, `mode-blocks/`,
-`skills-source/`, `fallback/`, the KYO_KB_TITAN template, `ATTRIBUTION.md`,
-`FIRST_TIME_README.txt`, `USER_MANUAL.md` - all untouched by the pull and
-unread this session (no reason to open them).
+### 1. `README.md` has a 1-line uncommitted `<img>` edit, now orphaned against 87 commits of upstream evolution. Carried in `stash@{0}`.
+
+This is the same finding as commit `cc32003`'s audit ("Zone B findings" item
+1) and the audit before it. At this session's start `git diff` showed exactly
+one hunk, base blob `d8e8a23` -> `a72f631`:
+
+```diff
+diff --git a/README.md b/README.md
+index d8e8a23..a72f631 100644
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,4 @@
+-# North Forge - Hermes Edition
++# <img src="assets/north-forge-icon.svg" alt="North Forge anvil and flame mark" height="32"> North Forge - Hermes Edition
+ 
+ A field-support AI built specifically for Kyocera Document Solutions technicians and sales reps - carries KB authoring, hotline ticket handling, escalation packets, and pre-sales product guidance, runs from your own PC or a portable drive, and never asks you to remember a slash command you don't already know.
+```
+
+That is the entire change: an inline `<img>` of `assets/north-forge-icon.svg`
+(which IS tracked - `git ls-files assets/` confirms `assets/north-forge-icon.svg`
+plus `.png`/`.ico` variants) prepended to the H1 text on line 1.
+
+**Why it is now orphaned:** the diff base is `cc32003`'s README. Since then,
+`README.md` moved forward on `origin/main` through Blacksmith/Claude-Project-chat
+handoffs - visible in the log as `6173c65` "Place README.md file-tree audit/
+-> logs/ fix (confirmed handoff)" and `b620661` "Update audit report: record
+the README.md handoff placement". The current post-pull `README.md` line 1 is:
+
+```
+# North Forge - Hermes Edition
+
+North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC.
+```
+
+i.e. no `<img>` tag, and a new Blacksmith attribution line was added directly
+beneath the title. The `<img>` edit was never pushed, never referenced in any
+of the 87 pulled commits, and was made on a drive (`F:`) that had not synced
+since 2026-09-04. Full CR-stripped `README.md`-working-tree vs
+`origin/main:README.md` diff (run this session) shows the working tree is
+simply the *old* README plus the one `<img>` line - every other difference is
+upstream content the working tree was missing (`.hermes-home` rewrite of the
+thumb-drive section, `full-drive-reset.*` additions, `audit/` -> `logs/` in
+the file tree, RESET-section rewrite, "Updating Hermes" rewrite).
+
+**Disposition:** left in `stash@{0}`, not applied, not dropped. Applying it
+would be editing Zone B without a handoff. Dropping it is not authorized and
+would be hard to reverse. `git stash show -p stash@{0}` reproduces the exact
+one-liner above; this report quotes it verbatim as the primary durable record
+(the scratchpad copy is ephemeral). **Decision needed from the Blacksmith /
+primary GPT:** either (a) the `<img>`-in-title idea is abandoned and the
+current upstream `README.md` is authoritative - in which case `stash@{0}` can
+be dropped - or (b) hand the `<img>` line-1 change over as a proper Zone B
+handoff *against current HEAD* (`8b06653`), where it would need re-checking
+against the new line 1 + attribution line, not blind-applied.
+
+### 2. `WELCOME.html` - the local untracked draft is now superseded by an upstream-committed `WELCOME.html`; the stale draft sits in `stash@{0}` and is safe to discard.
+
+At `cc32003`'s audit this was flagged (Zone B findings item 2 / Uncertain
+item 3) as "untracked and not in ANY CLAUDE.md zone - a real gap ... already
+load-bearing" because `launch-north-forge.bat` opens it on first run. That
+gap is now closed upstream: `git log` shows PR #2 `2f5f2fb`
+("Merge ... codex/move-welcome.html-to-repository-root"), `912798d`
+("Validate welcome assets and retry failed opens"), `30e5721` ("Welcome
+added."), and the fast-forward stat line reads `create mode 100644
+WELCOME.html`. `git ls-files WELCOME.html` now returns it - it is tracked.
+
+The two versions are materially different (full `diff` run this session,
+local-untracked vs `origin/main:WELCOME.html`):
+- Local draft: 4456 bytes / 139 lines, `<meta charset="utf-8">`, a `<style>`
+  block, `.brand-header` with both logos, example code `"... U240 code after
+  the last firmware update"`.
+- Upstream committed: 6208 bytes / ~211 lines, `<meta charset="UTF-8">`,
+  `<title>North Forge - Quick Start</title>`, inline styles, adds an
+  attribution paragraph, an ENTER-vs-`OWNKEY` provider-choice section, a
+  premium/credits-gated-model warning, and changes the example code to
+  `"... C6000 code after the last firmware update"`.
+
+The upstream version is strictly the more complete, more current one and is
+what every drive now gets. The stashed local draft (`stash@{0}^3`, a 139-line
+untracked blob) has no remaining purpose and would in fact *conflict* on any
+`git stash pop` now that `WELCOME.html` is tracked. **Safe to discard with
+the stash** once finding 1's disposition is decided (they share the one
+stash entry).
+
+### 3. Nothing else in Zone B was touched, read, or changed.
+
+The pull moved no Zone B *content* file. `git pull` stat covers `README.md`
+(Zone B, evolved via handoff upstream - not by me), `WELCOME.html`,
+`ATTRIBUTION.md` (+2), `FIRST_TIME_README.txt` (+10), `USER_MANUAL.md` (+29),
+`.hermes.template.md` (+1), `KYO_KB_TITAN_...html` (+1),
+`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` (+2) - all delivered by
+upstream commits, none edited locally. I did not open the skill sources,
+mode-blocks, the KYO_KB_TITAN template, or the fallback paste file this
+session (no reason to).
+
+## CLAUDE.md changes delivered by the pull (Zone B file - reviewed, not edited)
+
+The harness flagged CLAUDE.md as changed on disk mid-session; I re-read the
+full 386-line post-pull version. Deltas vs the `cc32003` version this drive
+had:
+- **New "Note on AGENTS.md"** (lines 20-30): `AGENTS.md` at repo root is the
+  Codex-session equivalent of CLAUDE.md, points back to CLAUDE.md's zone
+  defs as the single source of truth, adds a Codex-only mandatory-audit-
+  report rule (dated 2026-09-06 in-file).
+- **Zone A file list extended** (lines 36-69): now explicitly enumerates
+  `logs/CLAUDE_CODE_LAST_AUDIT.md`, `logs/FORGE_EVENT_LOG.md`, `.gitignore`,
+  `AGENTS.md`, `scripts/*.sh`, `scripts/*.ps1`, `scripts/*.py`,
+  `tests/*.sh`, `tests/*.py`, `full-drive-reset.sh`, `full-drive-reset.bat`.
+  Two dated rationale paragraphs (2026-09-05 for the logs/AGENTS additions,
+  2026-09-06 for the scripts/tests/full-drive-reset additions) note these
+  "closes a recurring gap rather than establishing new policy."
+- **Zone C extended** (line 172): `CHANGELOG.md` added.
+- **Zone B (continued) extended** (line 192): `USER_MANUAL.md` added
+  alongside `README.md` / `ATTRIBUTION.md` / `FIRST_TIME_README.txt`.
+- **`audit/` -> `logs/` rename** reflected throughout: Session Start
+  Protocol step 2 and the audit-report path are now
+  `logs/CLAUDE_CODE_LAST_AUDIT.md` (lines 209, 333).
+- **New "Standing rule - no PATH-shadowing for verification"** section
+  (lines 261-286, dated 2026-09-05) - documents a prior-session incident
+  where a PATH-shadow attempt to fake a failing `hermes` was defeated by
+  the shell command-hash cache and mutated Kenneth's real hermes config
+  twice; mandates `HERMES_HOME` isolation or a same-name shell
+  function/batch label instead.
+
+All of the above are governance/zone-definition changes authored upstream
+(Blacksmith / Claude Project chat / Codex-process). Nothing for Claude Code
+to act on - noted so the primary GPT can confirm the pulled CLAUDE.md is the
+intended state. I did not edit it.
 
 ## Commits made this session
 
-1. **`<this commit>`** - "Update Claude Code audit report: session-start pull
-   of Codex sandbox re-audit (PR #18)". 1 file:
-   `logs/CLAUDE_CODE_LAST_AUDIT.md`, overwritten with this report. Zone A
-   standing authorization (the audit report is Claude Code's own
-   operational record). Hash recorded in `git log`.
+1. **`<this commit>`** - "Update Claude Code session audit report:
+   session-start pull (87 commits) + stash of 2 stale local artifacts to
+   unblock fast-forward". 1 file: `logs/CLAUDE_CODE_LAST_AUDIT.md`,
+   overwritten with this report. Zone A standing authorization. Hash in
+   `git log`.
 
-Nothing else staged or committed. `.env` is not present on this drive and
-was never staged. `.hermes-install-incomplete` (empty marker) and
-`install-logs/` (`hermes-install-20260905-134952.log` +
-`hermes-installer-20260905-134952.ps1`) remain untracked and untouched -
-pre-existing artifacts of an incomplete Hermes install on this drive, noted
-in the previous two audit reports, unrelated to this task and not covered by
-`.gitignore` (they would need `*.log` to catch the log and an explicit rule
-for the marker; not in scope to change here).
+Nothing else staged or committed. `stash@{0}` is local-only and is not
+pushed by anything. `.env` (present, 798 B) is gitignored and was never
+staged.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **`logs/CODEX_PUSH_LOG.md` records a commit hash that does not exist in
-   this repo.** The single entry reads:
-   `[2026-09-05 19:12] 6dd58ab71b6e3b33887bffbbe3d44a1e3185b182 - Improve
-   interrupted Hermes install diagnostics (full report:
-   logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md)`. `git cat-file -t
-   6dd58ab71b6e3b33887bffbbe3d44a1e3185b182` -> "could not get object
-   info"; it is not an ancestor of HEAD and not any object in the local
-   clone. The Codex work was squash-merged: it reached `main` as commit
-   `34785f1` (single parent `039de26`) under merge `7f75347`. So the hash
-   Codex logged is its pre-squash working-branch commit, which GitHub
-   discarded on squash-merge. Net effect: the mandatory quick-index's one
-   entry points at a dead hash. Not something Claude Code can fix - the new
-   `AGENTS.md` rule says "Never overwrite existing entries," and this is a
-   Codex-process record. Flagging so the primary GPT / Kenneth can decide
-   whether the push-log convention needs to say "log the hash only after
-   the PR is merged, using the squashed `main` hash" (or whether an
-   append-only correction line is acceptable). The full report
-   `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` does not itself cite a
-   commit hash, so only the quick-index is affected.
+### 1. `stash@{0}` needs an explicit disposition decision (see Zone B findings 1 & 2).
 
-2. **The Python test suite cannot run clean on this native-Windows drive,
-   and that is a pre-existing environmental limitation, not a regression
-   from the pull.** `pytest` is not installed (`python -m pytest` -> "No
-   module named pytest"). `python -m unittest discover -s tests -p
-   "test_*.py"` ran 12 tests with 5 errors, every error
-   `OSError: [WinError 193] %1 is not a valid Win32 application` from
-   `subprocess.run([... a .sh script ...])` - the POSIX test scripts assume
-   a bash on PATH that native Windows Python will invoke, which is not the
-   case here. The two Python test *files Codex modified* are pure static
-   text-assertion tests that shell out to nothing; both were re-run
-   in isolation this session and pass, and the pulled
-   `scripts/ensure-hermes.ps1` satisfies every string the extended contract
-   test now asserts. I did not attempt to run the bash scripts under the
-   Bash tool's git-bash (Codex already ran them green in Linux, and its
-   report explicitly scopes the outstanding verification as a *native
-   Windows / PowerShell* acceptance pass, which this drive also cannot do -
-   no `powershell.exe` test harness / Pester here either). Recommend the
-   native-Windows acceptance pass Codex asks for be scheduled on a machine
-   that has both PowerShell+Pester and a bash shim, or that it be run under
-   WSL.
+I created it this session, deliberately and documented, purely to unblock the
+mandatory session-start fast-forward. It holds:
+- `README.md` - the orphaned 1-line `<img>` title edit (finding 1). Zone B;
+  I will not apply it and am not authorized to drop it.
+- `WELCOME.html` - a 139-line stale draft (finding 2), now superseded by the
+  tracked upstream `WELCOME.html` and would conflict on `pop`.
 
-3. **Codex's HIGH finding is a recommendation awaiting Kenneth, carried
-   forward unchanged.** `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md`
-   Part 1 / Part 3 recommend a quarantine-based "R / K / C" recovery dialog
-   (atomically rename an invalid `.hermes-home` + `.hermes-install-staging`
-   into `install-logs/recovery-<stamp>/`, never blind-delete) plus
-   consolidating the drive-owner and assistant-name prompts and reordering
-   engine-install before personalization. Codex deliberately did NOT
-   implement any of these (onboarding/field-flow = Kenneth's call). Nothing
-   for Claude Code to do; noting it so the item is not lost between the
-   Codex report and the next session. The `.hermes-install-incomplete` +
-   `install-logs/` sitting untracked on THIS drive right now is a concrete
-   instance of exactly the damaged/partial state that recovery flow is
-   meant to handle.
+`git stash show -p stash@{0}` + `git show stash@{0}^3` reproduce both exactly;
+the README hunk is quoted verbatim in finding 1. Recommended: primary GPT /
+Kenneth decide (a) drop the stash (both parts obsolete - upstream `README.md`
++ `WELCOME.html` are authoritative), or (b) re-issue the `<img>` title change
+as a Zone B handoff against HEAD `8b06653` for proper placement. Until then
+the stash stays as-is.
 
-4. **`hermes` still not installed on this drive.** `command -v hermes` ->
-   nothing, same as every prior session here. Session Start Protocol steps
-   5 (`hermes doctor`, `hermes skills list --source local`) could not run.
-   Not new, not blocking - flagged only for completeness.
+### 2. `hermes` is not installed on THIS machine at all - Session Start Protocol step 5 cannot run here, ever, in its current form.
+
+Not `command -v hermes` returning nothing while a broken install sits on
+disk (which is what prior audits from the *other* drive describe) - here
+`%LOCALAPPDATA%\hermes` does not exist as a directory. `hermes doctor` /
+`hermes skills list --source local` have never been runnable on the `F:`
+drive. Not new, not blocking, flagged for completeness and so the primary
+GPT does not read "Project skills: hermes not installed" as a regression.
+
+### 3. This `F:` drive is NOT in the partial-install state the last two upstream audits describe.
+
+`logs/CLAUDE_CODE_LAST_AUDIT.md` (both the `039de26` and `8b06653` versions)
+repeatedly reference "two long-standing untracked install artifacts on this
+drive" - `.hermes-install-incomplete` (empty marker) and `install-logs/`
+(a `hermes-install-*.log` + `hermes-installer-*.ps1`). **Neither is present
+on the `F:` drive** (`ls -la` repo root, checked explicitly). Combined with
+`hermes` being entirely absent here, this confirms those upstream audit
+sessions ran from a *different* clone/drive. The `F:` drive's own last
+session was `cc32003` (2026-09-04, "open-items review"); everything between
+`cc32003` and `8b06653` (87 commits: many Codex PRs, the `audit/` -> `logs/`
+rename, README/WELCOME handoffs, CLAUDE.md zone extensions) arrived in this
+session's single fast-forward. Flagging because the audit report is a shared
+channel across drives with no other continuity - the "on this drive"
+language in the inherited report does not describe the drive this session
+actually ran on.
+
+### 4. New Codex findings pulled in this session are noted but not re-verified (not requested).
+
+`logs/CODEX_SECOND_AUDIT_2026-09-05.md`: NF-CX-01 (HIGH) `machine-reset.bat`
+accepting env-controlled `HERMES_HOME` with a weak marker check before
+`rmdir /s /q`; NF-CX-02 (MEDIUM) drive RESET leaving `.provider-choice` /
+`.agent-name` / `.readme-shown`. `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md`:
+HIGH interrupted-install recovery still a field gap (Codex recommended, did
+not implement, an R/K/C quarantine dialog - Kenneth's call).
+Subsequent pulled commits appear to address several of these
+(`scripts/machine-reset-safety.ps1`, `full-drive-reset.*`, `toggle-mode.*`
+extensions, `.gitignore` additions for the three RESET-leftover markers), but
+I did not trace each finding to its fix this session - no repair was
+requested and `hermes`/PowerShell-Pester/bash-harness are all unavailable on
+this drive to verify against. Recommend the native-Windows + PowerShell
+acceptance pass Codex asked for still be scheduled on a capable machine.
+
+### 5. Minor, not fixed: `.gitignore` has cosmetic redundancy.
+
+`/.hermes-home/` appears 4 times (lines ~29, 32, 36, and again implied);
+`config.yaml`, `state.db`, `state.db-*`, `sessions/`, `memories/`, `cron/`
+are listed un-anchored so they match at any depth, not just under
+`.hermes-home/`. All four Session-Start-Protocol-required exclusions (`.env`,
+`.forge-mode`, `.hermes.md`, `/.hermes/`) are present and correct, so this is
+not a protocol-step-4 failure and not a bug (duplicate ignore rules are
+harmless; un-anchored rules are broader than necessary but not wrong). Not
+touched - it does not meet CLAUDE.md's "confirmed a real bug, actually
+reproduce it first" bar for a Zone A edit. Flagged only so a future tidy-up
+handoff can consolidate it intentionally.
 
 ## Status
 
-Clean - routine pull + verify session, no repair requested or performed.
-`main` fast-forwarded `039de26` -> `7f75347`; the Codex sandbox re-audit
-report and its push-log index are now local under `logs/`. Everything the
-pull delivered is Zone A / Codex-process / Codex operational records - no
-Zone B content moved. Working tree clean apart from the two long-standing
-untracked install artifacts. Two things want the primary GPT's eyes, neither
-blocking: (1) `logs/CODEX_PUSH_LOG.md`'s lone entry cites a squashed-away
-commit hash that resolves to nothing in `main`; (2) Codex's requested native
-Windows / PowerShell interruption acceptance pass still cannot be run on this
-drive. Codex's HIGH interrupted-install-recovery recommendation remains
-open and is Kenneth's decision.
+Needs primary GPT review - one item wants an explicit decision: the
+disposition of `stash@{0}` (the orphaned `README.md` `<img>` title edit + the
+superseded `WELCOME.html` draft), created this session solely to unblock the
+mandatory session-start fast-forward. Both parts appear obsolete against
+current `origin/main`, but dropping the stash and confirming the `<img>`
+title idea is abandoned is a Blacksmith/Zone-B call, not Claude Code's. The
+`<img>` hunk is quoted verbatim above so it is preserved regardless of what
+happens to the stash. Everything else is routine: `main` fast-forwarded
+`cc32003` -> `8b06653` (87 commits, all Zone A / Codex-process / operational
+records / upstream Blacksmith handoffs), working tree clean, CLAUDE.md
+re-read after its in-pull changes, no Zone B content edited or composed by
+Claude Code. `hermes` unavailable on this drive so protocol step 5 did not
+run.
