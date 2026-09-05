@@ -312,18 +312,84 @@ immediately after, per standing Zone A authorization.
    system-prompt injection) - see finding 5 above - genuinely needs
    Kenneth's or the primary GPT's explicit call, not mine.
 
+## Second concurrent-work reconciliation (discovered on the next push, resolved the same way)
+
+`git push` was rejected again after the merge commit `b3eccf5` - Codex had
+pushed a SECOND round of 5 more PRs while this session was resolving the
+first round: "Warn operators when cron registration fails" (NF-CX-06),
+"Harden credential reset behavior" (NF-CX-02), "Harden free provider
+configuration" (NF-CX-03), "Make skill assembly transactional" (NF-CX-04),
+"Harden machine reset path validation" (NF-CX-01) - independently
+re-fixing every remaining finding from this session's own `9a48117`, more
+thoroughly in each case (see CHANGELOG.md for the specific comparison per
+finding). Fetched, read every diff and the two new companion PowerShell
+scripts (`scripts/machine-reset-safety.ps1`,
+`scripts/assemble-skills.ps1`) in full before deciding, merged, and
+hand-resolved 5 conflicted files (`launch-north-forge.bat/.sh`,
+`machine-reset.bat`, `toggle-mode.bat/.sh`) - deferring to Codex's version
+in every conflict after review, since it was consistently more thorough
+(transactional skill assembly with rollback vs. this session's
+abort-only; junction/reparse-point-walking, TOCTOU-safe path validation
+vs. this session's substring check; verified-deletion RESET vs.
+assumed-success).
+
+**Did not blindly accept the incoming code.** Testing surfaced two real
+bugs in Codex's own committed work, both would have broken the launcher
+for real users:
+
+1. `launch-north-forge.sh` calls `configure_free_provider` (added by the
+   "Harden free provider configuration" PR) but that function is never
+   defined anywhere in the file - confirmed by grepping Codex's own final
+   commit (`423aa1a:launch-north-forge.sh`) directly, not just the merge
+   result. Every user choosing the default free-provider path (the
+   majority path per Phase 2's own design) would have hit "command not
+   found" and the launcher would have aborted. Fixed by writing the
+   missing function myself, mirroring the `.bat` launcher's own correct
+   `:CONFIGURE_FREE_PROVIDER` subroutine line-for-line in bash idiom
+   (temp-free diagnostic capture via command substitution instead of temp
+   files, same secret-redaction regex, same "not set" vs. genuine-failure
+   distinction, same `set -e`-safe `if VAR=$(...); then` pattern used
+   elsewhere in this session's own earlier fixes).
+2. `launch-north-forge.bat` references `%PYTHON_CMD%` three times (for
+   `name_validation.py`) but the variable is never set anywhere in the
+   current file - confirmed the SAME gap exists in Codex's own final
+   commit directly. The block that sets it (`where py`/`where python`
+   detection) was present after the earlier "Harden launcher name
+   validation" PR (I verified this myself when resolving THAT merge) but
+   got dropped when "Harden free provider configuration" restructured the
+   top of the file to add a `--configure-free-provider` CLI flag check,
+   apparently without realizing the block below it depended on state set
+   above it. Restored the detection block verbatim.
+
+Both were caught by empirical end-to-end testing (real launcher runs
+against isolated scratch state), not by code reading alone - reading the
+diffs made them LOOK complete; only running them surfaced the missing
+definitions. Also re-verified `machine-reset.bat`'s merged full-purge flow
+specifically (the HIGH finding) via live console automation against a
+scratch target: a directory with both required markers was correctly
+validated, its canonical path had to be retyped exactly to confirm, and
+it was actually deleted - confirming the new PowerShell-based validation
+works end-to-end post-merge, not just in isolation.
+
 ## Status
-Clean - 3 commits plus a hand-resolved merge, all 7 numbered findings plus
-2 additional observations fixed and verified (a mix of live
-console-automation tests, direct stdin tests, and isolated logic unit
-tests, chosen per-finding based on what could be tested safely), reconciled
-with Codex's own concurrent independent fixes for 4 of the same findings
-(deferred to Codex's version for 2 of those where it was materially more
-thorough, kept this session's own fixes for the other 5 findings Codex's
-work never touched), re-verified end-to-end after the merge with no
-regressions. One real session-process mistake made and corrected
-immediately (item 1 above - needs no further action, but worth independent
-awareness). No Zone B content touched or edited (WELCOME.html was read to
-confirm its content, not written). Needs primary GPT review specifically
-on item 1 (session process, not repo content) and item 3 (a real
-governance decision) above.
+Clean - 5 commits plus two hand-resolved merges (10 conflicted files total
+across both rounds), all 7 numbered findings plus 2 additional
+observations addressed. Reconciled twice with Codex's own concurrent,
+independent, and consistently more-thorough fixes for the same findings -
+deferred to Codex's version in every case after review, keeping only this
+session's own work where Codex's concurrent efforts never touched it.
+Found and fixed two real bugs in Codex's own committed code (a bash
+function called but never defined, a batch variable referenced but never
+set) rather than merging either blind - both caught by empirical
+end-to-end testing, not code review alone, and both would have broken the
+launcher for real users taking the default free-provider path. All fixes
+re-verified end-to-end after each merge with no regressions, including a
+live console-automation confirmation of the merged HIGH-severity
+`machine-reset.bat` fix. One real session-process mistake made earlier in
+the session and corrected immediately (item 1 above - needs no further
+action, but worth independent awareness). No Zone B content touched or
+edited by me (WELCOME.html, README.md, and USER_MANUAL.md changes arrived
+via Codex's/Kenneth's own PRs during the merges and were read to confirm
+content, not authored by me). Needs primary GPT review specifically on
+item 1 (session process, not repo content) and item 3 (a real governance
+decision, still open) above.
