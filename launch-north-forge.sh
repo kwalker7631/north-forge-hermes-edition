@@ -2,7 +2,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: launch-north-forge.sh | Script version: 1.1.0 | Updated: 2026-09-05
+# File: launch-north-forge.sh | Script version: 1.2.0 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 set -e
@@ -18,15 +18,28 @@ if [ ! -f ".readme-shown" ]; then
     else
         WELOPEN="no opener available"
     fi
-    touch .readme-shown
+    # Only mark this done when it actually worked, so a failed open (no
+    # opener, opener crashed, file missing) retries on the next launch
+    # instead of silently never showing the welcome page again.
+    [ "$WELOPEN" = "ok" ] && touch .readme-shown
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$([ "$WELOPEN" = "ok" ] && echo INFO || echo WARNING)] [welcome]: first-run WELCOME.html auto-open: $WELOPEN" >> "forge-events.log"
 fi
 
 # --- user tier: who-has-this-drive record (accountability only, never blocks) ---
 log_event() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] [$1]: $2" >> "forge-events.log"; }
+# Free-text names go straight into forge-events.log's own bracketed-field
+# format and into the generated .hermes.md context - strip control bytes
+# and [ ] (the characters that let typed text forge a fake log line, e.g.
+# "Mallory ] [FAILURE] [admin-gate]: forged PASS") and cap the length so
+# one entry can't dominate the log or the assembled context file.
+sanitize_name() {
+    printf '%s' "$1" | tr -d '[:cntrl:]' | tr -d '[]' | cut -c1-60
+}
+
 if [ ! -f ".drive-record.txt" ]; then
     DRIVENAME=""
     read -p "First launch: your name for this drive's record: " DRIVENAME || DRIVENAME=""
+    DRIVENAME="$(sanitize_name "$DRIVENAME")"
     [ -z "$DRIVENAME" ] && DRIVENAME="Unregistered"
     printf '%s\n%s\n' "$DRIVENAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
     log_event "drive-record" "CREATE: registered to $DRIVENAME"
@@ -34,6 +47,7 @@ else
     CURNAME="$(sed -n 1p ".drive-record.txt")"
     NEWNAME=""
     read -p "Still $CURNAME? [Enter to continue / type a new name to re-register]: " NEWNAME || NEWNAME=""
+    NEWNAME="$(sanitize_name "$NEWNAME")"
     if [ -n "$NEWNAME" ]; then
         printf '%s\n%s\n' "$NEWNAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
         log_event "drive-record" "RE-REGISTER: $CURNAME -> $NEWNAME"
@@ -87,9 +101,19 @@ fi
 
 rm -rf .hermes/skills
 mkdir -p .hermes/skills
-cp -r skills-source/shared/. .hermes/skills/ 2>/dev/null || true
+if ! cp -r skills-source/shared/. .hermes/skills/; then
+    echo ""
+    echo "FATAL: failed to copy skills-source/shared/ into .hermes/skills/ (see error above)."
+    echo "Launch aborted - this drive's skills would be missing or incomplete."
+    exit 1
+fi
 if [ "$MODE" = "full" ]; then
-    cp -r skills-source/tsc-only/. .hermes/skills/ 2>/dev/null || true
+    if ! cp -r skills-source/tsc-only/. .hermes/skills/; then
+        echo ""
+        echo "FATAL: failed to copy skills-source/tsc-only/ into .hermes/skills/ (see error above)."
+        echo "Launch aborted - FULL mode skills would be missing or incomplete."
+        exit 1
+    fi
 fi
 
 if ! command -v python3 >/dev/null 2>&1; then
@@ -105,6 +129,7 @@ if [ ! -f ".agent-name" ]; then
     echo "just changes what it calls itself when talking to you."
     echo ""
     read -p "Name your assistant (press Enter to keep 'North Forge'): " CUSTOMNAME || CUSTOMNAME=""
+    CUSTOMNAME="$(sanitize_name "$CUSTOMNAME")"
     if [ -z "$CUSTOMNAME" ]; then
         echo "North Forge" > ".agent-name"
     else
@@ -181,9 +206,31 @@ if [ ! -f ".provider-choice" ]; then
     if [ "$(printf '%s' "$PROVIDERCHOICE" | tr '[:lower:]' '[:upper:]')" = "OWNKEY" ]; then
         echo "ownkey" > ".provider-choice"
     else
-        echo "free" > ".provider-choice"
-        hermes config set model.provider opencode-free >/dev/null 2>&1 || true
-        hermes config unset model.default >/dev/null 2>&1 || true
+        # `hermes config set` must actually succeed for the free path to work -
+        # do NOT mark .provider-choice=free (which skips this block on every
+        # future launch) unless it did. `unset model.default` is best-effort:
+        # it always returns nonzero when the key was never set in the first
+        # place (the common, expected case), so that alone isn't a failure -
+        # only warn if its own output doesn't say so. The assignment is the
+        # condition of the `if` itself (not a separate statement) so a
+        # nonzero exit here doesn't trip `set -e` before it can be handled.
+        if SET_OUT="$(hermes config set model.provider opencode-free 2>&1)"; then
+            if ! UNSET_OUT="$(hermes config unset model.default 2>&1)" && ! echo "$UNSET_OUT" | grep -qi "not set"; then
+                echo ""
+                echo "WARNING: could not clear a leftover model.default (hermes config said:"
+                echo "  $UNSET_OUT"
+                echo ") - if a question fails with a model error, run 'hermes model' to pick one."
+            fi
+            echo "free" > ".provider-choice"
+        else
+            echo ""
+            echo "WARNING: could not configure the free provider automatically."
+            echo "hermes config said:"
+            echo "  $SET_OUT"
+            echo "Falling back to the your-own-key path - add an Anthropic API key below,"
+            echo "or run 'hermes model' / 'hermes setup' yourself once this launches."
+            echo "ownkey" > ".provider-choice"
+        fi
     fi
 fi
 
@@ -246,6 +293,7 @@ if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     if hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
+        echo "WARNING: could not schedule the nightly research job - the /kyocera-research pass will not run automatically. See forge-events.log."
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED" >> "forge-events.log"
     fi
 fi
@@ -254,6 +302,7 @@ if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     if hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >/dev/null 2>&1; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
+        echo "WARNING: could not schedule the daily brief job - the /daily-brief pass will not run automatically. See forge-events.log."
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED" >> "forge-events.log"
     fi
 fi

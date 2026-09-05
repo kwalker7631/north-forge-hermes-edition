@@ -2,7 +2,7 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: machine-reset.bat | Script version: 1.0.1 | Updated: 2026-09-05
+rem  File: machine-reset.bat | Script version: 1.0.2 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal enabledelayedexpansion
@@ -113,11 +113,34 @@ if not exist "%HERMES_DIR%\" (
     goto :end
 )
 rem --- refuse an obviously-wrong deletion target ---
+rem A HERMES_HOME pointing at a relative path, a bare drive root, or a UNC
+rem share is refused outright - "rmdir /s /q" on any of those is exactly
+rem the kind of mistake this gate exists to prevent, and a relative path is
+rem also the easiest way for a stray/misconfigured HERMES_HOME to resolve
+rem somewhere unintended. Only an absolute drive path (X:\...) is accepted -
+rem checked via substring extraction, not findstr /r (its regex engine
+rem rejected an equivalent pattern outright as "Bad command line" when
+rem tested standalone, which would have silently sent every legitimate
+rem path to :bad_target - verified empirically before relying on this).
+set "HDCHAR1=%HERMES_DIR:~0,1%"
+set "HDCHAR2=%HERMES_DIR:~1,1%"
+set "HDCHAR3=%HERMES_DIR:~2,1%"
+set "HDSHAPE_OK=1"
+if "%HDCHAR2%" neq ":" set "HDSHAPE_OK=0"
+if "%HDCHAR3%" neq "\" set "HDSHAPE_OK=0"
+if /i "%HDCHAR1%" lss "A" set "HDSHAPE_OK=0"
+if /i "%HDCHAR1%" gtr "Z" set "HDSHAPE_OK=0"
+if "%HDSHAPE_OK%"=="0" goto :bad_target
 if /i "%HERMES_DIR%"=="%SystemDrive%"  goto :bad_target
 if /i "%HERMES_DIR%"=="%USERPROFILE%"  goto :bad_target
 if /i "%HERMES_DIR%"=="%LOCALAPPDATA%" goto :bad_target
 if /i "%HERMES_DIR%"=="%APPDATA%"      goto :bad_target
-if not exist "%HERMES_DIR%\hermes-agent\" if not exist "%HERMES_DIR%\config.yaml" goto :bad_target
+rem Require BOTH markers, not just one - a coincidental config.yaml alone
+rem (a very common filename) is not a strong enough signal by itself that
+rem this directory is actually a Hermes install and safe to recursively
+rem delete.
+if not exist "%HERMES_DIR%\hermes-agent\" goto :bad_target
+if not exist "%HERMES_DIR%\config.yaml" goto :bad_target
 
 echo FULL PURGE - this will:
 echo   1. hermes gateway stop       ^(stop the background messaging service^)

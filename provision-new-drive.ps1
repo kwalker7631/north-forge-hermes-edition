@@ -1,7 +1,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: provision-new-drive.ps1 | Script version: 1.0.0 | Updated: 2026-09-04
+# File: provision-new-drive.ps1 | Script version: 1.0.1 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 #
@@ -90,13 +90,27 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 
 Set-Location "${target}:\"
 
+# Native executables don't throw on a nonzero exit even under
+# $ErrorActionPreference = "Stop" - $LASTEXITCODE has to be checked
+# explicitly, or a failed pull/clone launches stale or half-cloned content.
 if (Test-Path "north-forge-hermes-edition") {
     Write-Host "north-forge-hermes-edition already exists on ${target}: - pulling the latest instead of cloning."
     Set-Location "north-forge-hermes-edition"
     git pull
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "ERROR: 'git pull' failed (exit code $LASTEXITCODE) - see the git output above." -ForegroundColor Red
+        Write-Host "Not launching against a possibly-stale checkout. Fix the pull and run this script again." -ForegroundColor Red
+        exit 1
+    }
 } else {
     Write-Host "Cloning North Forge onto ${target}:..."
     git clone $cloneUrl
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "ERROR: 'git clone' failed (exit code $LASTEXITCODE) - see the git output above." -ForegroundColor Red
+        exit 1
+    }
     Set-Location "north-forge-hermes-edition"
 }
 

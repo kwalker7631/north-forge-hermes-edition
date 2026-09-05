@@ -2,7 +2,7 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: toggle-mode.bat | Script version: 1.0.1 | Updated: 2026-09-05
+rem  File: toggle-mode.bat | Script version: 1.0.2 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal enabledelayedexpansion
@@ -50,10 +50,13 @@ call :admin_gate "RESET"
 if errorlevel 1 goto :menu
 echo.
 echo RESET wipes this drive's PERSONAL setup back to a clean first-use state:
-echo   .env            - your Anthropic API key
-echo   .forge-mode     - the FULL/SALES toggle
-echo   .hermes.md      - generated at launch, rebuilds automatically
-echo   .hermes\skills\  - generated at launch, rebuilds automatically
+echo   .env              - your Anthropic API key
+echo   .forge-mode       - the FULL/SALES toggle
+echo   .provider-choice  - the free/own-key provider decision
+echo   .agent-name       - the assistant's custom name, if any
+echo   .readme-shown     - the first-run welcome marker
+echo   .hermes.md        - generated at launch, rebuilds automatically
+echo   .hermes\skills\   - generated at launch, rebuilds automatically
 echo.
 echo The tracked repo content is NOT touched - skills-source, mode-blocks, the scripts.
 echo Use this before handing this physical drive to a different person, so your
@@ -75,6 +78,9 @@ if exist ".drive-record.txt" (
     >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [reset]: RESET executed ^(no drive record present^)
 )
 if exist ".forge-mode" del /q ".forge-mode"
+if exist ".provider-choice" del /q ".provider-choice"
+if exist ".agent-name" del /q ".agent-name"
+if exist ".readme-shown" del /q ".readme-shown"
 if exist ".hermes.md" del /q ".hermes.md"
 if exist ".hermes\skills" rmdir /s /q ".hermes\skills"
 echo.

@@ -2,7 +2,7 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: launch-north-forge.bat | Script version: 1.1.0 | Updated: 2026-09-05
+rem  File: launch-north-forge.bat | Script version: 1.2.0 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal enabledelayedexpansion
@@ -14,16 +14,27 @@ if not exist ".readme-shown" (
     if errorlevel 1 (
         >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED
     ) else (
+        rem Only mark this done when it actually worked, so a failed open
+        rem retries on the next launch instead of silently never showing
+        rem the welcome page again.
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [welcome]: first-run WELCOME.html auto-open: ok
+        echo. > .readme-shown
     )
-    echo. > .readme-shown
 )
 
 rem --- user tier: who-has-this-drive record (accountability only, never blocks) ---
 if not exist ".drive-record.txt" (
     set "DRIVENAME="
     set /p DRIVENAME="First launch: your name for this drive's record: "
+    rem Strip [ ] and cap length - these are the characters that let typed
+    rem text forge a fake log line (e.g. "Mallory ] [FAILURE] [admin-gate]:
+    rem forged PASS"), and a name shouldn't be able to dominate the log or
+    rem the assembled context file.
+    if defined DRIVENAME set "DRIVENAME=!DRIVENAME:[=!"
+    if defined DRIVENAME set "DRIVENAME=!DRIVENAME:]=!"
+    if defined DRIVENAME set "DRIVENAME=!DRIVENAME:~0,60!"
     if not defined DRIVENAME set "DRIVENAME=Unregistered"
+    if "!DRIVENAME!"=="" set "DRIVENAME=Unregistered"
     > ".drive-record.txt" echo !DRIVENAME!
     >> ".drive-record.txt" echo %DATE% %TIME%
     >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [drive-record]: CREATE: registered to !DRIVENAME!
@@ -31,6 +42,9 @@ if not exist ".drive-record.txt" (
     set /p CURNAME=<".drive-record.txt"
     set "NEWNAME="
     set /p NEWNAME="Still !CURNAME!? [Enter to continue / type a new name to re-register]: "
+    if defined NEWNAME set "NEWNAME=!NEWNAME:[=!"
+    if defined NEWNAME set "NEWNAME=!NEWNAME:]=!"
+    if defined NEWNAME set "NEWNAME=!NEWNAME:~0,60!"
     if defined NEWNAME (
         > ".drive-record.txt" echo !NEWNAME!
         >> ".drive-record.txt" echo %DATE% %TIME%
@@ -91,8 +105,22 @@ if exist "skills" rmdir /s /q "skills"
 if exist ".hermes\skills" rmdir /s /q ".hermes\skills"
 mkdir ".hermes\skills"
 xcopy /e /i /y "skills-source\shared" ".hermes\skills" >nul
+if errorlevel 1 (
+    echo.
+    echo FATAL: failed to copy skills-source\shared into .hermes\skills -
+    echo this drive's skills would be missing or incomplete. Launch aborted.
+    pause
+    exit /b 1
+)
 if /i "%MODE%"=="full" (
     xcopy /e /i /y "skills-source\tsc-only" ".hermes\skills" >nul
+    if errorlevel 1 (
+        echo.
+        echo FATAL: failed to copy skills-source\tsc-only into .hermes\skills -
+        echo FULL mode skills would be missing or incomplete. Launch aborted.
+        pause
+        exit /b 1
+    )
 )
 
 if not exist ".agent-name" (
@@ -102,6 +130,9 @@ if not exist ".agent-name" (
     echo just changes what it calls itself when talking to you.
     echo.
     set /p CUSTOMNAME="Name your assistant (press Enter to keep 'North Forge'): "
+    if defined CUSTOMNAME set "CUSTOMNAME=!CUSTOMNAME:[=!"
+    if defined CUSTOMNAME set "CUSTOMNAME=!CUSTOMNAME:]=!"
+    if defined CUSTOMNAME set "CUSTOMNAME=!CUSTOMNAME:~0,60!"
     if "!CUSTOMNAME!"=="" (
         echo North Forge> ".agent-name"
     ) else (
@@ -158,9 +189,40 @@ if not exist ".provider-choice" (
     if /i "!PROVIDERCHOICE!"=="OWNKEY" (
         echo ownkey> ".provider-choice"
     ) else (
-        echo free> ".provider-choice"
+        rem `hermes config set` must actually succeed for the free path to
+        rem work - do NOT mark .provider-choice=free ^(which skips this block
+        rem on every future launch^) unless it did. `unset model.default`
+        rem always returns nonzero when the key was never set in the first
+        rem place ^(the common, expected case^), so that alone isn't a
+        rem failure - only warn if its own output doesn't say so.
         hermes config set model.provider opencode-free >nul 2>nul
-        hermes config unset model.default >nul 2>nul
+        if errorlevel 1 (
+            echo.
+            echo WARNING: could not configure the free provider automatically.
+            echo Falling back to the your-own-key path - add an Anthropic API key
+            echo below, or run 'hermes model' / 'hermes setup' yourself once this launches.
+            echo ownkey> ".provider-choice"
+        ) else (
+            rem `for /f` erases the inner command's own errorlevel, so success
+            rem vs. failure has to be told apart from its text instead: the
+            rem benign "already absent" case says "not set", genuine success
+            rem says "Unset" - anything matching neither is worth a warning.
+            set "UNSETOUT="
+            for /f "usebackq delims=" %%U in (`hermes config unset model.default 2^>^&1`) do set "UNSETOUT=%%U"
+            echo !UNSETOUT! | findstr /i "not set" >nul
+            if errorlevel 1 (
+                echo !UNSETOUT! | findstr /i "Unset" >nul
+                if errorlevel 1 (
+                    if defined UNSETOUT (
+                        echo.
+                        echo WARNING: could not clear a leftover model.default ^(hermes config said:
+                        echo   !UNSETOUT!
+                        echo ^) - if a question fails with a model error, run 'hermes model' to pick one.
+                    )
+                )
+            )
+            echo free> ".provider-choice"
+        )
     )
 )
 
@@ -232,6 +294,7 @@ if errorlevel 1 (
     echo Scheduling the nightly Kyocera research job...
     hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >nul 2>nul
     if errorlevel 1 (
+        echo WARNING: could not schedule the nightly research job - the /kyocera-research pass will not run automatically. See forge-events.log.
         >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered nightly-kyocera-research ^(0 6 * * *^)
@@ -242,6 +305,7 @@ if errorlevel 1 (
     echo Scheduling the daily Kyocera brief job...
     hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >nul 2>nul
     if errorlevel 1 (
+        echo WARNING: could not schedule the daily brief job - the /daily-brief pass will not run automatically. See forge-events.log.
         >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered daily-kyocera-brief ^(0 8 * * *^)

@@ -2,7 +2,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: toggle-mode.sh | Script version: 1.0.0 | Updated: 2026-09-04
+# File: toggle-mode.sh | Script version: 1.0.1 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 cd "$(dirname "$0")"
@@ -55,10 +55,13 @@ while true; do
             admin_gate "RESET" || continue
             echo ""
             echo "RESET wipes this drive's PERSONAL setup back to a clean first-use state:"
-            echo "  .env           - your Anthropic API key"
-            echo "  .forge-mode    - the FULL/SALES toggle"
-            echo "  .hermes.md     - generated at launch, rebuilds automatically"
-            echo "  .hermes/skills/ - generated at launch, rebuilds automatically"
+            echo "  .env             - your Anthropic API key"
+            echo "  .forge-mode      - the FULL/SALES toggle"
+            echo "  .provider-choice - the free/own-key provider decision"
+            echo "  .agent-name      - the assistant's custom name, if any"
+            echo "  .readme-shown    - the first-run welcome marker"
+            echo "  .hermes.md       - generated at launch, rebuilds automatically"
+            echo "  .hermes/skills/  - generated at launch, rebuilds automatically"
             echo ""
             echo "The tracked repo content is NOT touched - skills-source/, mode-blocks/, the scripts."
             echo "Use this before handing this physical drive to a different person, so your"
@@ -71,7 +74,7 @@ while true; do
                 else
                     log_event "reset" "RESET executed (no drive record present)"
                 fi
-                rm -f ".env" ".forge-mode" ".hermes.md" ".drive-record.txt"
+                rm -f ".env" ".forge-mode" ".hermes.md" ".drive-record.txt" ".provider-choice" ".agent-name" ".readme-shown"
                 rm -rf ".hermes/skills"
                 echo ""
                 echo "Done. This drive is back to a clean first-use state."
