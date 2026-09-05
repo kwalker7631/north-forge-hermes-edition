@@ -200,9 +200,60 @@ scripts that read/copy them.
   MEDIUM, 2 LOW)" (Zone A: `.gitignore`, `CHANGELOG.md`,
   `launch-north-forge.bat`, `launch-north-forge.sh`, `machine-reset.bat`,
   `provision-new-drive.ps1`, `toggle-mode.bat`, `toggle-mode.sh`)
+- `c8e449c` - "Audit: Codex-audit-response session - 7 findings fixed,
+  verified, one session incident disclosed" (this report, first draft)
+- `b3eccf5` - "Merge remote-tracking branch 'origin/main'" - see the
+  concurrent-work reconciliation section below; this was not a trivial
+  fast-forward, it required hand-resolving 3 conflicted files
 
-Not yet pushed at the time this report was written - pushed immediately
-after, in the same session, per standing Zone A authorization.
+## Concurrent-work reconciliation (discovered mid-session, resolved by hand)
+
+`git push` was rejected after commit `c8e449c` - the remote had 12 new
+commits I didn't have locally (`ef4cb12..0eef03b`). Codex had been
+independently fixing several of the SAME findings via its own PRs,
+concurrently with and unaware of this session's work, merged to `main` by
+Kenneth while this session was in progress: "Validate welcome assets and
+retry failed opens" (WELCOME.html), "Stop provisioning when Git update
+fails" (`provision-new-drive.ps1`), "Ignore provider choice state and test
+repository hygiene" (`.gitignore` + a new `tests/repository-hygiene.sh`),
+"Harden launcher name validation" (a new shared `scripts/name_validation.py`
++ both launchers, with its own `tests/test_name_validation.py`).
+
+Did NOT force-push over this. Fetched, examined each incoming diff before
+deciding how to reconcile (not a blind merge), then `git merge
+origin/main` and hand-resolved the 3 resulting conflicts
+(`launch-north-forge.bat`, `launch-north-forge.sh`,
+`provision-new-drive.ps1` - `.gitignore` auto-merged with one duplicate
+line, cleaned up by hand):
+
+- **Name validation (the launcher-input part of NF-CX-05):** Codex's
+  `scripts/name_validation.py` is a materially better fix than this
+  session's own bracket-stripping approach - a real allowlist (letters,
+  numbers, spaces, `'-.,()` only) with re-prompt-on-invalid-input and its
+  own test suite, versus this session's blacklist-and-strip approach.
+  Kept Codex's version entirely; discarded this session's `sanitize_name`
+  function and inline `DRIVENAME`/`NEWNAME`/`CUSTOMNAME` sanitization code.
+- **`provision-new-drive.ps1`:** Codex's version additionally validates
+  that the repository folder and `launch-north-forge.bat` actually exist
+  after a clone/pull reports success, on top of the same git-exit-code
+  check this session made independently - strictly more thorough for the
+  same underlying gap. Kept Codex's version entirely.
+- **WELCOME.html marker and `.gitignore` entry:** functionally identical
+  fixes for the same findings on both sides - trivial dedup.
+- **Unaffected by any of this** (Codex's work never touched these):
+  `machine-reset.bat` (NF-CX-01), `toggle-mode.sh`/`.bat` (NF-CX-02), the
+  provider-choice config-verification fix and skill-copy-failure fix in
+  both launchers (NF-CX-03, NF-CX-04), and the cron on-screen-warning fix
+  (NF-CX-06) - all still stand exactly as committed in `9a48117`.
+
+Re-verified end-to-end after merging, not just reviewed: a full launcher
+run (both `.sh` directly, and `.bat` via a patched scratch copy matching
+the technique from the prior sandbox-harness session) through drive-record
+creation, agent-name default, provider-choice configuration, skill
+copying, skin activation, skills trust, and cron scheduling - all correct,
+no regressions from combining both sessions' changes. Pushed to `main`
+(`ef4cb12..b3eccf5` from Codex's side, plus this session's own 3 commits)
+immediately after, per standing Zone A authorization.
 
 ## Uncertain / flagged for primary GPT review
 
@@ -248,20 +299,31 @@ after, in the same session, per standing Zone A authorization.
    in the repo.
 2. Everything else flagged as open in the prior sandbox-harness session's
    report (whether a plain console `ANTHROPIC_API_KEY` hits the same
-   Fable/Mythos credits wall, the two stale cron `model_snapshot` pins,
-   `WELCOME.html` still needing its Phase-2-aware rewrite) remains open and
-   was not addressed this session - out of scope for a Codex-audit-response
-   session.
+   Fable/Mythos credits wall, the two stale cron `model_snapshot` pins)
+   remains open and was not addressed this session - out of scope for a
+   Codex-audit-response session. One item from that list IS now resolved,
+   observed as a side effect of this session's merge, not actioned by
+   Claude Code: `WELCOME.html` now exists as tracked Zone B content (via
+   Codex's PR, content matching Kenneth's own prior untracked local copy
+   byte-for-byte apart from line endings) and its text already covers the
+   Phase 2 ENTER/OWNKEY provider-choice flow - confirmed by reading it,
+   not edited.
 3. The NF-CX-05 governance question (assistant-name as unrestricted
    system-prompt injection) - see finding 5 above - genuinely needs
    Kenneth's or the primary GPT's explicit call, not mine.
 
 ## Status
-Clean - one commit, all 7 numbered findings plus 2 additional observations
-fixed and verified (a mix of live console-automation tests, direct stdin
-tests, and isolated logic unit tests, chosen per-finding based on what
-could be tested safely), one real session-process mistake made and
-corrected immediately (item 1 above - needs no further action, but worth
-independent awareness). No Zone B content touched. Needs primary GPT
-review specifically on item 1 (session process, not repo content) and item
-3 (a real governance decision) above.
+Clean - 3 commits plus a hand-resolved merge, all 7 numbered findings plus
+2 additional observations fixed and verified (a mix of live
+console-automation tests, direct stdin tests, and isolated logic unit
+tests, chosen per-finding based on what could be tested safely), reconciled
+with Codex's own concurrent independent fixes for 4 of the same findings
+(deferred to Codex's version for 2 of those where it was materially more
+thorough, kept this session's own fixes for the other 5 findings Codex's
+work never touched), re-verified end-to-end after the merge with no
+regressions. One real session-process mistake made and corrected
+immediately (item 1 above - needs no further action, but worth independent
+awareness). No Zone B content touched or edited (WELCOME.html was read to
+confirm its content, not written). Needs primary GPT review specifically
+on item 1 (session process, not repo content) and item 3 (a real
+governance decision) above.
