@@ -1,0 +1,37 @@
+# =============================================================================
+# North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
+# Forge project.
+# File: .gitattributes | Version: 1.0.0 | Updated: 2026-09-05
+# Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
+# =============================================================================
+#
+# Line-ending policy for scripts.
+#
+# The drive is exFAT on purpose: one cheap USB stick has to run on Windows,
+# macOS, and Linux. exFAT cannot store the executable bit, so the macOS/Linux
+# first run is `bash launch-north-forge.sh` executed straight off the stick,
+# reading these exact bytes (see the comment block near the top of
+# launch-north-forge.sh).
+#
+# Without a rule here, a checkout on a Windows machine whose git has
+# core.autocrlf=true rewrites every *.sh to CRLF. That drive then fails on the
+# very first Mac/Linux launch:
+#   - run via the shebang -> `env: 'bash\r': No such file or directory` (127)
+#   - run as `bash launch-north-forge.sh` -> bash `syntax error near
+#     unexpected token` on a `then` / `fi` / `do` that now ends in \r
+# provision-new-drive.ps1 clones with whatever git config the provisioning PC
+# has, so the fix has to live in the repo, not in a machine's global config.
+#
+# Pin shell scripts to LF in the working tree on every platform; keep the
+# Windows-only scripts CRLF.
+
+*.sh        text eol=lf
+*.command   text eol=lf
+
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binary assets - never run line-ending or diff filters on these.
+*.png       binary
+*.ico       binary

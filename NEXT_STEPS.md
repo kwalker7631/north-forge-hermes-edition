@@ -548,3 +548,54 @@ chat can make).
 - The `assets/` icon and Kyocera logo files it depends on ARE already
   tracked (committed `3e979ed`/`4cc2c9f`), so once `WELCOME.html` itself is
   committed the images it references will resolve correctly.
+
+## Session 2026-09-05 (CRLF first-run break, Claude Code) - .gitattributes added
+
+Kenneth's prompt: check this pull, fix anything that would break the first
+run, "may have an issue with cheap usb flash."
+
+**Found (reproduced):** every tracked `*.sh` in the working tree on this
+`E:` drive had CRLF line endings (`git ls-files --eol` -> `w/crlf` on all 13;
+committed blobs were all `i/lf`). Cause: the repo shipped with **no
+`.gitattributes`**, and this drive was checked out on a Windows machine
+whose git has `core.autocrlf=true` (verified: `git config core.autocrlf` ->
+`true`), so git rewrote every shell script to CRLF on checkout. The drive is
+exFAT precisely so one stick runs on Windows/macOS/Linux, and the documented
+Mac/Linux first run (`FIRST_TIME_README.txt`: drag `launch-north-forge.sh`
+into Terminal, Enter) then fails on first execution:
+- via the shebang: `env: 'bash\r': No such file or directory` (exit 127) -
+  reproduced this session by feeding a CRLF `#!/usr/bin/env bash` line to
+  `env`.
+- via `bash launch-north-forge.sh`: real macOS bash 3.2 / Linux bash hit
+  `syntax error near unexpected token` on `then`/`fi`/`do` words that now
+  carry a trailing `\r`. (Not reproducible on this box - Git-for-Windows
+  bash is patched to tolerate a lone trailing CR - but the shebang failure
+  above is platform-independent and was reproduced.)
+
+The `.bat` launcher is unaffected (CRLF is correct for batch).
+
+**Fix (Zone A):**
+- Added `.gitattributes` at repo root: `*.sh` / `*.command` pinned
+  `text eol=lf`; `*.bat` / `*.cmd` / `*.ps1` pinned `text eol=crlf`;
+  `*.png` / `*.ico` marked `binary`. Surgical on purpose - no blanket
+  `* text=auto`, so no line-ending renormalization ripples into the Zone B
+  authored `.md` / `.html` / `.txt` content.
+- Renormalized the working tree on this drive: removed the CRLF `*.sh`
+  working copies and re-checked them out under the new attribute. All 13
+  now `w/lf`, byte-identical (sha256) to their committed LF blobs; `bash -n`
+  passes on all 13; `git status` clean apart from the new file. No `.sh`
+  content changed - the blobs were already LF, only this drive's working
+  copies were wrong.
+
+This also closes the carry-over "`.bat` vs `.sh` `.hermes.md` CRLF byte
+divergence on `core.autocrlf=true` machines" flag from the 2026-08-29
+section for the *script* side; the generated `.hermes.md` itself is
+untracked (gitignored) and still written directly by each launcher's own
+code, so its byte count still differs by platform - unchanged by this, and
+still governed only by the 20,000-char size guard.
+
+Flagged for primary GPT: `.gitattributes` is not literally on the CLAUDE.md
+Zone A file list. It was treated as Zone A by direct analogy to `.gitignore`
+(same category - a git repo-config dotfile, mechanical, zero field-support
+content). Ratify or say to revert. Full detail in
+`logs/CLAUDE_CODE_LAST_AUDIT.md`.
