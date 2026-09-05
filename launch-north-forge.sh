@@ -8,34 +8,26 @@
 set -e
 cd "$(dirname "$0")"
 export HERMES_HOME="$(pwd -P)/.hermes-home"
-# Always replace a caller-supplied HERMES_HOME: this drive owns its complete
-# Hermes installation and runtime state instead of sharing the host profile.
-if ! mkdir -p "$HERMES_HOME" 2>/dev/null || [ ! -d "$HERMES_HOME" ]; then
-    echo "ERROR: North Forge could not create its drive-local Hermes home at '$HERMES_HOME'. Check that the drive is connected and allows new folders."
-    printf '[%s] [FAILURE] [hermes-home]: could not create drive-local Hermes home at %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$HERMES_HOME" >> "forge-events.log"
-    exit 1
-fi
-if ! HERMES_HOME_PROBE="$(mktemp "$HERMES_HOME/.north-forge-write-probe.XXXXXX" 2>/dev/null)"; then
-    echo "ERROR: North Forge cannot write to its drive-local Hermes home at '$HERMES_HOME'. Check the drive's permissions or free space."
-    printf '[%s] [FAILURE] [hermes-home]: drive-local Hermes home is not writable at %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$HERMES_HOME" >> "forge-events.log"
-    exit 1
-fi
-rm -f "$HERMES_HOME_PROBE"
-unset HERMES_HOME_PROBE
-SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
-# Keep the engine and persistent state on this drive. Child commands inherit
-# this exact home; machine-reset.bat intentionally ignores that inheritance.
-export HERMES_HOME="$(pwd)/.hermes-home"
-
-# Keep Hermes configuration, memory, and scheduled jobs with this drive.  Do
-# not allow an inherited machine-wide HERMES_HOME to merge two North Forge
-# drives into one profile.
-HERMES_HOME="$(pwd)/.hermes-home"
-export HERMES_HOME
-
 # Keep the engine, configuration, credentials, memory, and setup choices on
-# this physical drive without changing the parent shell's HERMES_HOME.
-export HERMES_HOME="$(pwd)/.hermes-home"
+# this physical drive. Deliberately overwrite any caller-supplied HERMES_HOME
+# so two drives, or a shared host profile, can never be merged together. This
+# must stay the first statement after cd, before any other operation -
+# tests/test_launcher_hermes_home.py enforces that ordering.
+# Fail fast if this drive is not writable at all, before asking the operator
+# any questions. Probes the repo root directly - this must NOT create
+# .hermes-home itself: ensure_drive_hermes (scripts/ensure-hermes.sh) treats
+# any pre-existing .hermes-home as an install to validate or recover, not as
+# "not yet installed," so creating it here as a side effect made every
+# fresh-drive install fail with "partial or damaged .hermes-home" before the
+# installer ever ran (reproduced empirically 2026-09-05; see audit).
+if ! WRITE_PROBE="$(mktemp "$(pwd -P)/.north-forge-write-probe.XXXXXX" 2>/dev/null)"; then
+    echo "ERROR: North Forge cannot write to this drive at '$(pwd -P)'. Check the drive's permissions or free space."
+    printf '[%s] [FAILURE] [hermes-home]: drive is not writable at %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$(pwd -P)" >> "forge-events.log"
+    exit 1
+fi
+rm -f "$WRITE_PROBE"
+unset WRITE_PROBE
+SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
@@ -270,7 +262,7 @@ configure_free_provider() {
     # nonzero exit doesn't trip `set -e` before it can be handled.
     rm -f ".provider-choice"
     local set_out set_status unset_out unset_status unset_absent
-    if set_out="$("$HERMES_EXE" config set model.provider opencode-free 2>&1)"; then
+    if set_out="$(hermes config set model.provider opencode-free 2>&1)"; then
         set_status=0
     else
         set_status=$?
@@ -284,7 +276,7 @@ configure_free_provider() {
         return "$set_status"
     fi
 
-    if unset_out="$("$HERMES_EXE" config unset model.default 2>&1)"; then
+    if unset_out="$(hermes config unset model.default 2>&1)"; then
         unset_status=0
     else
         unset_status=$?
@@ -370,15 +362,15 @@ mkdir -p "$HERMES_SKIN_DIR"
 cp -f "skins/north-forge.yaml" "$HERMES_SKIN_DIR/north-forge.yaml"
 
 echo "Activating North Forge skin..."
-"$HERMES_EXE" skin use north-forge
+hermes skin use north-forge
 echo "Skin list after activation (look for * next to north-forge):"
-"$HERMES_EXE" skin list
+hermes skin list
 
 # Project-local skills require an explicit trust decision before Hermes will
 # load them (security gate against a git pull silently injecting a skill).
 # Auto-approved here since this repo is Blacksmith-reviewed before it ever
 # reaches a drive - see README for the tradeoff this makes.
-"$HERMES_EXE" skills trust .
+hermes skills trust .
 
 # Self-healing scheduled jobs - re-adds the research and daily-brief cron
 # entries if either is missing (e.g. after an AppData flush wiped them).
@@ -421,7 +413,7 @@ fi
 # session ends (exec would replace this process and nothing could run after).
 # The || guard keeps set -e from aborting before the log line is written.
 HERMES_EXIT=0
-"$HERMES_EXE" || HERMES_EXIT=$?
+hermes || HERMES_EXIT=$?
 if [ "$HERMES_EXIT" -eq 0 ]; then
     log_event "hermes" "session ended normally (exit 0)"
 else
