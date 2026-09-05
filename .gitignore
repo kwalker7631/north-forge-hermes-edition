@@ -40,7 +40,11 @@ state.db-*
 sessions/
 memories/
 cron/
-logs/
+# Anchored to .hermes-home/ (Hermes engine log dir). A bare "logs/" here
+# also silently ignored the tracked repo-root logs/ folder that holds the
+# session audit reports (folder renamed from audit/ -> logs/ on 2026-09-05).
+# "*.log" below still catches stray Hermes log files written anywhere else.
+/.hermes-home/logs/
 *.log
 
 # OS/editor noise

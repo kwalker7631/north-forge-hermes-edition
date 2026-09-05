@@ -27,7 +27,7 @@
 ## QA session (2026-08-28) - first real run of the built skills + mode toggle
 
 Ran `launch-north-forge.bat` headless in FULL and SALES (audit report at
-`audit/CLAUDE_CODE_LAST_AUDIT.md` from that session has the full command
+`logs/CLAUDE_CODE_LAST_AUDIT.md` from that session has the full command
 output). Results:
 
 - PASS - FULL assembly: `.hermes/skills/` builds all 10 (8 tsc-only +
@@ -101,7 +101,7 @@ tsc-only skills as "placeholders" and now also carries the old `audit` name
 
 Comprehensive pass ahead of Kenneth's own drive test. Every tracked file
 read; both launchers exercised in isolated dirs; git history re-scanned;
-`hermes` state re-checked. Full detail in `audit/CLAUDE_CODE_LAST_AUDIT.md`.
+`hermes` state re-checked. Full detail in `logs/CLAUDE_CODE_LAST_AUDIT.md`.
 
 ### Zone A fixes made this session (committed)
 - `.gitignore` - added `/skills/` (root-anchored). The legacy wrong folder
@@ -237,7 +237,7 @@ QA parts 2/4).
 Kenneth supplied the 12-file v21.8 source package (OneDrive,
 `KB_PROJECT_2026/FORGE SYSTEM - NORTH FORGE - KYOCERA EDITION - v21.8/`) and
 asked for a repo drift audit. Full findings in
-`audit/CLAUDE_CODE_LAST_AUDIT.md`. Nothing was changed - all four findings
+`logs/CLAUDE_CODE_LAST_AUDIT.md`. Nothing was changed - all four findings
 target Zone B / locked skill files and await Blacksmith sign-off.
 
 Passed: EDIT_9 flush/clear rule (incl. hard-reset clause + /log hook),
@@ -271,7 +271,7 @@ Handoff `north-forge-hermes-COMPLETE-fix.zip` (Claude Project chat, via
 Kenneth in-session) placed and committed. It replaces all of `skills-source/`
 plus `.hermes.template.md`, `mode-blocks/full-menu.md`,
 `mode-blocks/sales-menu.md`. Full detail in
-`audit/CLAUDE_CODE_LAST_AUDIT.md`. This closes every open item from the
+`logs/CLAUDE_CODE_LAST_AUDIT.md`. This closes every open item from the
 previous audit's Findings 1-5.
 
 What changed:
@@ -326,7 +326,7 @@ in-session) placed and committed. 5 files: overwrites `.hermes.template.md`,
 `skills-source/shared/daily-brief/SKILL.md` (new shared skill) and
 `CHANGELOG.md` (new file - authored narrative history, treated as Zone B per
 Kenneth's instruction, same category as README.md/ATTRIBUTION.md). Full
-detail in `audit/CLAUDE_CODE_LAST_AUDIT.md`.
+detail in `logs/CLAUDE_CODE_LAST_AUDIT.md`.
 
 What changed:
 - **New shared skill `daily-brief`** (`name: daily-brief`) - a light, fast
@@ -373,7 +373,7 @@ menu addition of any size can push the assembled `.hermes.md` over 20,000,
 at which point Hermes silently drops the middle of the file with no error.
 There is still no automated guard on this. Before any further Zone B
 content growth: either trim existing template/menu text to reclaim budget
-(see the optimization audit in `audit/CLAUDE_CODE_LAST_AUDIT.md` for
+(see the optimization audit in `logs/CLAUDE_CODE_LAST_AUDIT.md` for
 candidate consolidations), or move content out of the always-loaded layer
 into an on-demand skill file. A hard pre-commit size check would also be
 worth adding.
@@ -464,7 +464,7 @@ forward.
 
 ## Session 2026-09-04 (later, Claude Code) - cron shakedown + fix batch
 
-Full narrative for the GPT-side Claude: audit/HANDOFF_2026-09-04_SESSION_CHANGES.md.
+Full narrative for the GPT-side Claude: logs/HANDOFF_2026-09-04_SESSION_CHANGES.md.
 Summary: live research cron rescheduled every-24h -> 0 6 * * * (and the same
 fix applied to both launchers' self-healing re-add blocks + the skill's setup
 note, Blacksmith-approved); first research pass fired successfully

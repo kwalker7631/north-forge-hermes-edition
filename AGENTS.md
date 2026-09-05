@@ -17,7 +17,7 @@ actually load this file either - it's for Codex only, the same way
 
 A prior Codex session made a real, correct code fix in this repo (the
 HERMES_HOME drive-write-probe fix in `launch-north-forge.sh`) but never
-produced or committed a report describing it - no `audit/CODEX_*.md` file,
+produced or committed a report describing it - no `logs/CODEX_*.md` file,
 no explanation of what was found or why the fix was made. The change sat in
 the working tree uncommitted with only an in-code comment ("see audit")
 pointing at a report that did not exist. A later Claude Code session had to
@@ -30,7 +30,7 @@ nicely next time, but by making the report a structural requirement of what
 ## Mandatory audit report - hard requirement, no exceptions
 
 1. **Every Codex session that reads or modifies this repository MUST write
-   a report to `audit/CODEX_<short-topic>_<YYYY-MM-DD>.md` before the
+   a report to `logs/CODEX_<short-topic>_<YYYY-MM-DD>.md` before the
    session is considered complete.** This applies with no exceptions,
    including a session that makes no code changes at all - a "found
    nothing," "investigation only," or "confirmed existing behavior is
@@ -44,8 +44,8 @@ nicely next time, but by making the report a structural requirement of what
    as satisfying this - the report is a separate, required artifact, not a
    restatement of the commit message.
 3. **Report structure should match the existing reports already in
-   `audit/`** (see `audit/CODEX_SECOND_AUDIT_2026-09-05.md` and
-   `audit/HERMES_CRON_GATEWAY_HOME_AUDIT.md` for examples already in this
+   `logs/`** (see `logs/CODEX_SECOND_AUDIT_2026-09-05.md` and
+   `logs/HERMES_CRON_GATEWAY_HOME_AUDIT.md` for examples already in this
    repo). At minimum: what was requested, files inspected, findings (with
    severity where applicable - HIGH/MEDIUM/LOW or equivalent), verification
    actually performed (empirical - what was run and what it showed - not
@@ -61,7 +61,7 @@ nicely next time, but by making the report a structural requirement of what
 
 A session that makes no repository changes still writes a report under the
 same naming convention - use a topic that reflects what was actually
-investigated (e.g. `audit/CODEX_HERMES_HOME_ISOLATION_2026-09-06.md`), not a
+investigated (e.g. `logs/CODEX_HERMES_HOME_ISOLATION_2026-09-06.md`), not a
 generic placeholder name.
 
 ## Relationship to CLAUDE.md
@@ -72,7 +72,7 @@ Claude Code may fix directly; Zone B: authored field-support/documentation
 content that's read-only to Claude Code; Zone C: operational status docs).
 Codex's own past audit reports in this repo already reason about and
 respect that same zone model in practice (see, for example,
-`audit/CODEX_SECOND_AUDIT_2026-09-05.md`'s "Zone A / Zone B boundary
+`logs/CODEX_SECOND_AUDIT_2026-09-05.md`'s "Zone A / Zone B boundary
 assessment" section). This file does not restate those zone definitions -
 `CLAUDE.md` is the single source of truth for them, so a future change to
 the zone boundaries only has to happen in one place. If Codex is uncertain

@@ -247,7 +247,7 @@ API key). Fix is a one-line Zone B reword of `forge-audit/SKILL.md` plus a
 docs correction in `.hermes.template.md` L26 and `README.md` L42 - flagged
 to the Blacksmith / Claude Project chat, not changed by Claude Code. Detail
 in `NEXT_STEPS.md` (QA FINDING 1 CORRECTION) and
-`audit/CLAUDE_CODE_LAST_AUDIT.md`.
+`logs/CLAUDE_CODE_LAST_AUDIT.md`.
 
 STALE - this entry was never updated when the real fix landed. Zone B
 handoff `a49580f` (2026-08-29) reworded `forge-audit/SKILL.md` line 3 to

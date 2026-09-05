@@ -1,6 +1,6 @@
 # North Forge - Hermes Edition - Changelog
 
-Plain-language running log of what actually changed and why. Distinct from `git log` (which needs git to read) and `audit/CLAUDE_CODE_LAST_AUDIT.md` (which is Claude Code's own session-to-session working notes, overwritten each session). This file is the human-readable history - what happened, in the order it happened, kept permanently.
+Plain-language running log of what actually changed and why. Distinct from `git log` (which needs git to read) and `logs/CLAUDE_CODE_LAST_AUDIT.md` (which is Claude Code's own session-to-session working notes, overwritten each session). This file is the human-readable history - what happened, in the order it happened, kept permanently.
 
 ## [Unreleased] - 2026-09-05
 
@@ -30,7 +30,7 @@ Both caught by testing, not by inspection alone - full end-to-end integration ru
 - **`toggle-mode.bat` / `machine-reset.bat` Script version bumped 1.0.0 -> 1.0.1** to reflect the `e342f7a` admin_gate password-bypass fix, which predated the 1.0.0 versioning baseline set in the prior session (that baseline was a fresh starting point, not a reconstruction of real prior history - see that session's audit for detail).
 
 ### Fixed (later session, Claude Code - independent Codex audit findings)
-An independent adversarial audit (`audit/CODEX_SECOND_AUDIT_2026-09-05.md`, 1 HIGH/4 MEDIUM/2 LOW numbered findings) was pulled and each finding independently re-verified before fixing. All confirmed real; all fixed in Zone A files only:
+An independent adversarial audit (`logs/CODEX_SECOND_AUDIT_2026-09-05.md`, 1 HIGH/4 MEDIUM/2 LOW numbered findings) was pulled and each finding independently re-verified before fixing. All confirmed real; all fixed in Zone A files only:
 - **`machine-reset.bat` full-purge target validation strengthened (HIGH, NF-CX-01).** `HERMES_DIR` (environment-controlled) previously only had to satisfy ONE of two weak markers (a `hermes-agent\` folder OR a `config.yaml` file - the latter a very common filename) to be accepted for `rmdir /s /q`, and relative/UNC/bare-drive-root paths were never rejected outright. Now requires an absolute drive path (verified via substring extraction, not `findstr /r` - an equivalent regex was tested standalone and found to error out as "Bad command line," which would have silently sent every legitimate path to the rejection branch) AND both markers together. Verified against 3 live scenarios via real console automation (a genuine Hermes-shaped folder deleted correctly, a folder with only `config.yaml` correctly refused, a relative path correctly refused).
 - **RESET now wipes the 3 markers it was missing (MEDIUM, NF-CX-02).** `toggle-mode.sh`/`.bat` RESET deleted `.env`/`.forge-mode`/`.hermes.md`/`.drive-record.txt`/`.hermes/skills` but left `.provider-choice`, `.agent-name`, and `.readme-shown` behind - meaning the next drive holder inherited the prior holder's provider choice/assistant name and never saw the first-run welcome, contradicting RESET's own "clean first-use state" / "genuine first run" messaging. Now wipes all 8. Verified end-to-end on both scripts (real console automation for the `.bat`, direct stdin for the `.sh`).
 - **Free-provider setup no longer records success on failure (MEDIUM, NF-CX-03).** `launch-north-forge.sh`/`.bat` wrote `.provider-choice=free` unconditionally, before checking whether `hermes config set/unset` actually succeeded - a total command failure (reproduced empirically by Codex with a fake `hermes` returning nonzero) was marked as success and never retried. Now `.provider-choice=free` is only written after `hermes config set model.provider opencode-free` genuinely succeeds; on failure it warns on-screen and falls back to the OWNKEY path instead. `unset model.default`'s own nonzero-when-already-absent case (the common, expected outcome) is told apart from a genuine failure by its output text rather than misreported as an error. Verified via isolated logic unit tests (bash function mocks / batch label mocks - deliberately not a live fake-`hermes`-on-PATH test, since that technique proved unreliable and unsafe: see "Uncertain / flagged" in this session's audit).
@@ -58,7 +58,7 @@ Incident during this session, corrected immediately: an early verification attem
 - **kb-builder skill was missing two blocks present in the v21.8 master**: the PRIMARY SOURCE FORMAT block (HL Case Details + Knowledge Details export pair as the standard /kb input) and the "do not ask the user to select research/Mermaid/multimedia/META separately" rule. Both added verbatim from the fallback paste version. (Drift-audit items 2+3, Blacksmith-approved.)
 - **README file tree** now lists `USER_MANUAL.md` and `research-log/` as real tracked paths.
 
-Full detail for the GPT-side Claude: `audit/HANDOFF_2026-09-04_SESSION_CHANGES.md`.
+Full detail for the GPT-side Claude: `logs/HANDOFF_2026-09-04_SESSION_CHANGES.md`.
 
 ### Fixed
 - **Ghost-text contrast (`banner_dim`)**: `skins/north-forge.yaml` line 46
@@ -76,7 +76,7 @@ Full detail for the GPT-side Claude: `audit/HANDOFF_2026-09-04_SESSION_CHANGES.m
   check, CLAUDE.md zone consistency check). No orphaned files, no dangling
   git objects, no zero-byte/truncated files, no drift in Zone A/B/C
   boundaries. One real gap found: see Known open items below. Full report:
-  `audit/CLAUDE_CODE_LAST_AUDIT.md`.
+  `logs/CLAUDE_CODE_LAST_AUDIT.md`.
 
 ### Known open items carried forward
 - **`research-log/` not in `.gitignore`**: three files (`.hermes.template.md`,

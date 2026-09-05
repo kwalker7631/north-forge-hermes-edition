@@ -9,7 +9,7 @@ Per `.hermes.template.md`'s `fault-logging` skill and
 chat session. It has no persistent storage of its own... It produces
 structured, clipboard-ready log entries. A human or an external system
 must store them." This file is that external system for event-log blocks
-specifically (distinct from `audit/CLAUDE_CODE_LAST_AUDIT.md`, which is
+specifically (distinct from `logs/CLAUDE_CODE_LAST_AUDIT.md`, which is
 Claude Code's own per-session audit, and `CHANGELOG.md`, which is the
 human-readable change history). Newest entries appended at the bottom.
 Treated as a Claude-Code-maintained operational record (same footing as
