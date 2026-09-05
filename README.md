@@ -170,11 +170,7 @@ Hermes skills normally refine themselves through use. North Forge's skills are t
 
 `hermes update` updates the Hermes engine on whatever machine you run it on - it has nothing to do with this repo and doesn't touch anything git-tracked. After any update, treat it as a trigger to re-verify, not just install and move on: run `hermes doctor`, `hermes skin list`, and `hermes skills list --source local`, then do one real launch in each mode before trusting it.
 
-**Host versus drive maintenance:** `machine-reset.bat` exclusively targets the Windows host's `%LOCALAPPDATA%\hermes`. It deliberately ignores inherited `HERMES_HOME`, because a launcher can pass its drive-local setting into a child shell. Use `full-drive-reset.bat`/`.sh` for `<repo>/.hermes-home`; never use machine reset for drive maintenance. The host folder holds the host engine, credentials, memory/sessions, scheduled jobs, and logs.
-
-The North Forge launchers set `HERMES_HOME` to `<repo>/.hermes-home`, so the
-drive's engine, credentials, memory, sessions, cron jobs, and logs travel as one
-unit. Ordinary RESET does not remove that unit.
+**Where Hermes state lives:** each North Forge drive forces Hermes to use its own `.hermes-home` folder at the repository root. This keeps that drive's `config.yaml`, skin, memory/sessions, and `cron/` jobs separate from every other North Forge drive and from the computer's shared Hermes profile. The folder is on the drive but is ignored by Git; do not commit it.
 
 **To stop and remove the background gateway** (the scheduled-task process that keeps cron jobs running even when no session is open) before deleting anything in that folder:
 ```powershell
