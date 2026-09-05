@@ -23,6 +23,15 @@ fi
 rm -f "$HERMES_HOME_PROBE"
 unset HERMES_HOME_PROBE
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
+# Keep the engine and persistent state on this drive. Child commands inherit
+# this exact home; machine-reset.bat intentionally ignores that inheritance.
+export HERMES_HOME="$(pwd)/.hermes-home"
+
+# Keep Hermes configuration, memory, and scheduled jobs with this drive.  Do
+# not allow an inherited machine-wide HERMES_HOME to merge two North Forge
+# drives into one profile.
+HERMES_HOME="$(pwd)/.hermes-home"
+export HERMES_HOME
 
 # Keep the engine, configuration, credentials, memory, and setup choices on
 # this physical drive without changing the parent shell's HERMES_HOME.

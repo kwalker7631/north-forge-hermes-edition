@@ -27,8 +27,9 @@ if errorlevel 1 (
 del /q "%HERMES_HOME_PROBE%" >nul 2>nul
 set "HERMES_HOME_PROBE="
 
-rem Keep the engine, configuration, credentials, memory, and setup choices on
-rem this physical drive. setlocal ensures a caller's HERMES_HOME is not changed.
+rem Each drive owns its Hermes configuration, memory, and cron database.
+rem Deliberately replace any inherited machine-wide value so two drives cannot
+rem silently share state.
 set "HERMES_HOME=%CD%\.hermes-home"
 
 if /i "%~1"=="--configure-free-provider" (
