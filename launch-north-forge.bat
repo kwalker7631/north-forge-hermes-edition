@@ -2,21 +2,15 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: launch-north-forge.bat | Script version: 1.1.0 | Updated: 2026-09-05
+rem  File: launch-north-forge.bat | Script version: 1.1.1 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
 
-rem Locate Python before accepting names. Keeping input inside the shared helper
-rem avoids cmd.exe metacharacter and delayed-expansion surprises.
-set "PYTHON_CMD="
-where py >nul 2>nul && set "PYTHON_CMD=py -3"
-if not defined PYTHON_CMD where python >nul 2>nul && set "PYTHON_CMD=python"
-if not defined PYTHON_CMD (
-    echo Python 3 is required. Install it, then double-click this launcher again.
-    pause
-    exit /b 1
+if /i "%~1"=="--configure-free-provider" (
+    call :CONFIGURE_FREE_PROVIDER
+    exit /b !ERRORLEVEL!
 )
 
 rem --- first run on this drive: pop open the styled quickstart once ---
@@ -155,9 +149,8 @@ if not exist ".provider-choice" (
     if /i "!PROVIDERCHOICE!"=="OWNKEY" (
         echo ownkey> ".provider-choice"
     ) else (
-        echo free> ".provider-choice"
-        hermes config set model.provider opencode-free >nul 2>nul
-        hermes config unset model.default >nul 2>nul
+        call :CONFIGURE_FREE_PROVIDER
+        if errorlevel 1 exit /b !ERRORLEVEL!
     )
 )
 
@@ -265,3 +258,45 @@ if "%HERMES_EXIT%"=="0" (
     >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [hermes]: session ended with exit %HERMES_EXIT%
 )
 exit /b %HERMES_EXIT%
+
+:CONFIGURE_FREE_PROVIDER
+del /q ".provider-choice" >nul 2>nul
+set "CONFIG_TMP=%TEMP%\north-forge-provider-!RANDOM!-!RANDOM!"
+mkdir "!CONFIG_TMP!" >nul 2>nul
+
+hermes config set model.provider opencode-free >"!CONFIG_TMP!\set.out" 2>"!CONFIG_TMP!\set.err"
+set "SET_STATUS=!ERRORLEVEL!"
+if not "!SET_STATUS!"=="0" (
+    echo ERROR: Hermes could not select OpenCode Free ^(exit !SET_STATUS!^).
+    echo Nothing was saved. Please review the details below, then run North Forge again.
+    type "!CONFIG_TMP!\set.out" & type "!CONFIG_TMP!\set.err"
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [provider-config]: set model.provider failed ^(exit !SET_STATUS!^); .provider-choice not written
+    call :LOG_PROVIDER_DETAIL "!CONFIG_TMP!\set.out" "!CONFIG_TMP!\set.err"
+    rmdir /s /q "!CONFIG_TMP!"
+    exit /b !SET_STATUS!
+)
+
+hermes config unset model.default >"!CONFIG_TMP!\unset.out" 2>"!CONFIG_TMP!\unset.err"
+set "UNSET_STATUS=!ERRORLEVEL!"
+set "UNSET_ABSENT=0"
+if "!UNSET_STATUS!"=="1" (
+    powershell -NoProfile -Command "$a=(Get-Content -Raw -LiteralPath ($env:CONFIG_TMP+'\unset.out'))+(Get-Content -Raw -LiteralPath ($env:CONFIG_TMP+'\unset.err')); if ($a.TrimEnd([char]13,[char]10) -ceq 'Config key not set: model.default') { exit 0 } else { exit 1 }"
+    if not errorlevel 1 set "UNSET_ABSENT=1"
+)
+if not "!UNSET_STATUS!"=="0" if not "!UNSET_ABSENT!"=="1" (
+    echo ERROR: Hermes selected OpenCode Free, but could not clear the old default model ^(exit !UNSET_STATUS!^).
+    echo Nothing was saved. Please review the details below, then run North Forge again.
+    type "!CONFIG_TMP!\unset.out" & type "!CONFIG_TMP!\unset.err"
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [provider-config]: unset model.default failed ^(exit !UNSET_STATUS!^); .provider-choice not written
+    call :LOG_PROVIDER_DETAIL "!CONFIG_TMP!\unset.out" "!CONFIG_TMP!\unset.err"
+    rmdir /s /q "!CONFIG_TMP!"
+    exit /b !UNSET_STATUS!
+)
+
+> ".provider-choice" echo free
+rmdir /s /q "!CONFIG_TMP!"
+exit /b 0
+
+:LOG_PROVIDER_DETAIL
+powershell -NoProfile -Command "$text=((Get-Content -Raw -LiteralPath '%~1')+(Get-Content -Raw -LiteralPath '%~2')); $safe=$text -replace '(?i)(api[_-]?key|token|secret|password)(\s*[:=]\s*)\S+','$1$2[REDACTED]'; Add-Content -LiteralPath 'forge-events.log' -Value ('[provider-config detail] '+$safe.Trim())"
+exit /b 0

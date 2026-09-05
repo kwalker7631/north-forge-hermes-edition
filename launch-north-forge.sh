@@ -2,7 +2,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: launch-north-forge.sh | Script version: 1.1.0 | Updated: 2026-09-05
+# File: launch-north-forge.sh | Script version: 1.1.1 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 set -e
@@ -159,9 +159,7 @@ if [ ! -f ".provider-choice" ]; then
     if [ "$(printf '%s' "$PROVIDERCHOICE" | tr '[:lower:]' '[:upper:]')" = "OWNKEY" ]; then
         echo "ownkey" > ".provider-choice"
     else
-        echo "free" > ".provider-choice"
-        hermes config set model.provider opencode-free >/dev/null 2>&1 || true
-        hermes config unset model.default >/dev/null 2>&1 || true
+        configure_free_provider || exit $?
     fi
 fi
 
