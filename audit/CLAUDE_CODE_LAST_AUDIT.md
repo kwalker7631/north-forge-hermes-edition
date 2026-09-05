@@ -1,309 +1,271 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-04
-Requested task: Full integrity audit, report-only, no fixes. Specifically: (1)
-git state/history integrity including `git fsck` and explaining the "4279
-commits behind" banner figure Kenneth saw; (2) confirm recent fixes
-(`banner_dim`, skill `name:` frontmatter, CLAUDE.md Zone A/B boundaries) are
-still present and correct; (3) orphan/gap check - files documented but
-missing on disk, files on disk but undocumented, never-committed files,
-zero-byte/truncated files; (4) identify what generates the "commits behind"
-banner line and whether it's an ANSI/terminal-rendering issue.
+Timestamp: 2026-09-04 (session following the prior same-day "Full integrity
+audit, report-only" session recorded in git history at commit `82bd18b`)
+Requested task: User said "update hermes," which surfaced a standing block
+in `NEXT_STEPS.md` ("do not run `hermes update` until the [4279-commits-
+behind] figure is explained") - flagged that back rather than running it.
+User then said "Fix all open items please." This report covers that second
+request: a full pass over `NEXT_STEPS.md`'s and `DEMO_PREP_BACKLOG.md`'s
+open/OPEN-tagged items, fixing everything in Zone A/C and reporting the rest.
 
 ## Files inspected
-- `CLAUDE.md` (full read, 322 lines)
-- `README.md` (full read, 209 lines) - file-tree section cross-checked
-  against `git ls-files`
-- `CHANGELOG.md` (full read, 19 lines)
-- `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md` (grepped for file-path references)
-- `skins/north-forge.yaml` (full read, 72 lines)
-- All 15 tracked `skills-source/**/SKILL.md` files (frontmatter line checked
-  individually)
-- `skills-source/shared/daily-brief/SKILL.md` (full read)
-- `.gitignore` (full read, 41 lines)
-- `launch-north-forge.bat`, `launch-north-forge.sh` (full read, both)
-- `.hermes.template.md`, `.hermes.md` (grepped for `research-log` and
-  `commits behind`)
-- Full `git ls-files` output (37 tracked files) with byte counts via `wc -c`
-  on every one
-- git state: `git status --porcelain=v1 --untracked-files=all`,
-  `git log --oneline -20`, `git log --diff-filter=D --summary -20`,
-  `git fsck --full --unreachable --dangling`, `git remote -v`,
-  `git branch -vv`
-- Local Hermes install: `hermes doctor`, `hermes skills list --source local`,
-  and (as part of chasing the "commits behind" question) the Hermes engine's
-  own git checkout at `C:\Users\kenw\AppData\Local\hermes\hermes-agent`
-  (`git remote -v`, `git status`, `git log -1`,
-  `git rev-list --left-right --count HEAD...@{upstream}`), plus a
-  `grep -rl "commits behind"` across that entire install tree
-- GitHub state via `gh api`: `repos/kwalker7631/north-forge-agent` (fork
-  metadata) and `repos/kwalker7631/north-forge-agent/compare/main...NousResearch:hermes-agent:main`
-  (fork-vs-upstream comparison)
+- `CLAUDE.md` (re-read for zone boundaries before acting)
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior session's report, full read)
+- `NEXT_STEPS.md` (full read, 485 lines before this session's edits)
+- `DEMO_PREP_BACKLOG.md` (full read, 248 lines before this session's edits)
+- `audit/HANDOFF_2026-09-04_SESSION_CHANGES.md` (full read - the GPT-facing
+  handoff narrative from the earlier same-day session, used to cross-check
+  which "open" backlog items were actually already closed)
+- `.gitignore` (full read)
+- `launch-north-forge.bat` (full read, then edited)
+- `launch-north-forge.sh` (full read, not edited - the bug fixed this session
+  is Windows-only)
+- `WELCOME.html` (full read - untracked, referenced by the Windows launcher)
+- `README.md` (diffed against HEAD - has an uncommitted Zone B edit, not
+  read in full this session since no action was taken on it)
+- `forge-events.log` (repo-root, gitignored per-drive log - tailed, then a
+  specific `[ansi-fix]` line investigated in detail)
+- git: `git pull`, `git status`, `git diff`, `git log --oneline -5 -- <file>`,
+  `git log --stat -- assets/`, `git ls-files`, `git ls-files assets/`
+- `hermes doctor`, `hermes skills list --source local`
+- Windows registry: `HKCU:\Console` (`Get-ItemProperty`, `Get-Item -Path
+  ... | Select Property`, `Get-ChildItem` for subkeys) - to check the
+  `forge-events.log` `[ansi-fix]` claim against live state
+- `[Environment]::GetFolderPath("Desktop")` and the
+  `HKCU:\...\User Shell Folders\Desktop` registry value - to diagnose the
+  Desktop-shortcut bug
 
 ## Zone A changes made
-None. This was an explicit report-only session - no fixes applied, per
-Kenneth's instruction, even though one finding below (`research-log/` not in
-`.gitignore`) would normally qualify as an in-scope Zone A fix on a normal
-session.
+**`launch-north-forge.bat`** - commit `0c11bbb`.
+
+Before: the first-run Desktop-shortcut block hardcoded
+`%USERPROFILE%\Desktop\North Forge.lnk` for both the `if not exist` guard
+and the `WScript.Shell.CreateShortcut(...)` target path.
+
+Bug, reproduced (not assumed): on this machine, `%USERPROFILE%\Desktop`
+(`C:\Users\kwalk\Desktop`) does not exist - `[Environment]::GetFolderPath
+("Desktop")` and the `HKCU:\Software\Microsoft\Windows\CurrentVersion\
+Explorer\User Shell Folders` `Desktop` value both resolve instead to
+`C:\Users\kwalk\OneDrive\Desktop` (OneDrive Desktop redirection, a common
+Windows configuration). Running the exact PowerShell line from the launcher
+directly reproduced the real failure: `$s.Save()` threw
+`System.IO.DirectoryNotFoundException` ("Unable to save shortcut ..."). The
+batch file's own `2>nul` was swallowing this error and only logging a bare
+`[WARNING] [shortcut]: Desktop shortcut creation FAILED` - which is in fact
+already sitting in this drive's `forge-events.log` (timestamp `Fri
+09/04/2026 21:44:05.31`, from an earlier session/launch, not something I
+triggered). Confirmed via `ls "$USERPROFILE/Desktop/"` that no
+`North Forge.lnk` currently exists anywhere - this is a live, current bug,
+not a historical one.
+
+After: resolves the real Desktop path via
+`(New-Object -ComObject WScript.Shell).SpecialFolders('Desktop')` into a
+batch variable (`DESKTOPDIR`) before both the existence check and the
+shortcut creation, falling back to the old `%USERPROFILE%\Desktop` if that
+call ever returns nothing. Both the success and failure log lines now also
+record the resolved target path.
+
+Verification performed (two independent methods, not just "looks right"):
+1. Direct PowerShell repro against the real OneDrive Desktop - created a
+   test shortcut with the new resolution logic, confirmed `Test-Path` true,
+   removed it.
+2. Extracted the *exact* new batch snippet (not a paraphrase) into a
+   standalone `.bat` and ran it under real `cmd.exe` (`cmd.exe /c
+   test-shortcut-snippet.bat`, not just Git Bash, since quoting/expansion
+   inside `powershell -Command ^`-continued lines is cmd.exe-specific and
+   would not be validated by Git Bash alone) - output: `Resolved
+   DESKTOPDIR=C:\Users\kwalk\OneDrive\Desktop` / `RESULT: SUCCESS`. Test
+   file deleted afterward, cleaned up.
+3. Paren-balance check on the full file after editing: depth 0 (via a small
+   Python script counting `(`/`)` across the whole file).
+
+`.sh` was NOT touched - OneDrive Desktop redirection is a Windows-only
+failure mode; the Mac launcher's `$HOME/Desktop` is not subject to it.
 
 ## Zone B findings (not fixed - reported only)
-None new. `CLAUDE.md`'s Zone A/B/C file lists were read in full this session
-and match the structure already reconciled as of the last audit
-(`6d6160e`/`692414d`) - no drift detected in the zone boundaries themselves.
 
-## Section 1 - Git state and history integrity
+1. **`README.md` has an uncommitted working-tree edit.** At session start
+   (before I touched anything), `git diff` showed the title line changed
+   from `# North Forge - Hermes Edition` to add an `<img src="assets/
+   north-forge-icon.svg" ...>` tag before the heading text. This was not
+   made by me this session, and no in-session handoff named this specific
+   change as ready to place - so per the Zone B rules I left it exactly as
+   found, uncommitted, untouched. Flagging so it isn't mistaken for
+   something Claude Code did, and so it doesn't get silently lost if
+   someone runs a stash/reset later without knowing it's there.
 
-**`git status --porcelain=v1 --untracked-files=all`**: empty output. Working
-tree is genuinely clean - no untracked files anywhere, including inside
-`archive/`, `mode-blocks/`, and `skills-source/`.
+2. **`WELCOME.html` is untracked and not in ANY CLAUDE.md zone list** - a
+   real gap, more urgent than the `research-log/` gap the prior audit
+   found, because it is already load-bearing: `launch-north-forge.bat`
+   line 7 does `start "" "WELCOME.html"` on every first run
+   (`.readme-shown` gate), and this exact behavior is what the
+   `82bd18b` "welcome open" logging (recent commit history) was built
+   to support. Read the file in full - it's a styled quickstart page
+   (Kyocera + North Forge branded header, "how to open it," `/menu`
+   pointer, "keep your judgment in charge" caution section), referencing
+   `assets/logo-kyocera-1024.png` and `assets/north-forge-icon.svg` - both
+   of which ARE already tracked and committed (`3e979ed`, `4cc2c9f`), so
+   once `WELCOME.html` itself is committed the images will resolve
+   correctly with no further work. Content-wise this reads as Zone B
+   material by the same reasoning CLAUDE.md already applies to
+   README.md/FIRST_TIME_README.txt (Blacksmith-reviewed, user-facing,
+   accuracy matters) - so I did not compose, edit, or commit it. Right now,
+   on a genuinely fresh `git clone` to a new drive, the first-run welcome
+   page would silently fail to open (hit the `[WARNING] [welcome]:
+   first-run WELCOME.html auto-open FAILED` branch) because the file
+   simply wouldn't exist. Needs either: Kenneth/the Claude Project chat
+   handing this exact file over for placement (even though it's already
+   sitting in the working tree - the handoff is the authorization, not the
+   file transfer), or an explicit decision that it's fine as Zone A/C
+   instead (I don't think it is, given its content, but I'm not the one
+   who gets to decide that).
 
-**`git log --oneline -20`**: 20 commits shown, HEAD at `9988d2a` ("Audit:
-banner_dim #282828 -> #888888 ghost-text contrast fix (91b6e39)"), matching
-the tail of the last audit report's own account. No gaps or unexpected
-entries in the visible history.
-
-**`git log --diff-filter=D --summary -20`**: empty output. No files were
-deleted in the last 20 commits (the `archive/setup-thumbdrive.ps1` move
-happened via a rename in an earlier commit outside this window, not a raw
-delete - not re-verified this session, out of the -20 window, flagged below
-as unchecked rather than assumed).
-
-**`git fsck --full --unreachable --dangling`**: empty output. Zero dangling
-commits, zero unreachable objects, zero orphaned blobs/trees. The object
-database is clean.
-
-**`git remote -v`**: single remote, `origin ->
-https://github.com/kwalker7631/north-forge-hermes-edition.git` (fetch and
-push identical). No stray or unexpected remotes.
-
-**`git branch -vv`**: `* main 9988d2a [origin/main] Audit: banner_dim
-#282828 -> #888888 ghost-text contrast fix (91b6e39)` - tracking
-`origin/main` with **no ahead/behind annotation at all**, which in
-`git branch -vv` output means the local `main` and `origin/main` are
-byte-identical at the same commit. `git pull` at session start also reported
-"Already up to date." **This directly contradicts a "4279 commits behind"
-figure for this repo** - by every git-native measure available (`branch -vv`,
-a fresh `pull`, `fsck`), local `main` is not behind its tracked upstream by
-any amount, let alone 4279 commits. See Section 4 below for the chase on
-where that number might have actually come from.
-
-## Section 2 - Recent fixes still present and correct
-
-**`banner_dim`**: `skins/north-forge.yaml` line 46 currently reads:
-```
-  banner_dim: "#888888"         # medium gray - readable as ghost-text on dark terminal bg
-```
-Confirmed present, not reverted, not overwritten. Matches commit `91b6e39`
-exactly (`git log -1 --oneline -- skins/north-forge.yaml` was not
-re-run separately this session, but the file content was read directly and
-matches the last audit's documented before/after).
-
-**Skill `name:` frontmatter** - all 15 tracked `SKILL.md` files checked
-individually via `grep -m1 "^name:"`, all present:
-
-| File | `name:` value |
-|---|---|
-| skills-source/shared/daily-brief/SKILL.md | daily-brief |
-| skills-source/shared/flush/SKILL.md | flush |
-| skills-source/shared/kyocera-research/SKILL.md | kyocera-research |
-| skills-source/shared/menu/SKILL.md | menu |
-| skills-source/shared/sales-assist/SKILL.md | sales |
-| skills-source/shared/switch/SKILL.md | switch |
-| skills-source/shared/web-navigator/SKILL.md | web |
-| skills-source/tsc-only/assist-intake/SKILL.md | assist |
-| skills-source/tsc-only/draft-writer/SKILL.md | draft |
-| skills-source/tsc-only/escalation-packet/SKILL.md | esc |
-| skills-source/tsc-only/fault-logging/SKILL.md | log |
-| skills-source/tsc-only/forge-audit/SKILL.md | audit |
-| skills-source/tsc-only/hotline-ticket/SKILL.md | hl |
-| skills-source/tsc-only/kb-builder/SKILL.md | kb |
-| skills-source/tsc-only/training-guide/SKILL.md | train |
-
-Zero missing. `hermes skills list --source local` independently confirms all
-16 entries (15 `SKILL.md` files plus `hermes-maintenance`, which lives
-outside this repo in Hermes's own local skills dir, not part of
-`skills-source/`) enabled and registered. This matches
-`.hermes.template.md` line 34's inventory count.
-
-**CLAUDE.md Zone A/B/C boundaries**: read in full (322 lines). Zone A file
-list (10 entries), Zone B file list (6 entries plus the 3 user-facing-doc
-additions = 9 total), Zone C file list (2 entries), the STANDING RULE
-(2026-08-29 diff-before-placement requirement), and the CONFIRMED
-(2026-08-26) handoff-trigger clarification are all present and internally
-consistent with the "Required first response" block's own summary later in
-the same file (lines 230-236 vs. lines 22-163). No drift found between the
-rules stated early in the file and the block Claude Code is required to
-recite at session start.
-
-## Section 3 - Orphan / gap check
-
-**Files referenced in README.md/CHANGELOG.md/CLAUDE.md but missing on
-disk**: none found. README.md's full "What's in here" file-tree section
-(lines 35-82) was cross-checked line-by-line against `git ls-files` - every
-tracked-content path it names (`.hermes.template.md`, all 4 `mode-blocks/*`,
-all `skills-source/**`, `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html`,
-`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`, `ATTRIBUTION.md`,
-`FIRST_TIME_README.txt`, `CLAUDE.md`, `NEXT_STEPS.md`,
-`DEMO_PREP_BACKLOG.md`, `CHANGELOG.md`, `audit/CLAUDE_CODE_LAST_AUDIT.md`,
-`toggle-mode.bat/.sh`, `machine-reset.bat`, `skins/north-forge.yaml`,
-`.env.example`, `.gitignore`, `provision-new-drive.ps1`,
-`archive/setup-thumbdrive.ps1`, `launch-north-forge.bat/.sh`) exists at the
-stated path. The generated/runtime paths it also documents (`.hermes.md`,
-`.hermes/skills/`, `.forge-mode`, `.agent-name`) are correctly described as
-generated-not-committed and are in fact present in the working tree right
-now (generated by a prior launch) while correctly absent from `git
-ls-files` - consistent, not a gap.
-
-**Files on disk but undocumented/unregistered - HEADLINE FINDING**:
-`research-log/` is referenced as a real, load-bearing runtime path in THREE
-tracked files:
-- `.hermes.template.md` line 124: "check research-log/ if it exists" as part
-  of the model's own always-loaded research-check routine
-- `skills-source/shared/kyocera-research/SKILL.md` lines 36 and 38: appends
-  to `research-log/kyocera-research-log.md`
-- `skills-source/shared/daily-brief/SKILL.md` line 27 and 34: appends to
-  `research-log/daily-brief-log.md`, and explicitly instructs creating "the
-  file (and research-log/ folder, if it doesn't already exist...)" at first
-  run
-
-This puts `research-log/` in exactly the same category as every other
-launch/runtime-generated path this repo already knows to exclude:
-`.hermes/`, `.hermes.md`, `state.db`, `sessions/`, `memories/`, `cron/`,
-`logs/` - all of which **are** listed in `.gitignore`. `research-log/` is
-**not** in `.gitignore` (full 41-line file read and checked; confirmed
-absent). Right now this is not yet an actual orphan file - `ls research-log`
-confirms the folder does not exist on disk on this machine yet, because
-neither cron job (`nightly-kyocera-research` = every 24h,
-`daily-kyocera-brief` = 8 AM daily, both confirmed self-scheduling logic in
-`launch-north-forge.bat`/`.sh` lines 119-128/146-153) has fired and produced
-output since this drive/checkout was set up. But it is a **real, currently
-latent gap**: the first time either cron job runs successfully, it will
-create `research-log/kyocera-research-log.md` or
-`research-log/daily-brief-log.md`, and because that path isn't gitignored,
-`git status` will start showing it as untracked - with no documented
-decision anywhere (README, CLAUDE.md, CHANGELOG, NEXT_STEPS) on whether that
-content is meant to be a real committed historical record (arguably
-valuable - it's exactly the kind of field-relevant research finding a KB
-should preserve) or excluded runtime state like every other generated path.
-Left as-is, the next session (or Kenneth doing a plain `git status`) will
-hit an unexplained untracked directory with no prior audit note explaining
-what it is or whether it should be added to `.gitignore` or committed
-deliberately. Flagging this as the headline Section 3 finding as instructed,
-since it's a real gap rather than a footnote - **not fixed**, per this
-session's explicit report-only instruction, even though a `.gitignore`
-addition would normally be an in-scope Zone A fix.
-
-**Never-committed files sitting only in the working tree**: none. Working
-tree is fully clean (see Section 1) - nothing exists on disk that isn't
-either tracked or one of the known/expected generated-and-gitignored paths
-(`.hermes.md`, `.hermes/skills/`, `.env`, confirmed gitignored via
-`git check-ignore -v .env` -> `.gitignore:3:*.env`).
-
-**Empty/zero-byte/truncated files**: none. Every one of the 37 tracked
-files was run through `wc -c` individually; smallest is
-`mode-blocks/full-banner.md` at 214 bytes (a short banner fragment - checked
-manually, this is real content, not truncation), largest is
-`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` at 64,784 bytes. No file
-returned 0.
-
-## Section 4 - the "commits behind" banner
-
-**The literal string "commits behind" does not appear anywhere this session
-could search**: not in this repo (`grep` across the full working tree,
-including `.hermes.md` and `.hermes/skills/`, zero matches), and not
-anywhere under the local Hermes engine install
-(`C:\Users\kenw\AppData\Local\hermes\hermes-agent`, a full recursive `grep
--rl` across that entire tree, zero matches - this grep took long enough to
-be backgrounded past the 120s default timeout, completed with empty output,
-confirmed via checking its output file directly).
-
-**Every git-comparable state this session could check came back clean,
-not behind**:
-- This repo's local `main` vs. `origin/main`: identical (Section 1).
-- The Hermes engine's own local checkout
-  (`hermes-agent`, install method `git`, currently at `b0ab2e16`) vs. its
-  own `origin/main`: `git status` says "up to date," and
-  `git rev-list --left-right --count HEAD...@{upstream}` returned `0  0`
-  (zero ahead, zero behind). `hermes doctor` independently reports "Up to
-  date" for the install.
-- The README-documented mirror fork, `kwalker7631/north-forge-agent`
-  ("kept current with `gh repo sync`" per README line 18) - this was my
-  leading hypothesis for where a large "commits behind" number could come
-  from, since a stale GitHub fork-compare page would genuinely show that
-  kind of banner. Checked directly via `gh api
-  repos/kwalker7631/north-forge-agent/compare/main...NousResearch:hermes-agent:main`:
-  result is `"status":"identical","ahead_by":0,"behind_by":0`. The fork is
-  fully synced as of `pushed_at: 2026-09-04T20:20:14Z` (today). **This
-  hypothesis is disproven** - the mirror is not the source either.
-
-**Conclusion - genuinely uncertain, not confidently resolved**: I could not
-locate any code path, file, or currently-live git/GitHub state in this
-session that would produce a "4279 commits behind" figure for anything
-connected to this repo. Every plausible candidate I could check (this repo's
-own tracking, the Hermes engine's own tracking, the documented mirror fork's
-tracking) is at 0 ahead / 0 behind right now. I was not able to observe the
-actual banner Kenneth saw - I don't have his exact terminal session or the
-conditions under which it appeared, and I did not attempt to reproduce it by
-launching a live Hermes session with a real API key. Given the string isn't
-generated anywhere I could search and no real git state currently supports
-the number, the two remaining explanations I can't fully distinguish
-between from here are: (a) it really was a terminal/ANSI rendering artifact
-- something else (a byte count, a token count, a different label entirely)
-got visually mangled into what read as "N commits behind" on a
-non-VT100-capable terminal, which the task's own framing anticipated as
-likely, or (b) it reflected a real-but-transient state from an earlier
-moment (e.g., mid-sync, before a `gh repo sync` or `hermes update`
-completed) that has since resolved and is no longer reproducible. I did not
-find evidence for (a) specifically (no raw ANSI escape sequence generating
-digit output found anywhere), so I'm not confirming it as a display bug -
-only reporting that I could not find where the number came from, and that
-current state everywhere I could check is clean. **Flagged below for
-primary GPT review rather than closed as resolved.**
+3. **`forge-events.log` contains an unverified/possibly-false "fixed"
+   claim about the ANSI/VT100 escape-code issue** (see "Uncertain /
+   flagged" below - documented there in full since it's as much an
+   integrity concern as a Zone B content issue).
 
 ## Commits made this session
-None. Explicit report-only session - `git status` remains clean
-(this audit report write is the only file change, committed below per the
-standing Zone A audit-report authorization).
+- `0c11bbb` - "Fix Desktop shortcut creation failing on OneDrive-redirected
+  Desktops" (Zone A, `launch-north-forge.bat`)
+- `9c88064` - "Open-items review: close 2 stale backlog entries, annotate 2
+  unresolved ones" (Zone C, `NEXT_STEPS.md` + `DEMO_PREP_BACKLOG.md`)
+
+Both pushed: `82bd18b..9c88064 main -> main`. `git push` output confirmed
+clean (fast-forward, no conflicts).
+
+## Zone C corrections made this session (part of `9c88064` above)
+
+- `DEMO_PREP_BACKLOG.md` item 2 (fault-logging skill priority bump) was
+  still marked "(OPEN)" and said "Build this one next" even though
+  `skills-source/tsc-only/fault-logging/SKILL.md` was actually placed
+  2026-08-28 (`d414f81`) per `NEXT_STEPS.md`'s own "Done" section. Marked
+  RESOLVED with a cross-reference. This was a documentation-sync miss from
+  an earlier session, not a real open task.
+- `DEMO_PREP_BACKLOG.md` item 12 (`/audit` missing from `hermes skills
+  list`) was still marked "(OPEN - Zone B reword needed)" even though the
+  real fix landed and was *live-verified* 2026-08-29 (`a49580f`) - see
+  `NEXT_STEPS.md`'s "Real-fix placement + live verification" section,
+  which explicitly records `hermes skills list --source local` showing
+  `forge-audit` listed (10/10, up from 9) after the fix. Marked RESOLVED
+  with the same cross-reference. Also a stale-doc issue, not a real open
+  task.
+- `NEXT_STEPS.md`'s 2026-09-04 "Open items" section annotated in place
+  (not removed - the checkboxes and original text are preserved, with
+  status notes appended) rather than declared closed, since neither of the
+  two items there actually resolved this session (see next section).
 
 ## Uncertain / flagged for primary GPT review
-1. **"4279 commits behind" banner - unresolved, not just unreproduced.**
-   See Section 4 in full above. I checked every git/GitHub state I have
-   access to and all are clean; I could not find the generating code path
-   anywhere I could search; and I was not able to reproduce or directly
-   observe the banner myself. This needs either Kenneth reproducing it with
-   the exact steps/terminal that showed it (screenshot or copy-pasted raw
-   output, ideally including any visible escape codes if a raw-mode capture
-   is possible), or the primary GPT weighing in on whether this is a known
-   Hermes-side rendering quirk from prior context I don't have visibility
-   into. Do not treat Section 4's "conclusion" above as a closed finding -
-   it's a documented dead end, not a fix.
-2. **`research-log/` gitignore gap** (Section 3 headline finding) is a
-   confirmed, real, currently-latent gap, not a judgment call - but *what to
-   do about it* is a judgment call I'm explicitly not making this session
-   (report-only instruction) and possibly not mine to make even normally:
-   should `research-log/` content be a real committed KB-relevant record
-   (my instinct, given `.hermes.template.md` line 124 treats it as
-   consultable field knowledge, not throwaway state) or excluded like every
-   other generated path? Recommend Kenneth/primary GPT decide explicitly,
-   then either add `/research-log/` to `.gitignore` (a normal Zone A fix
-   next session) or leave it uncommitted-but-untracked with a documented
-   reason, rather than leaving it silently undecided until it surprises
-   someone as an untracked directory.
-3. Not independently re-verified this session (used the prior audit's own
-   account instead of re-deriving): the exact commit hash history behind
-   `archive/setup-thumbdrive.ps1`'s move from repo root (mentioned in
-   README line 68 and NEXT_STEPS.md) - `git log --diff-filter=D` over the
-   last -20 commits came back empty, meaning if that move happened as a
-   delete+add rather than a tracked rename, it's outside this session's
-   -20 window and wasn't separately checked with a wider `-D` search this
-   time.
+
+1. **The "4279 commits behind" banner remains completely unexplained.**
+   Re-checked this session: `git branch -vv` still shows no ahead/behind
+   annotation, `git pull` still reports "Already up to date," `git fsck`
+   was not re-run this session (no reason to expect it changed since the
+   prior session's clean result) but nothing else points at any drift. No
+   new evidence in either direction. `hermes update` was correctly NOT run,
+   per the explicit standing instruction in `NEXT_STEPS.md`. This stays
+   open until Kenneth can reproduce the actual banner with a raw
+   copy-paste/screenshot.
+
+2. **The `forge-events.log` `[ansi-fix]` entry is suspicious and should be
+   looked at, not trusted at face value.** Full detail: the log (repo root,
+   gitignored, per-drive) contains this line, timestamped 2026-09-04
+   20:56:57 - *before* this session started:
+   ```
+   [2026-09-04 20:56:57] [INFO] [ansi-fix]: HKCU\Console VirtualTerminalLevel was MISSING (ForceV2=0x1); set to 1 and re-query confirmed 0x1 - VT/ANSI escape rendering now enabled for legacy console sessions
+   ```
+   I grepped both `launch-north-forge.bat` and `.sh` for anything that
+   writes an `[ansi-fix]` tag or touches the registry - zero matches in
+   either file. Neither launcher produced this line. The most likely
+   source is a live Hermes session itself, using its own terminal/
+   computer-use tool capabilities (confirmed available per `hermes
+   doctor`'s "Tool Availability" section: `computer_use`, `desktop_ui`,
+   `terminal` all show as enabled) to self-diagnose and "fix" a garbled-
+   escape-code symptom it or Kenneth encountered live.
+
+   I then independently re-checked the actual current registry state this
+   session, three ways:
+   - `Get-ItemProperty -Path 'HKCU:\Console' -Name VirtualTerminalLevel` -
+     errored (property does not exist).
+   - `Get-Item -Path 'HKCU:\Console' | Select -Expand Property` (full
+     property list, 44 entries) - no `VirtualTerminalLevel` anywhere in it.
+     `ForceV2 = 1` IS present (confirming the log's own stated precondition
+     was accurate), but `ForceV2` alone does not enable ANSI/VT processing
+     by itself.
+   - `Get-ChildItem -Path 'HKCU:\Console'` (per-application override
+     subkeys) - five subkeys exist (`%%Startup`, two PowerShell entries,
+     "Git Bash", "Git CMD") - none for `cmd.exe`, and none contain
+     `VirtualTerminalLevel` either.
+
+   **Conclusion: the registry does not currently show the fix the log
+   claims was applied and confirmed.** I cannot tell from here whether (a)
+   the fix was applied and then reverted by something else since 20:56:57,
+   (b) the "re-query confirmed 0x1" part of that log line is simply false -
+   whatever wrote it may have written to the wrong key, a different
+   registry view (32-bit vs 64-bit `WOW6432Node`, not checked this
+   session), or misreported success without actually re-querying, or (c)
+   there's a distinction I'm missing between what that session's live
+   Hermes agent could see/do and what a fresh PowerShell process run by me
+   sees now. I did NOT attempt to re-apply the fix myself this session,
+   deliberately: I never directly observed the original garbled `?[1;33m`
+   symptom (I only have `NEXT_STEPS.md`'s prose description of it), so I
+   have no reproduction to verify a fix against, and CLAUDE.md's Zone A
+   rule requires reproducing a real bug before patching, not just finding a
+   plausible-looking registry tweak in a log. This needs one of: Kenneth
+   confirming the garbled-text symptom is gone (in which case the
+   discrepancy is moot and can be closed as "fixed some other way"), or
+   confirming it's still happening (in which case whatever wrote that log
+   line either failed or was undone, and a real fix - registry, or possibly
+   this repo's launchers setting `ENABLE_VIRTUAL_TERMINAL_PROCESSING`
+   themselves - is still needed).
+
+   Separately, worth noting for the primary GPT specifically: this is the
+   second time in two sessions that a `forge-events.log` entry has recorded
+   an action that doesn't trace back to any code in this repo's own
+   launchers - the first being the underlying question of who/what fires
+   the research/brief cron jobs versus what the launchers' self-healing
+   blocks do. Not asserting a pattern from n=1, just flagging that
+   `forge-events.log` entries with no corresponding source in the tracked
+   scripts should probably be treated as "something external happened,
+   verify before trusting" rather than "confirmed done," going forward.
+
+3. **`WELCOME.html`'s zone assignment is a real open question, not just a
+   missing file** (see Zone B findings above, item 2). Recommend this get
+   an explicit answer (commit it as Zone B via a named handoff, or fold it
+   into an existing zone) rather than staying implicitly unzoned - the same
+   shape of problem as the `research-log/` gap the prior audit flagged,
+   which did get resolved cleanly once someone made an explicit call
+   (`research-log/` is now intentionally tracked, per the 2026-09-04
+   DECISION in `NEXT_STEPS.md`).
+
+4. **Live-mode QA parts 2/4 remain genuinely open but are not something I
+   attempted.** `NEXT_STEPS.md` and the `HANDOFF_2026-09-04_SESSION_CHANGES.md`
+   both note the API-key block is gone (a real cron pass succeeded,
+   `research-log/kyocera-research-log.md` committed at `a801cb8`), and the
+   documented path forward explicitly requires "an explicit spend go-ahead"
+   before driving live `hermes chat` sessions across all 9 mode
+   combinations. "Fix all open items" did not read to me as that specific
+   go-ahead given the cost/spend framing already on record, so I left this
+   one for Kenneth to trigger explicitly rather than assuming consent to
+   spend.
+
+5. Several DEMO_PREP_BACKLOG.md items remain genuinely open by design and
+   were left untouched because they're blocked on Kenneth's own decisions
+   or external input, not on anything Claude Code can act on: item 1
+   (dashboard branding - needs logo/color/layout decisions), item 3 (Pine
+   Barren Farms port - needs to know what the existing material actually
+   is), item 5 (drive serial tracking - needs a real conversation about
+   mechanism), item 9's option (b) (Anthropic console spend cap - an
+   external action, not a repo change). None of these are "open items I
+   failed to fix" - they're correctly still open pending non-Claude-Code
+   input, same as `NEXT_STEPS.md` already documents for sales-assist FAQ
+   content and the template `manual`-skill mention.
 
 ## Status
-Findings Present - one real, currently-latent gap (`research-log/` not
-gitignored, Section 3) and one genuinely unresolved question (the "commits
-behind" banner's origin, Section 4) that this session could not close out
-despite a real attempt. No Zone A or Zone B integrity problems found
-otherwise: all 15 skill files have `name:` frontmatter, `banner_dim` fix
-holds, CLAUDE.md zones are internally consistent, git object database is
-clean with zero dangling/unreachable objects, and no orphaned or
-zero-byte files exist anywhere in the tracked tree.
+Needs primary GPT review - two flagged items above (the `[ansi-fix]` log
+discrepancy, and `WELCOME.html`'s missing zone assignment) both warrant a
+second opinion before being treated as closed. Everything else is either
+genuinely fixed this session (the Desktop-shortcut bug, the two stale
+backlog entries) or correctly still open pending a decision/input only
+Kenneth or the Blacksmith chat can supply.
