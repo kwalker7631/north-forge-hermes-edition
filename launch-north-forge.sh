@@ -7,7 +7,31 @@
 # =============================================================================
 set -e
 cd "$(dirname "$0")"
+export HERMES_HOME="$(pwd -P)/.hermes-home"
+# Always replace a caller-supplied HERMES_HOME: this drive owns its complete
+# Hermes installation and runtime state instead of sharing the host profile.
+if ! mkdir -p "$HERMES_HOME" 2>/dev/null || [ ! -d "$HERMES_HOME" ]; then
+    echo "ERROR: North Forge could not create its drive-local Hermes home at '$HERMES_HOME'. Check that the drive is connected and allows new folders."
+    printf '[%s] [FAILURE] [hermes-home]: could not create drive-local Hermes home at %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$HERMES_HOME" >> "forge-events.log"
+    exit 1
+fi
+if ! HERMES_HOME_PROBE="$(mktemp "$HERMES_HOME/.north-forge-write-probe.XXXXXX" 2>/dev/null)"; then
+    echo "ERROR: North Forge cannot write to its drive-local Hermes home at '$HERMES_HOME'. Check the drive's permissions or free space."
+    printf '[%s] [FAILURE] [hermes-home]: drive-local Hermes home is not writable at %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$HERMES_HOME" >> "forge-events.log"
+    exit 1
+fi
+rm -f "$HERMES_HOME_PROBE"
+unset HERMES_HOME_PROBE
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
+# Keep the engine and persistent state on this drive. Child commands inherit
+# this exact home; machine-reset.bat intentionally ignores that inheritance.
+export HERMES_HOME="$(pwd)/.hermes-home"
+
+# Keep Hermes configuration, memory, and scheduled jobs with this drive.  Do
+# not allow an inherited machine-wide HERMES_HOME to merge two North Forge
+# drives into one profile.
+HERMES_HOME="$(pwd)/.hermes-home"
+export HERMES_HOME
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
@@ -327,7 +351,7 @@ if [ "$PROVIDERMODE" = "ownkey" ]; then
 fi
 
 # --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
-HERMES_SKIN_DIR="${HERMES_HOME:-$HOME/.hermes}/skins"
+HERMES_SKIN_DIR="$HERMES_HOME/skins"
 mkdir -p "$HERMES_SKIN_DIR"
 cp -f "skins/north-forge.yaml" "$HERMES_SKIN_DIR/north-forge.yaml"
 
