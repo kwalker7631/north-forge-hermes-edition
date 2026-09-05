@@ -1,10 +1,12 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-05 (~14:20 local, America/New_York). Single-task session,
-new user request. No prior session context carried in beyond
-`logs/CLAUDE_CODE_LAST_AUDIT.md` (formerly `audit/CLAUDE_CODE_LAST_AUDIT.md`)
-as it stood at session start - the "diagnostic verification session" report
-matching commit `cbf4baa`.
+Timestamp: 2026-09-05 (~14:20 local, America/New_York; extended by a second
+in-session request ~15:00). Two related requests this session: (1) rename
+`audit/` -> `logs/` and update references; (2) a follow-up Blacksmith
+handoff to apply the same rename inside `CLAUDE.md`. No prior session
+context carried in beyond `logs/CLAUDE_CODE_LAST_AUDIT.md` (formerly
+`audit/CLAUDE_CODE_LAST_AUDIT.md`) as it stood at session start - the
+"diagnostic verification session" report matching commit `cbf4baa`.
 
 Requested task (verbatim intent): Rename the `audit/` folder to `logs/`
 throughout the repo, preserving git history (`git mv`, not delete+recreate).
@@ -34,9 +36,18 @@ Zone C operational docs (`NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md`,
 historical entries. This was put to the user as an explicit multiple-choice
 question in-session. The user chose: **"Yes, sweep all Zone C now"** - update
 every `audit/`-folder path reference to `logs/` in all three Zone C docs,
-including the ones inside dated historical entries. That was done. `README.md`
-(Zone B) and `CLAUDE.md` (deferred to handoff) were left untouched and are
-flagged below.
+including the ones inside dated historical entries. That was done.
+
+Second in-session request (the CLAUDE.md handoff): after the rename commits
+(`6e6fb9c`, `49adaf2`) were pushed, Kenneth sent a named in-session handoff
+identifying `CLAUDE.md` and instructing the `audit/` -> `logs/` path rename
+in its Zone A file list, Session Start Protocol, and any other section
+naming that path - "naming change only." This matches the confirmed
+2026-08-26 handoff trigger (an in-session named handoff from Kenneth
+identifying a specific Zone B file, including CLAUDE.md itself, is the
+intended and sufficient trigger). Applied as commit `39800c1` - see the
+"Zone B placement" section below. `README.md` (Zone B) is still outstanding
+and remains flagged.
 
 ## Files inspected
 
@@ -55,6 +66,9 @@ Read in full:
   context (lines ~27-35, ~100-110, ~235-245, ~270-280, ~325-335, ~370-380,
   ~460-470)
 - `DEMO_PREP_BACKLOG.md` - targeted reads around lines 239-255
+- `CLAUDE.md` - full read via project-instructions load; plus targeted reads
+  of lines 40-49, 195-204, 316-329 (the 3 `audit/`-path regions) for the
+  handoff placement
 
 Inspected via grep / git / shell (read-only):
 - `grep -rn "audit/"` across the whole working tree (excluding `.git`,
@@ -256,6 +270,62 @@ verified none of the replaced strings were substrings of `forge-audit/`, and
 
 Full verbatim diffs for all three Zone C files are in this session's commit.
 
+## Zone B placement (in-session handoff, applied)
+
+### `CLAUDE.md` - 3 `audit/` -> `logs/` path-token updates (commit `39800c1`)
+
+Trigger: named in-session handoff from Kenneth, second request of this
+session, identifying `CLAUDE.md` explicitly and instructing the `audit/` ->
+`logs/` path rename ("naming change only - the folder's purpose, contents,
+and the mandatory-report requirement ... are unchanged"). CLAUDE.md is Zone
+B and lists itself in Zone B, but its own "EXCEPTION - placing pre-approved
+content" clause plus the CONFIRMED 2026-08-26 note explicitly cover this:
+"an in-session named handoff from Kenneth ... identifying a specific Zone B
+file, including CLAUDE.md itself ... is the intended and sufficient
+trigger."
+
+Diff-before-placement check (the 2026-08-29 STANDING RULE): diffed the
+change against current HEAD for `CLAUDE.md`. It touches only the `audit/`
+path token on 3 lines; it does not remove, revert, or contradict any prior
+recorded fix. Specifically, the Zone A file-list edit (line 45) sits inside
+the list that commit `7a96ca7` extended - the seven bullets `7a96ca7` added
+(`scripts/*.sh`, `scripts/*.ps1`, `scripts/*.py`, `tests/*.sh`, `tests/*.py`,
+`full-drive-reset.sh`, `full-drive-reset.bat`) are immediately below the
+changed line and are fully intact. Commit `de94fc2`'s "Note on AGENTS.md"
+paragraph is untouched.
+
+`grep -n "audit" CLAUDE.md` was run first: exactly 3 lines carry the
+`audit/` path token, all `audit/CLAUDE_CODE_LAST_AUDIT.md`. Every other
+"audit" in the file is the word ("audit report", "audit-only", "audit
+history", "audit habit") and was left alone, per the handoff ("naming
+change only" for the path). Full `git diff` (verbatim):
+
+```
+@@ -42,7 +42,7 @@ Files:
+ - `skins/north-forge.yaml`
+-- `audit/CLAUDE_CODE_LAST_AUDIT.md`
++- `logs/CLAUDE_CODE_LAST_AUDIT.md`
+ - `.gitignore`
+@@ -197,7 +197,7 @@
+ 1. `git pull` - get whatever's changed since last session.
+-2. Read `audit/CLAUDE_CODE_LAST_AUDIT.md` if present - the only continuity
++2. Read `logs/CLAUDE_CODE_LAST_AUDIT.md` if present - the only continuity
+    between sessions.
+@@ -321,7 +321,7 @@
+ At the end of every session, write (overwriting any previous one) to:
+ 
+ ```
+-audit/CLAUDE_CODE_LAST_AUDIT.md
++logs/CLAUDE_CODE_LAST_AUDIT.md
+ ```
+```
+
+`git diff --stat`: `CLAUDE.md | 6 +++---`, 3 insertions / 3 deletions.
+Post-edit `grep -n "audit/" CLAUDE.md` -> no matches. The three sections
+the handoff named (Zone A file list, Session Start Protocol, Session audit
+report path block) are the three that were changed; there is no other
+section naming the path.
+
 ## Post-change QUICK CHECK results
 
 `grep -rn "audit/"` across the working tree (excluding `.git`, `.hermes`,
@@ -274,9 +344,10 @@ hit, categorised:
    B. Neither is a reference to the folder. Correct to leave.
 3. `./CLAUDE.md:45`, `:200`, `:324` - 3 references to
    `audit/CLAUDE_CODE_LAST_AUDIT.md` (Zone A file-list entry; Session Start
-   Protocol step 2; the audit-report path block). **Left untouched per the
-   request's item 3** (separate handoff will carry the CLAUDE.md piece; no
-   handoff text was provided this session). Flagged below.
+   Protocol step 2; the audit-report path block). **RESOLVED** - the
+   CLAUDE.md handoff arrived later in this same session and was applied as
+   commit `39800c1` (see "Zone B placement" section above). Post-fix
+   `grep -n "audit/" CLAUDE.md` -> no matches.
 4. `./README.md:88` - `audit/` as a bare entry in the file-tree diagram, with
    `CLAUDE_CODE_LAST_AUDIT.md` indented beneath it on line 89. Now factually
    stale (folder is `logs/`). **`README.md` is Zone B - Claude Code may not
@@ -296,12 +367,14 @@ hit, categorised:
      itself references `audit/` only when quoting the rename or naming the
      old path deliberately.
 
-QUICK CHECK verdicts:
+QUICK CHECK verdicts (updated after the CLAUDE.md handoff):
 - Zero remaining `audit/`-folder path references in editable, non-historical
-  files, EXCEPT the two the request itself excluded from this change:
-  `CLAUDE.md` (3, deferred to handoff) and `README.md` (1, Zone B, deferred
-  to handoff). This matches the request's own carve-out and its "outside git
-  history / old commit messages" allowance.
+  files, EXCEPT `README.md:88` (1, Zone B - still outstanding, needs its own
+  handoff). `CLAUDE.md`'s 3 references were resolved by the in-session
+  handoff (`39800c1`). Everything else remaining is either a mode-name token
+  (not a path), this session's own `.gitignore` rename-note comment, or
+  historical text inside `logs/` reports - all correct to leave, matching
+  the request's "outside git history / old commit messages" allowance.
 - `logs/` contains all 6 files that were in `audit/`
   (`CLAUDE_CODE_LAST_AUDIT.md`, `CODEX_SECOND_AUDIT_2026-09-05.md`,
   `FORGE_EVENT_LOG.md`, `HANDOFF_2026-09-04_SESSION_CHANGES.md`,
@@ -328,17 +401,10 @@ QUICK CHECK verdicts:
    handoff that fixes CLAUDE.md's 3 references, so the whole rename lands
    consistently in one pass.
 
-2. **`CLAUDE.md` lines 45, 200, 324 - `audit/CLAUDE_CODE_LAST_AUDIT.md` not
-   updated** (by explicit instruction, not oversight). These are: the Zone A
-   file-list bullet (line 45), Session Start Protocol step 2 (line 200), and
-   the audit-report target-path code block (line 324). All three now name a
-   path that does not exist. The request said a separate handoff will carry
-   the CLAUDE.md change; that handoff was not part of this session. Until it
-   lands, CLAUDE.md's Session Start Protocol tells the next Claude Code
-   session to read a nonexistent path at step 2 (it says "if present", so it
-   will not hard-fail - it will just silently find nothing and skip the
-   only cross-session continuity file). This should be handed over soon, not
-   eventually.
+2. **`CLAUDE.md` lines 45, 200, 324 - RESOLVED this session.** Originally
+   left untouched by explicit instruction; the handoff then arrived
+   in-session and was applied as `39800c1` (Zone B placement section above).
+   No longer outstanding.
 
 3. **Mode-name token `audit` in Zone B `mode-blocks/full-banner.md` line 3.**
    Not a bug and not in scope - noting it only so a future audit does not
@@ -348,21 +414,37 @@ QUICK CHECK verdicts:
 
 ## Commits made this session
 
-- `<this session's single commit - hash recorded in git log; also stated in
-  the session-ending chat response>` - message:
-  "Rename audit/ -> logs/ (git mv, history preserved); update path refs in
-  AGENTS.md, FORGE_EVENT_LOG.md, .gitignore, and Zone C docs".
-  Staged contents:
-  - 6x `R`/`RM` rename `audit/* -> logs/*`
-  - `M .gitignore` (anchor bare `logs/` -> `/.hermes-home/logs/` + 4 comment
-    lines)
-  - `M AGENTS.md` (7 path refs)
-  - `M logs/FORGE_EVENT_LOG.md` (1 path ref, on top of its rename)
-  - `M CHANGELOG.md` (4 path refs), `M NEXT_STEPS.md` (7 path refs),
-    `M DEMO_PREP_BACKLOG.md` (1 path ref)
-  - `M logs/CLAUDE_CODE_LAST_AUDIT.md` (this report)
-  Not staged: `.hermes-install-incomplete`, `install-logs/` (untracked,
-  unrelated). `.env` not present, not staged.
+Four commits, all on `main`, all pushed. The rename was split from its own
+audit report so the 6 file moves stay pristine 100%/95% renames rather than
+being buried under a large same-path content rewrite of
+`CLAUDE_CODE_LAST_AUDIT.md`.
+
+1. **`6e6fb9c`** - "Rename audit/ -> logs/ (git mv, history preserved) and
+   update path references". 11 files:
+   - 6x rename `audit/* -> logs/*` (5x R100, `FORGE_EVENT_LOG.md` R95 from
+     its 1-line edit). `logs/CLAUDE_CODE_LAST_AUDIT.md` committed here still
+     holding the *pre-session* content, so the rename scores R100.
+   - `M .gitignore` (anchor bare `logs/` -> `/.hermes-home/logs/` + 4
+     comment lines)
+   - `M AGENTS.md` (7 path refs)
+   - `M CHANGELOG.md` (4), `M NEXT_STEPS.md` (7), `M DEMO_PREP_BACKLOG.md`
+     (1) - Zone C sweep
+   - the `FORGE_EVENT_LOG.md` 1-line edit rides on its rename in this commit
+2. **`49adaf2`** - "Update session audit report for the audit/ -> logs/
+   rename". 1 file: `logs/CLAUDE_CODE_LAST_AUDIT.md` overwritten with this
+   report (as it stood before the CLAUDE.md handoff).
+3. **`39800c1`** - "Place CLAUDE.md audit/ -> logs/ path rename (in-session
+   Blacksmith handoff)". 1 file: `CLAUDE.md`, 3 path-token lines, +3/-3.
+   Zone B placement per the confirmed 2026-08-26 handoff trigger.
+4. **`<this commit>`** - re-overwrites `logs/CLAUDE_CODE_LAST_AUDIT.md` with
+   this updated report (adds the "Zone B placement" section and the
+   handoff-resolved status). Hash recorded in `git log` / stated in the
+   session-ending chat response.
+
+Never staged: `.hermes-install-incomplete`, `install-logs/` (untracked,
+unrelated to this task, pre-existing at session start). `.env` not present
+on this drive, never staged (`git diff --cached --name-only | grep -E
+'(^|/)\.env$'` -> no match at every commit).
 
 ## Uncertain / flagged for primary GPT review
 
@@ -383,11 +465,12 @@ QUICK CHECK verdicts:
    explicit `!/logs/` negation (keeping the bare catch-all) or by trimming
    the whole redundant block, that is a clean follow-up.
 
-2. **`README.md` (Zone B) and `CLAUDE.md` (deferred) still carry stale
-   `audit/` references** - 1 and 3 respectively, enumerated above. The rename
-   is not fully consistent across the repo until a Blacksmith / Claude
-   Project chat handoff places those four edits. Recommend one handoff
-   covering both files.
+2. **`README.md` (Zone B) still carries 1 stale `audit/` reference**
+   (`README.md:88`, the file-tree diagram). `CLAUDE.md`'s 3 references were
+   resolved by the in-session handoff (`39800c1`). Only `README.md` remains
+   for the rename to be fully consistent across the repo - it needs its own
+   Blacksmith / Claude-Project-chat handoff (mechanical: `audit/` -> `logs/`
+   on line 88; line 87 wording is still fine).
 
 3. **Zone C historical entries were rewritten on the user's explicit
    in-session instruction.** `CHANGELOG.md` lines 33/61/79 and several
@@ -418,10 +501,14 @@ QUICK CHECK verdicts:
 ## Status
 
 Needs primary GPT review - specifically for (a) the `.gitignore` anchoring
-approach (flag 1), (b) placing the `README.md` + `CLAUDE.md` stale-reference
-fixes via handoff (flag 2), and (c) confirming the deliberate Zone C
-historical-entry rewrite (flag 3) is acceptable. The mechanical rename itself
-is clean: `git mv` at 100% similarity for all 6 files, history preserved,
-`logs/` complete, `.env` not staged, QUICK CHECK grep clean except the two
-explicitly-deferred files. Committed and pushed as a single commit this
-session.
+approach (flag 1), (b) placing the remaining `README.md:88` stale-reference
+fix via its own handoff (flag 2), and (c) confirming the deliberate Zone C
+historical-entry rewrite (flag 3) is acceptable. The rename itself is clean:
+`git mv` at 100%/95% similarity for all 6 files, `git log --follow` verified
+to cross the rename (`logs/CLAUDE_CODE_LAST_AUDIT.md` traces back through
+`cbf4baa`, `3c01cd3`, ...), `logs/` complete, `.env` never staged. The
+CLAUDE.md handoff was received and applied in-session (`39800c1`); after it,
+the only `audit/`-folder path reference left anywhere in the repo outside
+git history and inside-`logs/` historical reports is `README.md:88` (Zone
+B). Four commits made and pushed: `6e6fb9c`, `49adaf2`, `39800c1`, and the
+commit carrying this updated report.
