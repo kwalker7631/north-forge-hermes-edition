@@ -2,9 +2,14 @@
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
-rem --- first run on this drive: pop open the plain-language quickstart once ---
+rem --- first run on this drive: pop open the styled quickstart once ---
 if not exist ".readme-shown" (
-    start "" "FIRST_TIME_README.txt"
+    start "" "WELCOME.html"
+    if errorlevel 1 (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED
+    ) else (
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [welcome]: first-run WELCOME.html auto-open: ok
+    )
     echo. > .readme-shown
 )
 
@@ -35,6 +40,25 @@ if not exist "%USERPROFILE%\Desktop\North Forge.lnk" (
         "$s=(New-Object -ComObject WScript.Shell).CreateShortcut(\"$env:USERPROFILE\Desktop\North Forge.lnk\");" ^
         "$s.TargetPath='%~f0'; $s.WorkingDirectory='%~dp0';" ^
         "$s.IconLocation='%~dp0assets\north-forge.ico'; $s.Save()" >nul 2>nul
+    if exist "%USERPROFILE%\Desktop\North Forge.lnk" (
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [shortcut]: Desktop shortcut created with icon
+    ) else (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [shortcut]: Desktop shortcut creation FAILED
+    )
+)
+
+rem --- log repo state at launch (no git pull happens here by design - drives
+rem update manually; this records what code the session ran on) ---
+where git >nul 2>nul
+if errorlevel 1 (
+    >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [git]: git not on PATH - repo state unknown at launch
+) else (
+    for /f "usebackq delims=" %%H in (`git rev-parse --short HEAD 2^>nul`) do set "GITHEAD=%%H"
+    if defined GITHEAD (
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [git]: launch at commit !GITHEAD!
+    ) else (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [git]: .git missing or unreadable - repo state unknown at launch
+    )
 )
 
 rem --- assemble live .hermes/skills/ and .hermes.md from source, based on the mode toggle ---
@@ -80,8 +104,8 @@ powershell -NoProfile -Command ^
     "$c=Get-Content \"mode-blocks\$m-menu.md\" -Raw;" ^
     "$name='North Forge'; if (Test-Path '.agent-name') { $n=(Get-Content '.agent-name' -Raw).Trim(); if ($n) { $name=$n } };" ^
     "$t=$t.Replace('{{MODE_BANNER_BLOCK}}',$b).Replace('{{COMMAND_MENU_BLOCK}}',$c).Replace('{{AGENT_NAME}}',$name);" ^
-    "if ($t.Length -ge 20000) { Write-Host ('FATAL: assembled .hermes.md is ' + $t.Length + ' chars - at or over the 20,000-char context-file ceiling. Hermes would silently drop the middle of the file. Trim the template/banner/menu before launching.'); exit 1 };" ^
-    "if ($t.Length -ge 19800) { Write-Host ('WARNING: assembled .hermes.md is ' + $t.Length + ' chars - within 200 of the 20,000-char ceiling. Trim soon.') };" ^
+    "if ($t.Length -ge 20000) { Add-Content 'forge-events.log' ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [FAILURE] [size-guard]: assembled .hermes.md ' + $t.Length + ' chars ge 20000 ceiling - launch aborted'); Write-Host ('FATAL: assembled .hermes.md is ' + $t.Length + ' chars - at or over the 20,000-char context-file ceiling. Hermes would silently drop the middle of the file. Trim the template/banner/menu before launching.'); exit 1 };" ^
+    "if ($t.Length -ge 19800) { Add-Content 'forge-events.log' ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [WARNING] [size-guard]: assembled .hermes.md ' + $t.Length + ' chars - within 200 of the 20000 ceiling'); Write-Host ('WARNING: assembled .hermes.md is ' + $t.Length + ' chars - within 200 of the 20,000-char ceiling. Trim soon.') };" ^
     "Set-Content -Path '.hermes.md' -Value $t -NoNewline"
 if errorlevel 1 (
     echo Launch aborted: .hermes.md was not written.
@@ -162,11 +186,29 @@ hermes cron list 2>nul | findstr /C:"nightly-kyocera-research" >nul
 if errorlevel 1 (
     echo Scheduling the nightly Kyocera research job...
     hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >nul 2>nul
+    if errorlevel 1 (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED
+    ) else (
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered nightly-kyocera-research ^(0 6 * * *^)
+    )
 )
 hermes cron list 2>nul | findstr /C:"daily-kyocera-brief" >nul
 if errorlevel 1 (
     echo Scheduling the daily Kyocera brief job...
     hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >nul 2>nul
+    if errorlevel 1 (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED
+    ) else (
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered daily-kyocera-brief ^(0 8 * * *^)
+    )
 )
 
+rem Plain call (was already not exec'd on Windows) - log how the session ended.
 hermes
+set "HERMES_EXIT=%ERRORLEVEL%"
+if "%HERMES_EXIT%"=="0" (
+    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [hermes]: session ended normally ^(exit 0^)
+) else (
+    >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [hermes]: session ended with exit %HERMES_EXIT%
+)
+exit /b %HERMES_EXIT%

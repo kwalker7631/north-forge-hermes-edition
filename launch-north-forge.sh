@@ -3,12 +3,17 @@ set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
-# --- first run on this drive: pop open the plain-language quickstart once ---
+# --- first run on this drive: pop open the styled quickstart once ---
 if [ ! -f ".readme-shown" ]; then
-    if command -v xdg-open >/dev/null 2>&1; then xdg-open "FIRST_TIME_README.txt"
-    elif command -v open >/dev/null 2>&1; then open "FIRST_TIME_README.txt"
+    if command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
+    elif command -v open >/dev/null 2>&1; then
+        open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
+    else
+        WELOPEN="no opener available"
     fi
     touch .readme-shown
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$([ "$WELOPEN" = "ok" ] && echo INFO || echo WARNING)] [welcome]: first-run WELCOME.html auto-open: $WELOPEN" >> "forge-events.log"
 fi
 
 # --- user tier: who-has-this-drive record (accountability only, never blocks) ---
@@ -29,6 +34,14 @@ else
     fi
 fi
 
+# --- log repo state at launch (no git pull happens here by design - drives
+# update manually; this records what code the session ran on) ---
+if command -v git >/dev/null 2>&1 && [ -d ".git" ]; then
+    log_event "git" "launch at commit $(git rev-parse --short HEAD 2>/dev/null || echo unknown), status: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') modified file(s)"
+else
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [git]: git or .git missing - repo state unknown at launch" >> "forge-events.log"
+fi
+
 # exFAT (needed for a drive that works on Windows/Mac/Linux) can't store the
 # executable permission bit, so this file can't be made double-clickable
 # directly off the drive. First run creates a real, permanent, double-clickable
@@ -42,6 +55,11 @@ if [ ! -f "$DESKTOP_LAUNCHER" ]; then
 bash "$SCRIPT_PATH"
 SHORTCUT
     chmod +x "$DESKTOP_LAUNCHER"
+    if [ -f "$DESKTOP_LAUNCHER" ]; then
+        log_event "shortcut" "Desktop launcher created: $DESKTOP_LAUNCHER"
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [shortcut]: Desktop launcher creation FAILED: $DESKTOP_LAUNCHER" >> "forge-events.log"
+    fi
     echo ""
     echo "==================================================================="
     echo "Created a 'North Forge' icon on your Desktop."
@@ -109,9 +127,15 @@ size = len(tmpl)
 if size >= 20000:
     print(f"FATAL: assembled .hermes.md is {size} chars - at or over the 20,000-char context-file ceiling.")
     print("Hermes would silently drop the middle of the file. Trim the template/banner/menu before launching.")
+    import datetime
+    with open("forge-events.log", "a", encoding="utf-8") as lg:
+        lg.write(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] [FAILURE] [size-guard]: assembled .hermes.md {size} chars >= 20000 ceiling - launch aborted\n")
     sys.exit(1)
 if size >= 19800:
     print(f"WARNING: assembled .hermes.md is {size} chars - within 200 of the 20,000-char ceiling. Trim soon.")
+    import datetime
+    with open("forge-events.log", "a", encoding="utf-8") as lg:
+        lg.write(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] [WARNING] [size-guard]: assembled .hermes.md {size} chars - within 200 of the 20000 ceiling\n")
 with open(".hermes.md", "w", encoding="utf-8") as f:
     f.write(tmpl)
 PYEOF
@@ -182,11 +206,29 @@ hermes skills trust .
 # No manual /cron add ever needed again.
 if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1
+    if hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1; then
+        log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED" >> "forge-events.log"
+    fi
 fi
 if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >/dev/null 2>&1
+    if hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >/dev/null 2>&1; then
+        log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED" >> "forge-events.log"
+    fi
 fi
 
-exec hermes
+# Plain call instead of exec so the exit status can be logged after the
+# session ends (exec would replace this process and nothing could run after).
+# The || guard keeps set -e from aborting before the log line is written.
+HERMES_EXIT=0
+hermes || HERMES_EXIT=$?
+if [ "$HERMES_EXIT" -eq 0 ]; then
+    log_event "hermes" "session ended normally (exit 0)"
+else
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [hermes]: session ended with exit $HERMES_EXIT" >> "forge-events.log"
+fi
+exit $HERMES_EXIT
