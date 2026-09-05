@@ -54,11 +54,12 @@ while true; do
         reset)
             admin_gate "RESET" || continue
             echo ""
-            echo "RESET performs a credential/config reset back to a clean first-use state:"
+            echo "RESET performs a fast onboarding/content reset:"
             echo "  .env, .forge-mode, .hermes.md, .drive-record.txt"
             echo "  .provider-choice, .agent-name, .readme-shown, .hermes/skills/"
             echo ""
             echo "The tracked repo content is NOT touched - skills-source/, mode-blocks/, the scripts."
+            echo ".hermes-home is PRESERVED. Hermes credentials, memory, sessions, and cron state remain."
             echo "forge-events.log is intentionally RETAINED as an accountability record."
             echo "It can contain names entered by prior users; RESET is not a privacy/log purge."
             echo "Use this before handing the drive to someone else so credentials and settings"
@@ -87,7 +88,8 @@ while true; do
                     echo "Credential/config reset was incomplete. forge-events.log was intentionally retained."
                     exit 1
                 fi
-                echo "Done. Credential/config reset completed; first-use setup will run next time."
+                echo "Done. Onboarding/content reset completed; first-use setup will run next time."
+                echo "Hermes credentials, memory, sessions, and cron state remain in .hermes-home."
                 echo "forge-events.log was intentionally retained as the accountability record"
                 echo "and can contain names entered by prior users."
                 echo "Next person: run launch-north-forge.sh and follow the first-use prompts."

@@ -7,6 +7,9 @@ rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
+rem Keep this drive's engine and persistent state together and portable.
+rem machine-reset.bat deliberately ignores this value for host maintenance.
+set "HERMES_HOME=%CD%\.hermes-home"
 
 if /i "%~1"=="--configure-free-provider" (
     call :CONFIGURE_FREE_PROVIDER

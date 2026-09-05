@@ -8,6 +8,9 @@
 set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
+# Keep the engine and persistent state on this drive. Child commands inherit
+# this exact home; machine-reset.bat intentionally ignores that inheritance.
+export HERMES_HOME="$(pwd)/.hermes-home"
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."

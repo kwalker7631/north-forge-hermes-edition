@@ -19,8 +19,9 @@ rem  machine-reset.bat - reset Hermes state on THIS COMPUTER
 rem
 rem  Distinct from toggle-mode.bat: that one resets the DRIVE (this repo's
 rem  own .env / .forge-mode / build artifacts). This one only touches the
-rem  per-machine Hermes folder - %HERMES_HOME%, or %LOCALAPPDATA%\hermes when
-rem  HERMES_HOME is not set - and never touches the repo content on this drive.
+rem  host Hermes folder - %LOCALAPPDATA%\hermes - and never uses HERMES_HOME.
+rem  A launcher may leak a drive-local HERMES_HOME into a child shell; that
+rem  value must never redirect host maintenance onto the drive.
 rem
 rem  Two options:
 rem    1  Rotate the API key - delete only .env. Model config (config.yaml),
@@ -34,11 +35,12 @@ rem ===========================================================================
 rem PowerShell is the safety boundary: it validates the untrusted environment
 rem value before cmd.exe displays, compares, or passes it to deletion code.
 set "VALIDATION_FILE=%TEMP%\north-forge-reset-%RANDOM%-%RANDOM%.txt"
-powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0scripts\machine-reset-safety.ps1" -Action Validate > "%VALIDATION_FILE%"
+set "HOST_HERMES_HOME=%LOCALAPPDATA%\hermes"
+powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0scripts\machine-reset-safety.ps1" -Action Validate -Candidate "%HOST_HERMES_HOME%" > "%VALIDATION_FILE%"
 if errorlevel 1 (
     >> "forge-events.log" echo [%DATE% %TIME%] [ERROR] [machine-reset]: Hermes home safety validation rejected the target
     echo.
-    echo Reset stopped safely. Nothing was deleted. Fix HERMES_HOME and try again.
+    echo Host reset stopped safely. Nothing was deleted. Check %%LOCALAPPDATA%%\hermes.
     set "EXIT_CODE=2"
     del /q "%VALIDATION_FILE%" >nul 2>nul
     goto :end
@@ -52,6 +54,8 @@ echo ============================================================
 echo This resets Hermes state on THIS COMPUTER only. It does not
 echo touch this drive's repo content, and it is not the same as
 echo toggle-mode ^(which resets the DRIVE, not the machine^).
+echo Any inherited HERMES_HOME is deliberately ignored. For drive-local
+echo maintenance, close this and run full-drive-reset.bat instead.
 echo.
 echo Per-machine Hermes folder:
 powershell.exe -NoLogo -NoProfile -NonInteractive -Command "Write-Host ('  ' + $env:VALIDATED_HERMES_HOME)"
