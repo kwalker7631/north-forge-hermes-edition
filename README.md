@@ -76,6 +76,7 @@ USER_MANUAL.md                  <- plain-English end-user manual: every command,
 research-log/
   kyocera-research-log.md       <- appended by the nightly-kyocera-research cron job (6 AM daily) - real, committed field-research findings, tracked in git on purpose
   daily-brief-log.md            <- appended by the daily-kyocera-brief cron job (8 AM daily) once it first runs
+kb-images/                      <- intake/staging for actual image files techs provide during /kb work - one folder per KB number, _pending/ for pre-number images. Committed and shared across drives on purpose. Staging only: ServiceNow attach + manual placeholder replace stays manual, by design
 FIRST_TIME_README.txt           <- plain-language quickstart for a first-time team member receiving a drive - not for Kenneth, for whoever gets handed one
 CLAUDE.md                       <- Claude Code's working rules for this repo (Zone A/B/C authority model) - read by Claude Code automatically, not by Hermes itself
 NEXT_STEPS.md                   <- what's built vs. still to build

@@ -115,6 +115,21 @@ For every other section, choose the most effective type:
 
 Multiple media types in one KB is normal (Mermaid plus image or video), not redundant. Document the rationale for each in the Media Generation Bundle.
 
+## Image file intake - kb-images/ (staging only, does not touch the HTML)
+
+When a tech provides an actual image file during a /kb session (an upload, or a generated result), save it under the repo's `kb-images/` folder:
+
+- KB number already known in the working issue package: `kb-images/<KB_NUMBER>/` (e.g. `kb-images/KB0012660/`).
+- No KB number yet: `kb-images/_pending/<date>_<short-slug>/` (e.g. `kb-images/_pending/2026-09-05_baffle-weight/`), renamed to the real KB number folder once one is assigned.
+
+Filenames: sequence-prefixed and plainly descriptive - `01_tray2-baffle-location.png`, `02_error-screen.png`. Never put customer, technician, dealer, or ticket-number text in a filename - the same scrubbing discipline as KB body content.
+
+After saving, always tell the tech the exact path where the file landed, so they know where to find it when they get to ServiceNow.
+
+Before an image is considered done, ask the tech every time - one explicit question, never skipped: does the image itself visibly expose a customer/company name, technician name, serial number, or other site-identifying detail? Unlike KB body text, an image can't be grepped or auto-scrubbed, and this repo is shared across every provisioned drive. This is a manual checkpoint, not a model-enforced gate - the tech makes the call; if something looks off, flag it rather than saving as-is.
+
+This folder is a staging area only. It does NOT auto-generate or substitute any HTML image link - ServiceNow attachment and manual placeholder replacement in the KB body stay exactly as they are. Nothing about media selection, prompt generation, or the body's image placeholder text changes; this only adds where the actual file goes.
+
 ## Field tactics (physical service, image defects, paper feed, jams, developer/drum/toner, transfer, fusing, firmware, logs, escalation)
 
 Include: what to open/remove, what to inspect, what normal vs failure looks like, what to clean, what to reseat, what to replace only if confirmed, what samples/logs/photos to collect, what to document, what not to disturb.

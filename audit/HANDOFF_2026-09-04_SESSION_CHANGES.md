@@ -180,3 +180,27 @@ the icon's source of truth: any future size/format (favicon, print, a
 different .ico size set) should be exported from the SVG, not upscaled
 from the PNG. The previously committed PNG (512px) and multi-size .ico
 are unchanged - they match this artwork.
+
+## Addendum 4: kb-images/ intake folder (your-side instruction, executed)
+
+Executed per the GPT-side instruction relayed by Kenneth. All items done:
+
+- kb-images/ + kb-images/_pending/ created at repo root, with a short
+  README.txt inside stating the staging-only rule and naming/scrubbing
+  conventions; _pending/ held by .gitkeep.
+- kb-builder SKILL.md (Zone B, per your instruction): new "Image file
+  intake - kb-images/" section inserted directly after the multimedia
+  selection section. Covers: KB-number vs _pending/ routing, sequence-
+  prefixed scrubbed filenames, always-report-the-saved-path, the
+  every-time manual review question (image-visible identifiers - tech
+  decides, model only asks), and the explicit staging-only boundary
+  (no HTML link generation/substitution; ServiceNow attach + manual
+  placeholder replace unchanged). Media selection / prompt generation /
+  placeholder text untouched. Live .hermes/skills/ copy synced.
+- README.md file tree: kb-images/ entry added (same treatment as
+  research-log/).
+- Checks: kb-images NOT gitignored (an initial check-ignore hit was a
+  false positive - git quirk querying a bare dir path against a blank
+  CRLF line; definitive: check-ignore on the actual file = no match,
+  git status lists kb-images/ as untracked ??). .env not staged, not
+  tracked.
