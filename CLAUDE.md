@@ -44,6 +44,20 @@ Files:
 - `skins/north-forge.yaml`
 - `audit/CLAUDE_CODE_LAST_AUDIT.md`
 - `.gitignore`
+- `scripts/*.sh`
+- `scripts/*.ps1`
+- `scripts/*.py`
+- `tests/*.sh`
+- `tests/*.py`
+- `full-drive-reset.sh`
+- `full-drive-reset.bat`
+
+Extended 2026-09-06 to explicitly include the seven `scripts/`/`tests/`/
+`full-drive-reset.*` entries above: mechanical glue/test code, same
+category already justifying Zone A status for the files explicitly named
+above. Multiple sessions (Claude Code and Codex) have already treated it
+this way in practice - this closes a recurring gap rather than establishing
+new policy.
 
 `archive/` is explicitly outside this list's scope - read-only historical
 storage. Claude Code does not modify its contents or move files into or
