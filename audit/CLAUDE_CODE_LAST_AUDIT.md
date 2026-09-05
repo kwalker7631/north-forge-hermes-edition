@@ -1,260 +1,223 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-04 (session following the "open-items review" session
-recorded at commit `cc32003`)
-Requested task: User said "check if this is up to date please pull latest
-version and review pull for errors." Interpreted as: run the standard
-Session Start Protocol (pull, read last audit, check git/gitignore/hermes
-state), then actually review the content that came down in the pull for
-real defects - not just confirm the pull succeeded.
+Timestamp: 2026-09-04 (session following the "pull review" session recorded
+at commit `b7f08df`)
+Requested task: Kenneth said (paraphrased): "make sure everything has
+versioning update and versioning, make sure Authorship is properly
+indicated, created by Kenneth C. Walker Jr. - Senior Technical Support
+Engineer - TSC [something like that], please indicate that this is part of
+the North Forge project." Interpreted as: add version metadata and an
+authorship/project-attribution statement across the repo's files, subject to
+the CLAUDE.md Zone A/B boundary (Zone A: apply directly; Zone B: draft and
+get explicit Blacksmith approval of exact wording before placing anything).
 
 ## Files inspected
-- `CLAUDE.md` (re-read in full, 322 lines - noted it had changed on disk
-  since a prior read earlier in this session; current Zone A list now
-  includes `machine-reset.bat`, drops the old `setup-thumbdrive.ps1` entry
-  in favor of a blanket `archive/` carve-out)
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior report, full read, both before
-  and after a second mid-session `git pull` brought in a newer version -
-  the newer one, from the `cc32003` open-items-review session, was the one
-  actually acted on)
-- `NEXT_STEPS.md` (full read, 550 lines)
-- `.gitignore` (full read, 41 lines)
-- `launch-north-forge.bat` (full read; diffed line-by-line across the whole
-  pulled commit range)
-- `launch-north-forge.sh` (full read; diffed the same way)
-- `toggle-mode.bat` (full read; diffed; then edited)
-- `toggle-mode.sh` (full read; diffed; `bash -n` syntax-checked)
-- `machine-reset.bat` (full read; diffed; then edited)
-- git: `git pull` (x2 - see below), `git status`, `git diff a266e4b..82bd18b
-  -- <Zone A files>`, `git diff 82bd18b..origin/main -- <files>`, `git log
-  --oneline`, `git show 977703a:toggle-mode.bat`, `git fetch`, `git pull
-  --rebase`, `git push` (x2), `git rev-parse HEAD origin/main`
+
+- `CLAUDE.md` (re-read in full, current on disk, no changes since last
+  session's read)
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior report, full read - documented the
+  `e342f7a` admin_gate password-bypass fix from the immediately prior
+  session; carried-forward open items: `WELCOME.html` unzoned, plaintext
+  password across 3 files, unmasked Windows password prompt)
+- `CHANGELOG.md` (full read, 73 lines before edits - confirmed this file is
+  already treated as Claude-Code-editable in practice: it contains entries
+  explicitly tagged "(later session, Claude Code)" documenting prior Zone A
+  work, even though `CHANGELOG.md` is not named in any of CLAUDE.md's three
+  explicit zone lists. Treated as Zone-C-adjacent on that basis - flagged
+  below as a real ambiguity, not asserted as settled.)
+- `.gitignore`, `skins/north-forge.yaml`, `.env.example`,
+  `provision-new-drive.ps1` (full reads, to find safe insertion points and
+  confirm no existing version/author metadata)
+- `launch-north-forge.bat`, `launch-north-forge.sh`, `toggle-mode.bat`,
+  `toggle-mode.sh`, `machine-reset.bat` (first ~15 lines each, to find the
+  post-shebang/post-`@echo off` insertion point without disturbing the
+  `admin_gate` logic those files already carry)
+- Repo-wide grep for `Kenneth|Walker|version|VERSION|Author|author|Copyright`
+  (27 files matched) and a second grep for the existing version scheme
+  (`v21\.\d+|Version:|VERSION|Hermes Edition v`) - this is what surfaced that
+  the project's real canonical version tag is already **v21.8**, tracked in
+  `.hermes.template.md` (line 3-4), `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`,
+  and `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` - all three Zone B. No
+  Zone A file had ever carried a version or author header before this
+  session.
+- `README.md`, `FIRST_TIME_README.txt`, `USER_MANUAL.md`,
+  `.hermes.template.md`, `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`,
+  `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html`, `ATTRIBUTION.md` (first
+  ~15-25 lines each, read in full for the header/title area, to find safe
+  additive insertion points before placing the approved line)
+- git: `git pull`, `git status`, `git diff`, `git log --oneline -5`
 - `hermes doctor`, `hermes skills list --source local`
-- `.hermes/skills/` directory listing vs. `skills-source/**/SKILL.md` (to
-  check for generated-artifact staleness)
-- `WELCOME.html` existence check on this checkout (still absent)
-- `README.md` (grepped for the `north-forge-icon` `<img>` tag flagged as an
-  uncommitted edit in the prior audit - no longer present anywhere, see
-  below)
-- Isolated batch-file reproduction tests (own scratch files, not committed
-  anywhere) to confirm a suspected cmd.exe parsing bug before touching any
-  real file - detailed below
+- `bash -n` on both edited `.sh` files; PSParser tokenize check on the edited
+  `.ps1` file (both syntax-checks clean, post-edit)
 
 ## Zone A changes made
 
-**`machine-reset.bat` and `toggle-mode.bat`** - commit `e342f7a`
-("fix: escape parens in admin_gate PASS echo - was silently bypassing
-password check").
+**Version/authorship header added to 9 Zone A files** - commit `a62a7ef`
+("Add version/authorship headers to Zone A infrastructure files"):
+`launch-north-forge.bat`, `launch-north-forge.sh`, `toggle-mode.bat`,
+`toggle-mode.sh`, `machine-reset.bat`, `provision-new-drive.ps1`,
+`.env.example`, `skins/north-forge.yaml`, `.gitignore`.
 
-**The bug, reproduced (not assumed) before any fix was applied:**
-The `:admin_gate` subroutine (both files carry a byte-identical copy) gates
-mode switches, RESET, API key rotation, and full machine purge behind a
-hardcoded password (`RumpleStiltskin`). Its PASS branch is:
+Before: none of these files carried any version number or author line.
 
-```bat
-if "!PW!"=="RumpleStiltskin" (
-    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! PASS (%~1)
-    exit /b 0
-)
->> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! FAIL (%~1)
-echo Wrong password - %~1 cancelled.
-if !ADMIN_ATTEMPTS! GEQ 3 echo Hint: Brothers Grimm
-exit /b 1
+After: each got a short comment block (format native to the file - `rem` for
+`.bat`, `#` for `.sh`/`.ps1`/`.env.example`/`.gitignore`/`.yaml`) reading:
+
+```
+North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
+Forge project.
+File: <filename> | Script version: 1.0.0 | Updated: 2026-09-04
+Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 ```
 
-The PASS-branch echo line contains a literal, unescaped `(%~1)` - a balanced
-pair of parens as plain text - inside a `(...)` if-block. cmd.exe's block
-parser miscounts parens embedded as literal text inside a compound
-statement even when they are balanced; this is a well-known, if obscure,
-batch-scripting pitfall, and every other place in this same codebase that
-echoes parenthesized text inside a block already escapes it as `^(...^)`
-(e.g. the cron re-registration log lines added in the same pull, `^(0 6 * *
-*^)`; the `^(exit 0^)` hermes-exit line). This one instance was not escaped.
+Judgment calls made, both flagged for review below:
+1. Reused the existing canonical **v21.8** project release tag (already
+   established in three Zone B files) rather than inventing a separate
+   version number for the infrastructure layer, so there is one project
+   version, not two competing schemes.
+2. Started per-file "Script version" at **1.0.0** for every file, since none
+   had ever been individually versioned - this is a new baseline, not a
+   reconstruction of real prior history. `toggle-mode.bat` and
+   `machine-reset.bat` in particular have had at least one real substantive
+   fix each in the last two sessions (the `e342f7a` admin_gate bypass fix)
+   before this baseline was set; that history is NOT reflected in the 1.0.0
+   number, only in `CHANGELOG.md` and git log. Going forward, real Zone A
+   fixes to a given file should bump its Script version (e.g. 1.0.0 ->
+   1.0.1) - this session did not retroactively bump for past fixes.
 
-I built an isolated, minimal repro of the exact function shape (own scratch
-`.bat` files, PowerShell tool, never touching the real repo files) before
-concluding anything:
-- A wrong password: the entire FAIL branch produced **zero output** and the
-  function returned **errorlevel 0** - i.e. "PASS" - instead of erroring
-  out with `exit /b 1`.
-- A correct password: returned errorlevel 0 as intended, but the printed/
-  logged line was silently truncated at the swallowed `)` (`PASS (rotate
-  key` instead of `PASS (rotate key)`).
+Verification: `bash -n` clean on both `.sh` files post-edit; PowerShell
+`PSParser` tokenize clean on `provision-new-drive.ps1` post-edit; `git diff`
+reviewed before staging - each file changed only by the inserted comment
+block, nothing else touched. `git status --short` reviewed before commit -
+exactly the 17 files intended (9 Zone A + `CHANGELOG.md` in the first
+commit; 7 Zone B files + `CHANGELOG.md` in the second), nothing unexpected
+staged.
 
-**Impact: the admin password gate accepted ANY password, including a wrong
-one, silently.** Every action it was meant to protect - FULL/SALES mode
-switching, drive RESET, per-machine API key rotation, and full machine
-purge - was unprotected. Checked `git show 977703a:toggle-mode.bat` (the
-commit that introduced this admin-gate feature, "Add two-tier passcode/
-activation system per finalized simplified spec," part of the range this
-session's first `git pull` brought in): the exact same unescaped-parens
-`admin_gate` body was already present there, byte-for-byte identical to
-what shipped in the later "Phase B" logging commit. **This bug has existed
-since the password gate was first introduced in this pull - it did not
-regress from something that once worked.**
+**`CHANGELOG.md` updated** (bundled into both commits above, since it
+documents both): added a bullet under the existing `## [Unreleased] -
+2026-09-04` / `### Added (later session, Claude Code)` section describing
+both the Zone A header work and the Zone B placement (see below).
 
-**Fix applied:** escaped the PASS-branch line's parens as `^(%~1^)` in both
-`machine-reset.bat` and `toggle-mode.bat`, matching the escaping convention
-already used everywhere else in these files. Also found and fixed one more
-instance of the identical unescaped-parens pattern in `toggle-mode.bat`'s
-RESET flow (`else` branch of the drive-record check: `RESET executed (no
-drive record present)`) - confirmed via a second isolated repro that this
-specific instance was cosmetic-only (truncated the closing paren in the log
-line, but did not corrupt the subsequent `.forge-mode`/`.hermes.md`/`.hermes
-\skills` cleanup commands, which still ran correctly in the repro). Fixed
-it anyway for consistency and because leaving one instance of a known-buggy
-pattern in the same file, right next to the one that was just fixed for
-being dangerous, seemed worth cleaning up rather than leaving as a landmine.
+## Zone B findings and actions (approval-gated placement, not unilateral editing)
 
-**Verification, both before and after the fix, against the real files (not
-just the isolated repro):**
-1. Isolated repro of the byte-identical function shape with a wrong
-   password (before fix): confirmed silent errorlevel-0 bypass.
-2. Isolated repro with the `^(...^)` fix applied: wrong password now
-   correctly logs `FAIL` and returns errorlevel 1; correct password
-   correctly logs `PASS` with the full parenthesized text intact.
-3. **End-to-end test against the actual, fixed `toggle-mode.bat`** (copied
-   into an isolated scratch dir, run under real `cmd.exe` with piped
-   stdin: `FULL` + wrong password, then `SALES` + `RumpleStiltskin`,
-   then `EXIT`). Result: the wrong password correctly printed "mode switch
-   to FULL cancelled" and left `.forge-mode` unset; the correct password
-   correctly set `.forge-mode` to `sales`. `forge-events.log` from that run
-   shows exactly:
-   ```
-   [Fri 09/04/2026 21:58:40.82] [INFO] [admin-gate]: attempt 1 FAIL (mode switch to FULL)
-   [Fri 09/04/2026 21:58:40.83] [INFO] [admin-gate]: attempt 2 PASS (mode switch to SALES)
-   ```
-   both lines now with correctly matched parens.
-4. `machine-reset.bat` was not run end-to-end (it operates on
-   `%LOCALAPPDATA%\hermes` by default, i.e. this machine's real per-machine
-   Hermes install - running it live would risk deleting or purging real
-   state). Its `:admin_gate` body is byte-identical to `toggle-mode.bat`'s
-   (confirmed via diff before editing), and the same fix was applied to it
-   the same way; the isolated repro in points 1-2 above covers the
-   underlying function logic directly, which is sufficient given the two
-   files share the exact same subroutine text.
-5. `git diff` reviewed before committing: exactly 3 lines changed across
-   the two files, nothing else touched.
+CLAUDE.md is explicit that a broad, repo-wide instruction like "make sure
+everything has versioning and authorship" does **not** extend Claude Code's
+editing authority into Zone B, even when the Blacksmith asks directly and
+live in-session - only a specific, already-approved piece of content handed
+over for placement qualifies. Rather than either (a) silently skipping Zone B
+entirely, or (b) composing the wording myself and placing it without
+checking, I drafted the exact proposed line, showed Kenneth the literal text
+via `AskUserQuestion`, and asked him to approve/edit/defer/skip. He selected
+**"Approve as-is, place it now."** That live, specific approval of exact
+wording is what I'm treating as satisfying the Blacksmith hand-off exception
+- flagged below for the primary GPT to independently confirm that reading is
+correct, since this is a new pattern (approval given live in a Claude Code
+chat turn, not handed over as a pre-written file from the Claude Project
+chat) and CLAUDE.md's exception text was written with a "hands over a
+specific, already-authored file" framing that assumed the file already
+existed before the ask, not text drafted by Claude Code and approved on the
+spot.
 
-Also reviewed and found clean (no defects): `launch-north-forge.bat`'s and
-`.sh`'s new first-run blocks (WELCOME.html auto-open, drive-record prompt,
-Desktop-shortcut creation, git-state logging, the `.hermes.md` size guard,
-cron self-healing, hermes-exit logging) - all parens in echoed/logged text
-in these blocks were already correctly escaped where they sit inside a
-block, or don't need escaping because they sit outside one. `bash -n` was
-run against both `.sh` files pulled this session - clean on both.
+**Placed** (commit `c35b45a`, "Place Blacksmith-approved authorship/
+attribution line into 7 Zone B files") - the exact approved sentence:
 
-## Zone B findings (not fixed - reported only)
+> North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North
+> Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior
+> Technical Support Engineer, TSC.
 
-Nothing new this session. Two items already on record from the prior
-(`cc32003`) audit remain open and were re-confirmed still open, not
-re-investigated in depth (this session's task was the pull/review, not a
-re-chase of these):
+...into: `README.md` (after the H1 title), `ATTRIBUTION.md` (after the H1
+title), `FIRST_TIME_README.txt` (after the quick-start banner),
+`USER_MANUAL.md` (after the H1 title), `.hermes.template.md` (as an
+additional line directly under the existing shorter `AUTHORSHIP: Kenneth
+Walker Jr. / TSC` line, not replacing it),
+`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` (after the H1 title), and
+`KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` (as an additional line inside
+the existing top-of-file HTML comment block, directly under its existing
+`Authorship:` line - this file's body is explicitly "LOCKED"/"TEMPLATE LOCK
+RULE," but the header comment block has been edited before under
+Blacksmith-approved sessions per `CHANGELOG.md`'s "KB template header version
+drift" entry, so a header-only, additive, approved line follows the same
+precedent; the locked body/contact-block content was not touched).
 
-1. **`WELCOME.html` is still untracked and unzoned.** Confirmed absent from
-   this checkout (`ls WELCOME.html` -> "No such file or directory").
-   `launch-north-forge.bat` line 7 (`start "" "WELCOME.html"`) still
-   depends on it existing; a fresh clone still hits the "auto-open FAILED"
-   branch. No new action taken - still needs either a named handoff to
-   place it, or an explicit zone decision.
-2. The README.md `<img>`-tag edit the prior audit flagged as "uncommitted,
-   not made by Claude Code" is **no longer present anywhere** - `git diff`
-   on README.md is empty and `grep -n "north-forge-icon" README.md` returns
-   zero matches. This was an uncommitted, local working-tree edit on
-   whatever machine/session produced the prior audit; since it was never
-   committed, it could not and did not travel via `git pull` to this
-   checkout. Not a finding requiring action - just confirming it did not
-   silently vanish from tracked content (it was never tracked to begin
-   with).
+Deliberately **not** touched: `skills-source/**` and `mode-blocks/*` - these
+were not in the file list I presented for approval, so placing the line
+there would have exceeded the specific scope Kenneth actually approved, even
+though CLAUDE.md's Zone B list would have permitted asking about them too. If
+Kenneth wants the same line added to skill files or mode blocks, that needs
+its own explicit ask/approval - not assumed from this session's approval.
+
+No other Zone B content (skill instructions, mode-block behavior, the KB
+template body, the fallback prompt body, etc.) was read for correctness or
+flagged as wrong this session - this session's Zone B interaction was
+narrowly the authorship-line placement task, not a general audit.
 
 ## Commits made this session
 
-- `e342f7a` - "fix: escape parens in admin_gate PASS echo - was silently
-  bypassing password check" (Zone A: `machine-reset.bat`, `toggle-mode.bat`)
+- `a62a7ef` - "Add version/authorship headers to Zone A infrastructure
+  files" (Zone A: 9 files + `CHANGELOG.md`)
+- `c35b45a` - "Place Blacksmith-approved authorship/attribution line into 7
+  Zone B files" (Zone B placement, live-approved wording + `CHANGELOG.md`)
 
-Push history this session: first push attempt was rejected (remote had
-gained 3 new commits - `0c11bbb`, `9c88064`, `cc32003` - mid-session, a
-Desktop-shortcut OneDrive fix plus a backlog cleanup pass from a concurrent
-session). Ran `git fetch` + diffed the newly-arrived commits against the
-files I'd touched to confirm no overlap before integrating (per the
-STANDING RULE diff-before-placement habit, applied here to a rebase rather
-than a handoff, since the same principle - don't blindly merge over
-something without checking what it touches - applied): the OneDrive fix
-touches a different code block (`launch-north-forge.bat`'s Desktop-shortcut
-section) than the admin_gate fix, no overlap. `git pull --rebase` replayed
-`e342f7a` cleanly on top of `cc32003`; confirmed the fix's exact diff lines
-survived the rebase unchanged before pushing. Second push succeeded:
-`cc32003..e342f7a main -> main`. `git rev-parse HEAD origin/main` confirms
-both at `e342f7a` after push.
+Both pushed cleanly, no conflicts: `b7f08df..c35b45a main -> main`.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **The `RumpleStiltskin` admin password is stored in plaintext,
-   identically, across three files** (`machine-reset.bat`,
-   `toggle-mode.bat`, `toggle-mode.sh`), visible to anyone who can read the
-   repo (which, given this is a Blacksmith-reviewed, git-distributed
-   project, is presumably every technician/sales rep with drive access, or
-   anyone with GitHub access if the repo were ever made less private). The
-   "Hint: Brothers Grimm" message shown after 3 failed attempts makes the
-   password discoverable by design even without repo access. I did NOT
-   treat this as a bug to fix - it reads as a deliberate, low-stakes
-   friction gate ("Phase 4" per the code comments), not an attempt at real
-   access control, and changing the password or the scheme would be a
-   design decision, not a code-defect fix, squarely outside what CLAUDE.md
-   authorizes me to change unilaterally. Flagging it only so the Blacksmith
-   can confirm that's the intended threat model (a soft speed bump, not
-   real security) rather than something someone assumed was more locked
-   down than it actually is.
-2. **The Windows admin-gate prompt (`set /p PW=`) echoes the typed password
-   to the screen in plain text** as it's typed, unlike the bash version
-   (`toggle-mode.sh`'s `admin_gate` uses `read -r -s -p`, which is silent).
-   Native `cmd.exe` batch has no built-in masked-input primitive equivalent
-   to bash's `-s`; a real fix would need an auxiliary VBScript/PowerShell
-   helper reading character-by-character, which is a small feature build,
-   not a bug fix, so I did not attempt it. Flagging as a Windows/Mac
-   platform-behavior inconsistency worth a decision, not fixing it myself.
-3. Everything else flagged as open in the prior (`cc32003`) audit was NOT
+1. **New hand-off pattern used this session: live, in-chat approval of
+   Claude-Code-drafted wording, rather than a pre-written file handed over
+   from the Claude Project chat.** CLAUDE.md's Zone B exception text says
+   "when the Blacksmith or the Claude Project chat hands over a specific,
+   already-authored file to be placed into Zone B... Claude Code MAY place
+   that exact file." This session did not have a pre-authored file - it had
+   Claude-Code-drafted candidate text, shown verbatim to Kenneth via a
+   multiple-choice tool, with his selection being "approve as-is, place it
+   now" rather than him independently typing/writing the sentence himself.
+   I judged that his explicit, informed, live approval of the *exact* text
+   (he saw the literal sentence before choosing, and had "approve with
+   edits" and "skip Zone B entirely" as real alternatives he didn't pick)
+   satisfies the spirit of "only the Blacksmith approves changes here" even
+   though the letter of the exception assumes a pre-existing authored file.
+   This is exactly the kind of judgment call CLAUDE.md asks to be flagged
+   rather than quietly treated as settled - if the primary GPT disagrees
+   that live approval-of-drafted-text is equivalent to a genuine hand-off,
+   the seven Zone B placements in `c35b45a` should be treated as needing
+   Blacksmith re-confirmation (or reversion), not as done-and-safe.
+2. **`CHANGELOG.md` and `USER_MANUAL.md` are not named in any of CLAUDE.md's
+   three zone lists.** I treated `CHANGELOG.md` as safe for Claude Code to
+   append to (based on its own prior "(later session, Claude Code)"
+   entries - real precedent, not my assumption) and treated `USER_MANUAL.md`
+   as Zone-B-like (Blacksmith-reviewed, end-user-facing documentation, same
+   spirit as the explicitly-listed README/ATTRIBUTION/FIRST_TIME_README) and
+   therefore included it in the Zone B approval-ask rather than editing it
+   unilaterally. Both readings seem right to me but neither is dictated by
+   the letter of CLAUDE.md - worth the Blacksmith/primary GPT formally
+   deciding whether `CHANGELOG.md` should be added to Zone C's explicit list
+   and `USER_MANUAL.md` to Zone B's explicit list, so future sessions don't
+   have to re-derive this from context each time.
+3. **Per-file "Script version: 1.0.0" baseline does not reflect real prior
+   change history** for files that have already been meaningfully fixed
+   (`toggle-mode.bat`, `machine-reset.bat` - the `e342f7a` admin_gate fix
+   predates this baseline). This was a deliberate simplification (see Zone A
+   section above), not an oversight, but flagging so nobody mistakes "1.0.0"
+   as meaning "unmodified since creation."
+4. Everything else flagged as open in the prior (`b7f08df`) audit was NOT
    re-investigated this session and should be considered exactly as
-   documented there, not re-verified by me today: the "4279 commits behind"
-   banner (still unexplained, no new evidence either way, not re-checked
-   this session), and the `forge-events.log` `[ansi-fix]` entry claiming a
-   registry fix that a prior session's direct registry check could not
-   confirm actually holds. I did not re-run `git fsck`, did not re-check
-   the `HKCU:\Console` registry state, and did not re-attempt `hermes
-   update` this session - none of that was in scope for "pull and review
-   the pull," and re-stating the prior session's findings as freshly
-   re-verified would overstate what I actually checked today.
-4. The locally-generated `.hermes/skills/` directory (last built
-   2026-09-02 02:58, per file timestamps) is stale relative to the
-   `skills-source/` this pull brought in - it's missing `daily-brief` and
-   `manual`, both of which exist as real `SKILL.md` files in
-   `skills-source/shared/` and are correctly listed in this pull's own
-   `NEXT_STEPS.md` narrative (skill count 15 -> 16). This is expected,
-   by-design behavior, not a bug: `.gitignore`'s own comment says these are
-   "generated at each launch," and no launch has run on this machine since
-   before this pull landed. `hermes skills list --source local` currently
-   shows 14 local skills + `hermes-windows-maintenance` (15 total),
-   confirming the stale/pre-pull count. The next `launch-north-forge.bat`
-   run will rebuild `.hermes/skills/` from the current `skills-source/` and
-   pick up both new skills automatically - noting this only so it isn't
-   mistaken for a registration bug if someone runs `hermes skills list`
-   before relaunching.
-5. `hermes doctor` reported 3 issues, all environment/machine-level, none
-   repo-specific and none touched by this pull: 1 npm vulnerability in the
-   `agent-browser` workspace, 2 npm vulnerabilities in the `web` workspace
-   (described by `hermes doctor` itself as a "build-tool advisory... clears
-   via lockfile bump"), and missing optional API keys (OpenRouter, xAI,
-   Nous Portal, MiniMax, Discord). None of these are Zone A/B/C content in
-   this repo - they belong to the Hermes engine install itself
-   (`%LOCALAPPDATA%\hermes`), outside this repo's scope, so no action taken
-   here.
+   documented there: `WELCOME.html` still untracked/unzoned, the plaintext
+   `RumpleStiltskin` password across 3 files (design question, not a bug),
+   and the unmasked Windows password prompt (platform gap, not a bug). None
+   of this session's edits touched the `admin_gate` logic or password
+   handling in any file.
+5. `hermes doctor` reported 3 issues this session, same as last session, all
+   environment/machine-level and none touched by this session's work: 1 npm
+   vulnerability in `agent-browser`, 2 in the `web` workspace (described by
+   `hermes doctor` as clearing "via a lockfile bump"), and missing optional
+   API keys (OpenRouter, xAI, Nous Portal, MiniMax, Discord/Codex auth). Not
+   repo content, no action taken.
 
 ## Status
-Findings Present - one real, now-fixed security-relevant bug (the
-admin_gate password bypass, both files, Zone A, fixed and pushed at
-`e342f7a`), plus two smaller flagged-not-fixed observations (plaintext
-password storage, unmasked Windows password prompt) that are design
-questions for the Blacksmith rather than code defects. All prior-session
-open items (commits-behind banner, ansi-fix registry claim, WELCOME.html
-zone gap) remain exactly as previously documented - not re-investigated
-this session, not newly resolved, not newly regressed.
+Findings Present - two commits made, one Zone A (unambiguously within
+Claude Code's authority) and one Zone B placement gated on live Blacksmith
+approval of exact wording (a new hand-off pattern, flagged above for
+explicit primary-GPT sign-off that the pattern itself is acceptable going
+forward, not just that this session's specific text was fine). No bugs
+found or fixed this session. Needs primary GPT review specifically on item 1
+above before this pattern is treated as a standing precedent.
