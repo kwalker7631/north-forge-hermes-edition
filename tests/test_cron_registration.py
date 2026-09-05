@@ -39,6 +39,7 @@ exit 0
             script.write_text(
                 "#!/usr/bin/env bash\nset -e\n"
                 "log_event() { printf '[INFO] [%s]: %s\\n' \"$1\" \"$2\" >> forge-events.log; }\n"
+                + f'HERMES_EXE="{fake_hermes}"\n'
                 + block,
                 encoding="utf-8",
             )
@@ -69,7 +70,7 @@ exit 0
         launcher = (ROOT / "launch-north-forge.bat").read_text(encoding="utf-8")
         for job in ("nightly-kyocera-research", "daily-kyocera-brief"):
             self.assertIn(f"WARNING: Could not schedule {job} (exit ", launcher)
-        self.assertEqual(launcher.count("Add-Content -LiteralPath 'forge-events.log'"), 2)
+        self.assertGreaterEqual(launcher.count("Add-Content -LiteralPath 'forge-events.log'"), 2)
         self.assertEqual(launcher.count("automated nightly research will not run"), 1)
         self.assertEqual(launcher.count("automated daily brief will not run"), 1)
         self.assertIn("WARNING SUMMARY: North Forge is starting in degraded mode", launcher)

@@ -29,6 +29,7 @@ AGENTS.override.md
 .hermes.md
 
 # Hermes runtime/state - this repo holds the content layer only,
+/.hermes-home/
 # not per-machine state, memory, sessions, or logs
 config.yaml
 state.db

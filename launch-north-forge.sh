@@ -8,6 +8,18 @@
 set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
+# Hermes' official installers create this checkout, virtual environment, and
+# wrapper beneath HERMES_HOME.  Keep all three on this drive so a system-wide
+# `hermes` command can never take over a North Forge session.
+HERMES_HOME="$(pwd)/.hermes-home"
+HERMES_EXE="$HERMES_HOME/bin/hermes"
+export HERMES_HOME
+
+hermes_ready() {
+    [ -d "$HERMES_HOME/hermes-agent" ] &&
+        [ -d "$HERMES_HOME/venv" ] &&
+        [ -x "$HERMES_EXE" ]
+}
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
@@ -210,15 +222,28 @@ fi
 echo "North Forge running in $MODE mode."
 echo "Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it."
 
-# --- install Hermes FIRST if missing - nothing below this works without it ---
-if ! command -v hermes >/dev/null 2>&1; then
-    echo "Hermes not found on this machine - installing now..."
-    curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-    echo ""
-    echo "Install finished. Open a new terminal and run this script again:"
-    echo "  bash launch-north-forge.sh"
-    exit 0
+# --- install Hermes on THIS drive if its complete local runtime is absent ---
+if ! hermes_ready; then
+    echo "North Forge's drive-local Hermes is not ready - installing it now..."
+    if curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash; then
+        :
+    else
+        status=$?
+        echo "ERROR: Hermes installation did not finish successfully (exit $status)."
+        echo "Please check your internet connection and forge-events.log, then try again."
+        log_event "hermes-install" "FAILURE: official installer exited $status"
+        exit "$status"
+    fi
+    if ! hermes_ready; then
+        echo "ERROR: The installer reported success, but North Forge could not find its"
+        echo "engine, virtual environment, and launcher under .hermes-home."
+        echo "Nothing else was started. See forge-events.log for the paths checked."
+        log_event "hermes-install" "FAILURE: installer exited 0 but required markers were absent (checkout=$HERMES_HOME/hermes-agent, venv=$HERMES_HOME/venv, executable=$HERMES_EXE)"
+        exit 1
+    fi
+    log_event "hermes-install" "SUCCESS: verified drive-local checkout, venv, and executable"
 fi
+[ "${NORTH_FORGE_HERMES_READY_ONLY:-0}" = 1 ] && exit 0
 
 # --- provider choice: default to zero-config OpenCode Free (no key, no
 # account, no block); using your own Anthropic API key is opt-in, not the
@@ -243,7 +268,7 @@ configure_free_provider() {
     # nonzero exit doesn't trip `set -e` before it can be handled.
     rm -f ".provider-choice"
     local set_out set_status unset_out unset_status unset_absent
-    if set_out="$(hermes config set model.provider opencode-free 2>&1)"; then
+    if set_out="$("$HERMES_EXE" config set model.provider opencode-free 2>&1)"; then
         set_status=0
     else
         set_status=$?
@@ -257,7 +282,7 @@ configure_free_provider() {
         return "$set_status"
     fi
 
-    if unset_out="$(hermes config unset model.default 2>&1)"; then
+    if unset_out="$("$HERMES_EXE" config unset model.default 2>&1)"; then
         unset_status=0
     else
         unset_status=$?
@@ -278,6 +303,11 @@ configure_free_provider() {
     echo "free" > ".provider-choice"
     return 0
 }
+
+if [ "${1:-}" = "--configure-free-provider" ]; then
+    configure_free_provider
+    exit $?
+fi
 
 if [ ! -f ".provider-choice" ]; then
     echo ""
@@ -333,20 +363,20 @@ if [ "$PROVIDERMODE" = "ownkey" ]; then
 fi
 
 # --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
-HERMES_SKIN_DIR="${HERMES_HOME:-$HOME/.hermes}/skins"
+HERMES_SKIN_DIR="$HERMES_HOME/skins"
 mkdir -p "$HERMES_SKIN_DIR"
 cp -f "skins/north-forge.yaml" "$HERMES_SKIN_DIR/north-forge.yaml"
 
 echo "Activating North Forge skin..."
-hermes skin use north-forge
+"$HERMES_EXE" skin use north-forge
 echo "Skin list after activation (look for * next to north-forge):"
-hermes skin list
+"$HERMES_EXE" skin list
 
 # Project-local skills require an explicit trust decision before Hermes will
 # load them (security gate against a git pull silently injecting a skill).
 # Auto-approved here since this repo is Blacksmith-reviewed before it ever
 # reaches a drive - see README for the tradeoff this makes.
-hermes skills trust .
+"$HERMES_EXE" skills trust .
 
 # Self-healing scheduled jobs - re-adds the research and daily-brief cron
 # entries if either is missing (e.g. after an AppData flush wiped them).
@@ -364,17 +394,17 @@ report_cron_failure() {
     printf '[%s] [WARNING] [cron]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$warning" >> "forge-events.log"
     CRON_DEGRADED="${CRON_DEGRADED}${CRON_DEGRADED:+; }$job_name"
 }
-if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
+if ! "$HERMES_EXE" cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    if CRON_DIAGNOSTIC="$(hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
+    if CRON_DIAGNOSTIC="$("$HERMES_EXE" cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
         report_cron_failure "nightly-kyocera-research" "automated nightly research" "$?" "$CRON_DIAGNOSTIC"
     fi
 fi
-if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
+if ! "$HERMES_EXE" cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    if CRON_DIAGNOSTIC="$(hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
+    if CRON_DIAGNOSTIC="$("$HERMES_EXE" cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
         report_cron_failure "daily-kyocera-brief" "automated daily brief" "$?" "$CRON_DIAGNOSTIC"
@@ -389,7 +419,7 @@ fi
 # session ends (exec would replace this process and nothing could run after).
 # The || guard keeps set -e from aborting before the log line is written.
 HERMES_EXIT=0
-hermes || HERMES_EXIT=$?
+"$HERMES_EXE" || HERMES_EXIT=$?
 if [ "$HERMES_EXIT" -eq 0 ]; then
     log_event "hermes" "session ended normally (exit 0)"
 else

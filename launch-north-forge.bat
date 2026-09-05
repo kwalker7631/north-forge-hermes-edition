@@ -7,6 +7,10 @@ rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
+rem The official installer creates these three items beneath HERMES_HOME.
+rem Force HERMES_HOME onto this drive; never resolve a machine-wide Hermes.
+set "HERMES_HOME=%CD%\.hermes-home"
+set "HERMES_EXE=%CD%\.hermes-home\bin\hermes.bat"
 
 if /i "%~1"=="--configure-free-provider" (
     call :CONFIGURE_FREE_PROVIDER
@@ -133,15 +137,29 @@ if errorlevel 1 (
 echo North Forge running in %MODE% mode.
 echo Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it.
 
-rem --- install Hermes FIRST if missing - nothing below this works without it ---
-where hermes >nul 2>nul
+rem --- install Hermes on THIS drive if its complete local runtime is absent ---
+call :HERMES_READY
 if errorlevel 1 (
-    echo Hermes not found on this machine - installing now...
+    echo North Forge's drive-local Hermes is not ready - installing it now...
     powershell -NoProfile -ExecutionPolicy Bypass -Command "iex (irm https://hermes-agent.nousresearch.com/install.ps1)"
-    echo.
-    echo Install finished. Close this window and double-click this launcher again.
-    pause
-    exit /b
+    set "INSTALL_EXIT=!ERRORLEVEL!"
+    if not "!INSTALL_EXIT!"=="0" (
+        echo ERROR: Hermes installation did not finish successfully ^(exit !INSTALL_EXIT!^).
+        echo Please check your internet connection and forge-events.log, then try again.
+        >> "forge-events.log" echo [!DATE! !TIME!] [FAILURE] [hermes-install]: official installer exited !INSTALL_EXIT!
+        pause
+        exit /b !INSTALL_EXIT!
+    )
+    call :HERMES_READY
+    if errorlevel 1 (
+        echo ERROR: The installer reported success, but North Forge could not find its
+        echo engine, virtual environment, and launcher under .hermes-home.
+        echo Nothing else was started. See forge-events.log for the paths checked.
+        >> "forge-events.log" echo [!DATE! !TIME!] [FAILURE] [hermes-install]: installer exited 0 but required markers were absent ^(checkout=!HERMES_HOME!\hermes-agent, venv=!HERMES_HOME!\venv, executable=!HERMES_EXE!^)
+        pause
+        exit /b 1
+    )
+    >> "forge-events.log" echo [!DATE! !TIME!] [INFO] [hermes-install]: verified drive-local checkout, venv, and executable
 )
 
 rem --- provider choice: default to zero-config OpenCode Free (no key, no
@@ -208,51 +226,47 @@ if /i "%PROVIDERMODE%"=="ownkey" (
 )
 
 rem --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
-if defined HERMES_HOME (
-    set "SKIN_DIR=%HERMES_HOME%\skins"
-) else (
-    set "SKIN_DIR=%LOCALAPPDATA%\hermes\skins"
-)
+set "SKIN_DIR=%HERMES_HOME%\skins"
 if not exist "%SKIN_DIR%" mkdir "%SKIN_DIR%"
 copy /Y "skins\north-forge.yaml" "%SKIN_DIR%\north-forge.yaml" >nul
 
 echo Activating North Forge skin...
-hermes skin use north-forge
+call "%HERMES_EXE%" skin use north-forge
 echo Skin list after activation (look for * next to north-forge):
-hermes skin list
+call "%HERMES_EXE%" skin list
 
 rem Project-local skills require an explicit trust decision before Hermes will
 rem load them (security gate against a git pull silently injecting a skill).
 rem Auto-approved here since this repo is Blacksmith-reviewed before it ever
 rem reaches a drive - see README for the tradeoff this makes.
-hermes skills trust .
+call "%HERMES_EXE%" skills trust .
 
 rem Self-healing scheduled jobs - re-adds the research and daily-brief cron
 rem entries if either is missing (e.g. after an AppData flush wiped them).
 rem No manual /cron add ever needed again.
 set "CRON_DEGRADED="
-hermes cron list 2>nul | findstr /C:"nightly-kyocera-research" >nul
+call "%HERMES_EXE%" cron list 2>nul | findstr /C:"nightly-kyocera-research" >nul
 if errorlevel 1 (
     echo Scheduling the nightly Kyocera research job...
     set "CRON_DIAG=%TEMP%\north-forge-cron-!RANDOM!-!RANDOM!.txt"
-    hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >"!CRON_DIAG!" 2>&1
+    call "%HERMES_EXE%" cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >"!CRON_DIAG!" 2>&1
     set "CRON_EXIT=!ERRORLEVEL!"
     if not "!CRON_EXIT!"=="0" (
-        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule nightly-kyocera-research (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated nightly research will not run. Check Hermes with ''hermes cron list'', then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
+        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule nightly-kyocera-research (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated nightly research will not run. Check the drive-local Hermes cron list, then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
         set "CRON_DEGRADED=nightly-kyocera-research"
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered nightly-kyocera-research ^(0 6 * * *^)
     )
     del /q "!CRON_DIAG!" 2>nul
 )
-hermes cron list 2>nul | findstr /C:"daily-kyocera-brief" >nul
+call "%HERMES_EXE%" cron list 2>nul | findstr /C:"daily-kyocera-brief" >nul
 if errorlevel 1 (
     echo Scheduling the daily Kyocera brief job...
     set "CRON_DIAG=%TEMP%\north-forge-cron-!RANDOM!-!RANDOM!.txt"
-    hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >"!CRON_DIAG!" 2>&1
+    call "%HERMES_EXE%" cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >"!CRON_DIAG!" 2>&1
     set "CRON_EXIT=!ERRORLEVEL!"
     if not "!CRON_EXIT!"=="0" (
-        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule daily-kyocera-brief (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated daily brief will not run. Check Hermes with ''hermes cron list'', then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
+        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule daily-kyocera-brief (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated daily brief will not run. Check the drive-local Hermes cron list, then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
         if defined CRON_DEGRADED (set "CRON_DEGRADED=!CRON_DEGRADED!; daily-kyocera-brief") else set "CRON_DEGRADED=daily-kyocera-brief"
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered daily-kyocera-brief ^(0 8 * * *^)
@@ -260,10 +274,10 @@ if errorlevel 1 (
     del /q "!CRON_DIAG!" 2>nul
 )
 
-if defined CRON_DEGRADED echo WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job^(s^): !CRON_DEGRADED!. Interactive North Forge is still available; run 'hermes cron list' to check Hermes, then relaunch to retry.
+if defined CRON_DEGRADED echo WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job^(s^): !CRON_DEGRADED!. Interactive North Forge is still available; check the drive-local Hermes cron list, then relaunch to retry.
 
 rem Plain call (was already not exec'd on Windows) - log how the session ended.
-hermes
+call "%HERMES_EXE%"
 set "HERMES_EXIT=%ERRORLEVEL%"
 if "%HERMES_EXIT%"=="0" (
     >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [hermes]: session ended normally ^(exit 0^)
@@ -273,11 +287,12 @@ if "%HERMES_EXIT%"=="0" (
 exit /b %HERMES_EXIT%
 
 :CONFIGURE_FREE_PROVIDER
+setlocal EnableDelayedExpansion
 del /q ".provider-choice" >nul 2>nul
 set "CONFIG_TMP=%TEMP%\north-forge-provider-!RANDOM!-!RANDOM!"
 mkdir "!CONFIG_TMP!" >nul 2>nul
 
-hermes config set model.provider opencode-free >"!CONFIG_TMP!\set.out" 2>"!CONFIG_TMP!\set.err"
+call "%HERMES_EXE%" config set model.provider opencode-free >"!CONFIG_TMP!\set.out" 2>"!CONFIG_TMP!\set.err"
 set "SET_STATUS=!ERRORLEVEL!"
 if not "!SET_STATUS!"=="0" (
     echo ERROR: Hermes could not select OpenCode Free ^(exit !SET_STATUS!^).
@@ -289,7 +304,7 @@ if not "!SET_STATUS!"=="0" (
     exit /b !SET_STATUS!
 )
 
-hermes config unset model.default >"!CONFIG_TMP!\unset.out" 2>"!CONFIG_TMP!\unset.err"
+call "%HERMES_EXE%" config unset model.default >"!CONFIG_TMP!\unset.out" 2>"!CONFIG_TMP!\unset.err"
 set "UNSET_STATUS=!ERRORLEVEL!"
 set "UNSET_ABSENT=0"
 if "!UNSET_STATUS!"=="1" (
@@ -312,4 +327,10 @@ exit /b 0
 
 :LOG_PROVIDER_DETAIL
 powershell -NoProfile -Command "$text=((Get-Content -Raw -LiteralPath '%~1')+(Get-Content -Raw -LiteralPath '%~2')); $safe=$text -replace '(?i)(api[_-]?key|token|secret|password)(\s*[:=]\s*)\S+','$1$2[REDACTED]'; Add-Content -LiteralPath 'forge-events.log' -Value ('[provider-config detail] '+$safe.Trim())"
+exit /b 0
+
+:HERMES_READY
+if not exist "%HERMES_HOME%\hermes-agent\" exit /b 1
+if not exist "%HERMES_HOME%\venv\" exit /b 1
+if not exist "%HERMES_EXE%" exit /b 1
 exit /b 0
