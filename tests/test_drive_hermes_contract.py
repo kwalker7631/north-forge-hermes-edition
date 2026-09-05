@@ -25,5 +25,11 @@ def test_windows_guard_has_three_states_staging_and_diagnostics():
         "$LASTEXITCODE",
         "Diagnostic log:",
         "Shared Hermes setup on this computer was not touched",
+        "no Hermes install log exists",
+        "[START] Drive-local Hermes setup started",
+        "[STAGE] Installer download/copy started",
+        "[PASS] Validation passed",
+        "[FAIL] Installer/validation failed",
+        "[COMPLETE] Hermes installation activated",
     ):
         assert required in guard

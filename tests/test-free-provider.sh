@@ -14,6 +14,7 @@ run_case() {
     cp -R "$ROOT/." "$work/"
     rm -rf "$work/.git"
     mkdir -p "$work/.hermes-home/bin" "$work/.hermes-home/hermes-agent" "$work/.hermes-home/venv"
+    : > "$work/.hermes-home/hermes-agent/pyproject.toml"
     : > "$work/.readme-shown"
     printf "Tester\n" > "$work/.drive-record.txt"
     printf "North Forge\n" > "$work/.agent-name"

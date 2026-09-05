@@ -27,7 +27,11 @@ ensure_drive_hermes() {
         echo "ERROR: This drive has a partial or damaged .hermes-home; North Forge will not use or overwrite it."
         echo "Shared Hermes setup on this computer was not touched."
         echo "Recovery: rename .hermes-home and .hermes-install-staging for inspection (or remove them), remove .hermes-install-incomplete, then launch again."
-        echo "Diagnostic logs: $logs"
+        if [ ! -d "$logs" ] || ! find "$logs" -maxdepth 1 -type f -name 'hermes-install-*.log' -print -quit 2>/dev/null | grep -q .; then
+            echo "Diagnostic finding: no Hermes install log exists. The setup stopped before logging began, or the logs were removed."
+        else
+            echo "Diagnostic logs: $logs"
+        fi
         return 20
     fi
 
@@ -44,15 +48,21 @@ ensure_drive_hermes() {
         echo "ERROR: The drive is not writable. Nothing was installed; unlock it or choose writable media and retry."
         return 21
     fi
-    rm -f "$root/.hermes-write-test"
     stamp=$(date '+%Y%m%d-%H%M%S')
     log="$logs/hermes-install-$stamp.log"
+    printf '[%s] [START] Drive-local Hermes setup started.\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "$log"
+    printf '[%s] [PASS] Drive write check passed.\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
+    rm -f "$root/.hermes-write-test"
     : > "$marker"
+    printf '[%s] [STAGE] Incomplete-install marker created.\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
     if ! mkdir "$stage"; then
+        printf '[%s] [ABORT] Could not create installation staging folder.\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
         echo "ERROR: Could not create the installation staging folder. See $log"
         return 21
     fi
+    printf '[%s] [STAGE] Installation staging folder created.\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
     installer="$logs/hermes-installer-$stamp.sh"
+    printf '[%s] [STAGE] Installer download/copy started.\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
     if [ -n "${NORTH_FORGE_INSTALLER_SH:-}" ]; then
         cp -- "$NORTH_FORGE_INSTALLER_SH" "$installer" 2>>"$log"
         exit_code=$?
@@ -61,19 +71,24 @@ ensure_drive_hermes() {
         exit_code=$?
     fi
     if [ "$exit_code" -eq 0 ]; then
+        printf '[%s] [PASS] Installer acquired; installer invocation started.\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
         if HERMES_HOME="$stage" bash "$installer" >>"$log" 2>&1; then exit_code=0; else exit_code=$?; fi
     fi
     if [ "$exit_code" -ne 0 ] || ! hermes_home_valid "$stage"; then
+        printf '[%s] [FAIL] Installer/validation failed (installer exit %s; executable and pyproject check did not both pass).\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$exit_code" >> "$log"
         echo "ERROR: Hermes installation failed or did not pass validation (installer exit $exit_code)."
         echo "Shared Hermes setup on this computer was not touched. Diagnostic log: $log"
         echo "Recovery: remove .hermes-install-staging and .hermes-install-incomplete, then launch again. Keep $log when asking for help."
         return 22
     fi
+    printf '[%s] [PASS] Validation passed (drive-local executable and pyproject found).\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
     if ! mv -- "$stage" "$home"; then
+        printf '[%s] [ABORT] Validated installation could not be activated.\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
         echo "ERROR: Hermes was validated but could not be activated. See $log; shared host setup was not touched."
         return 23
     fi
     rm -f "$marker"
+    printf '[%s] [COMPLETE] Hermes installation activated and incomplete marker removed.\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log"
     export HERMES_HOME="$home"
     export PATH="$home/bin:$home:$PATH"
     echo "Hermes was installed and validated on this drive."

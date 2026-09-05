@@ -64,6 +64,21 @@ same naming convention - use a topic that reflects what was actually
 investigated (e.g. `logs/CODEX_HERMES_HOME_ISOLATION_2026-09-06.md`), not a
 generic placeholder name.
 
+## Mandatory push log - hard requirement
+
+In addition to the full narrative report above, every Codex session must
+append one entry to `logs/CODEX_PUSH_LOG.md` for each commit it pushes. Never
+overwrite existing entries. Use this exact format so quick updates remain
+easy to scan:
+
+```text
+[YYYY-MM-DD HH:MM] <commit-hash> - <one-line summary> (full report: logs/<report-filename>.md)
+
+```
+
+Create `logs/CODEX_PUSH_LOG.md` if it does not exist. The full report remains
+mandatory; this short log supplements it and does not replace it.
+
 ## Relationship to CLAUDE.md
 
 `CLAUDE.md` (repo root) governs Claude Code sessions in this same
