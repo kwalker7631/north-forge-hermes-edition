@@ -35,15 +35,22 @@ if not exist ".drive-record.txt" (
 rem --- first run on this machine: put a real North Forge icon on the Desktop
 rem (Windows twin of the Mac launcher's "North Forge.command" desktop icon).
 rem Points at this launcher wherever the drive is mounted right now.
-if not exist "%USERPROFILE%\Desktop\North Forge.lnk" (
+rem Resolved via WScript.Shell SpecialFolders, not %USERPROFILE%\Desktop -
+rem that hardcoded path does not exist whenever Desktop is OneDrive-redirected
+rem (e.g. C:\Users\<user>\OneDrive\Desktop instead of C:\Users\<user>\Desktop,
+rem a common Windows setup), which silently failed shortcut creation on every
+rem launch (reproduced 2026-09-04: DirectoryNotFoundException on $s.Save()).
+for /f "usebackq delims=" %%D in (`powershell -NoProfile -Command "(New-Object -ComObject WScript.Shell).SpecialFolders('Desktop')"`) do set "DESKTOPDIR=%%D"
+if not defined DESKTOPDIR set "DESKTOPDIR=%USERPROFILE%\Desktop"
+if not exist "!DESKTOPDIR!\North Forge.lnk" (
     powershell -NoProfile -Command ^
-        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut(\"$env:USERPROFILE\Desktop\North Forge.lnk\");" ^
+        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('!DESKTOPDIR!\North Forge.lnk');" ^
         "$s.TargetPath='%~f0'; $s.WorkingDirectory='%~dp0';" ^
         "$s.IconLocation='%~dp0assets\north-forge.ico'; $s.Save()" >nul 2>nul
-    if exist "%USERPROFILE%\Desktop\North Forge.lnk" (
-        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [shortcut]: Desktop shortcut created with icon
+    if exist "!DESKTOPDIR!\North Forge.lnk" (
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [shortcut]: Desktop shortcut created with icon at !DESKTOPDIR!
     ) else (
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [shortcut]: Desktop shortcut creation FAILED
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [shortcut]: Desktop shortcut creation FAILED ^(target: !DESKTOPDIR!^)
     )
 )
 
