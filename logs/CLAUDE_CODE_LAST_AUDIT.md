@@ -1,651 +1,250 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-05 (~14:20 local, America/New_York; extended by follow-up
-in-session requests through ~16:00). Four related requests this session:
-(1) rename `audit/` -> `logs/` and update references in editable files;
-(2) a Blacksmith handoff to apply the same rename inside `CLAUDE.md` (Zone
-B); (3) a Blacksmith handoff to apply the same rename in `README.md`'s
-file-tree diagram (Zone B); (4) a Blacksmith handoff extending `CLAUDE.md`'s
-Zone A enumerated file list to include `logs/FORGE_EVENT_LOG.md` and
-`AGENTS.md`. All four landed and are pushed - the rename is fully consistent
-across the repo and the two long-standing zone-ambiguity flags are closed.
-No prior session context carried in beyond `logs/CLAUDE_CODE_LAST_AUDIT.md`
-(formerly `audit/CLAUDE_CODE_LAST_AUDIT.md`) as it stood at session start -
-the "diagnostic verification session" report matching commit `cbf4baa`.
+Timestamp: 2026-09-05 (~evening, America/New_York)
+Requested task: "pull /logs from git codex audit" - i.e. run the session-start
+`git pull` and bring the newly-pushed Codex sandbox re-audit report (and
+whatever landed with it) into the local working tree, then report state. No
+repair or handoff was requested; this is a pull + verify + report session.
 
-Requested task (verbatim intent): Rename the `audit/` folder to `logs/`
-throughout the repo, preserving git history (`git mv`, not delete+recreate).
-Specifically:
-1. `git mv audit/ logs/` - preserve history for every existing report.
-2. Update every reference to the `audit/` path in files Claude Code can edit
-   directly: `AGENTS.md` (governance/process content, explicitly NOT Zone B -
-   update its own report-path references); any script or test that references
-   an `audit/` path literally (grep the whole repo, not just the obvious
-   ones); `FORGE_EVENT_LOG.md`'s own description text if it names the `audit/`
-   folder.
-3. Do NOT edit `CLAUDE.md` directly - a separate handoff will carry that
-   piece. (No handoff text was included in this session's request.)
-4. The in-progress Codex sandbox re-audit (Part 1-3 + the logging addition)
-   should write its report to `logs/CODEX_FULL_SANDBOX_REAUDIT_<date>.md`
-   once this rename lands, not `audit/`.
-5. QUICK CHECK: `grep -r "audit/"` across the repo after the rename - confirm
-   zero remaining references outside git history / old commit messages;
-   confirm `logs/` contains everything that was in `audit/`; confirm `.env`
-   is not staged; commit and push.
+## Summary
 
-Mid-session scoping decision (recorded): the request's item-2 bullet list
-named `AGENTS.md`, scripts/tests, and `FORGE_EVENT_LOG.md`, and item 3 carved
-out `CLAUDE.md`, but the QUICK CHECK asks for "zero remaining references." The
-Zone C operational docs (`NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md`,
-`CHANGELOG.md`) carried ~13 `audit/`-folder path pointers, many inside dated
-historical entries. This was put to the user as an explicit multiple-choice
-question in-session. The user chose: **"Yes, sweep all Zone C now"** - update
-every `audit/`-folder path reference to `logs/` in all three Zone C docs,
-including the ones inside dated historical entries. That was done.
-
-Second in-session request (the CLAUDE.md handoff): after the rename commits
-(`6e6fb9c`, `49adaf2`) were pushed, Kenneth sent a named in-session handoff
-identifying `CLAUDE.md` and instructing the `audit/` -> `logs/` path rename
-in its Zone A file list, Session Start Protocol, and any other section
-naming that path - "naming change only." This matches the confirmed
-2026-08-26 handoff trigger (an in-session named handoff from Kenneth
-identifying a specific Zone B file, including CLAUDE.md itself, is the
-intended and sufficient trigger). Applied as commit `39800c1` - see the
-"Zone B placement" section below.
-
-Third in-session request (the README.md handoff): a further named handoff
-to fix `README.md` line 88 - the file-tree diagram's `audit/` entry, one
-path token, `-> logs/`. Same Zone B placement exception (`README.md` is
-Zone B per CLAUDE.md's "Zone B (continued) - user-facing documentation"
-section, which carries the same place-a-handed-over-revision exception).
-Applied as commit `6173c65`. This was the last outstanding stale
-reference; after it, `grep -rn "audit/"` over the repo returns only the
-mode-name token, this session's own `.gitignore` rename-note comment, the
-unrelated `forge-audit/` skill folder, and point-in-time text inside
-`logs/` reports and git history.
+`git pull` fast-forwarded `main` from `039de26` to `7f75347` (merge of PR #18,
+`codex/update-logging-structure-and-conduct-sandbox-re-audit`). The Codex work
+arrived as a single squashed commit `34785f1` ("Record Codex sandbox re-audit
+commit", parent `039de26`) under merge commit `7f75347`. 11 files changed,
++302 / -8. All of it is Zone A (infrastructure/tests), Codex-process content
+in `AGENTS.md`, or Codex operational report files under `logs/`. Nothing
+landed in Zone B. Nothing was uncommitted in the working tree before or after
+the pull except the two pre-existing untracked artifacts noted below. Claude
+Code made no code or content changes this session - only this audit report.
 
 ## Files inspected
 
-Read in full:
-- `logs/CLAUDE_CODE_LAST_AUDIT.md` (pre-session version, 19788 bytes / ~342
-  lines - the `cbf4baa` "diagnostic verification session" report; overwritten
-  by this report as the final step)
-- `.gitignore` (pre-session: 65 lines, 2164-ish bytes on disk, version 1.0.1,
-  "Updated: 2026-09-05")
-- `AGENTS.md` (82 lines, repo root)
-- `logs/FORGE_EVENT_LOG.md` (formerly `audit/FORGE_EVENT_LOG.md`; 35 lines)
-- `CHANGELOG.md` (115 lines - Zone C)
-- `README.md` lines 80-97 (Zone B - file-tree section around the `audit/`
-  entry, plus the folder-name-correction note)
-- `NEXT_STEPS.md` - targeted reads of every `audit/`-containing line and its
-  context (lines ~27-35, ~100-110, ~235-245, ~270-280, ~325-335, ~370-380,
-  ~460-470)
-- `DEMO_PREP_BACKLOG.md` - targeted reads around lines 239-255
-- `CLAUDE.md` - full read via project-instructions load; plus targeted reads
-  of lines 40-49, 195-204, 316-329 (the 3 `audit/`-path regions) for the
-  handoff placement
+Read in full this session:
+- `logs/CLAUDE_CODE_LAST_AUDIT.md` (pre-session: 36121 bytes - the 2026-09-05
+  `audit/` -> `logs/` rename report, `git log` chain ending at `039de26`;
+  overwritten by this report as the final step)
+- `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` (NEW from the pull; 19711
+  bytes / 209 lines - the Codex report this session was asked to pull)
+- `logs/CODEX_PUSH_LOG.md` (NEW from the pull; 173 bytes / 2 lines - the
+  append-only quick index the new `AGENTS.md` rule mandates)
+- `.gitignore` (post-pull: 69 lines / v1.0.1 / "Updated: 2026-09-05" -
+  unchanged by the pull; re-verified against Session Start Protocol step 4)
 
-Inspected via grep / git / shell (read-only):
-- `grep -rn "audit/"` across the whole working tree (excluding `.git`,
-  `.hermes`, `.hermes-home`) - run 3 times: before the rename, after the
-  rename + `AGENTS.md`/`FORGE_EVENT_LOG.md` edits, and after the Zone C sweep
-- `grep -rn "logs/"` across the whole working tree
-- `git status` / `git status --porcelain` / `git status --ignored --porcelain`
-- `git diff` / `git diff --cached` / `git diff --cached --stat` /
-  `git diff --cached -M --summary`
-- `git log --oneline -8`, `git log --oneline -- audit/CLAUDE_CODE_LAST_AUDIT.md`,
-  `git log --oneline -- .gitignore`
-- `git check-ignore -v` against ~10 probe paths (see Zone A section)
-- `git show HEAD:.gitignore | grep -n ...`
-- `git ls-files audit/`
-- `ls -la` of `audit/` (pre) and `logs/` (post), repo root, `install-logs/`
-- `cat .hermes-install-incomplete` (empty file), `cat .git/info/exclude`
-  (only comments), `git config --get core.excludesfile` (unset)
-- `hermes doctor` / `hermes skills list --source local` - `hermes` is not on
-  PATH in this environment (`command not found`), so neither ran; consistent
-  with prior sessions on this drive.
+Inspected via git / shell (read-only):
+- `git pull` (fast-forward `039de26..7f75347`, 11 files, +302/-8)
+- `git status` / `git status --porcelain` - before and after the pull
+- `git diff` (empty - clean tree) / `git log --oneline -15`
+- `git diff 039de26..7f75347 -- AGENTS.md launch-north-forge.sh
+  scripts/ensure-hermes.ps1 scripts/ensure-hermes.sh tests/` (full unified
+  diff, read in full - quoted in the "What the pull delivered" section below)
+- `git diff 039de26..7f75347 --stat`
+- `git log --oneline --graph -6 7f75347`; `git show 34785f1 --stat`;
+  `git rev-list --parents -n 1 34785f1` (parent = `039de26`, single parent -
+  squash, not a real branch history)
+- `git cat-file -t 6dd58ab71b6e3b33887bffbbe3d44a1e3185b182` ->
+  `fatal: could not get object info`; `git merge-base --is-ancestor
+  6dd58ab... HEAD` -> `fatal: Not a valid commit name` (see flag 1)
+- `ls -la logs/` - 8 files present after pull (6 originals + the 2 new Codex
+  files); byte counts recorded above
+- `command -v hermes` -> not on PATH (consistent with every prior session on
+  this drive); `hermes doctor` / `hermes skills list` not run
+- `python --version` -> 3.11.9; `python -m pytest` -> `No module named
+  pytest`; `python -m unittest discover -s tests -p "test_*.py"` -> Ran 12,
+  5 errors (all `OSError: [WinError 193] %1 is not a valid Win32
+  application` - the tests `subprocess.run` `.sh` scripts and this native
+  Windows environment has no bash shim to execute them; environmental, not a
+  regression - see flag 2)
+- Targeted re-run of the two Python test files Codex actually modified:
+  - `tests/test_launcher_hermes_home.py` - 4 tests, all OK (includes the new
+    `test_posix_welcome_is_marked_shown_only_after_success`)
+  - `tests/test_drive_hermes_contract.py` - module-level `def test_*`
+    functions, invoked directly: `test_both_launchers_force_the_drive_local_home`
+    PASS, `test_windows_guard_has_three_states_staging_and_diagnostics` PASS
+    (this is the test whose asserted strings Codex extended; the pulled
+    `scripts/ensure-hermes.ps1` contains every new marker it now requires)
 
 ## Zone A changes made
 
-### 1. `git mv audit/ -> logs/` (6 files, 100% rename, history preserved)
+None by Claude Code this session. The pull itself delivered the following
+Zone A content (authored and pushed by Codex, reviewed here read-only for
+zone-correctness and internal consistency):
 
-Command: `git mv audit logs` (single invocation, directory form). Result -
-`git diff --cached -M --summary`:
+### What the pull delivered
 
-```
- rename {audit => logs}/CLAUDE_CODE_LAST_AUDIT.md (100%)
- rename {audit => logs}/CODEX_SECOND_AUDIT_2026-09-05.md (100%)
- rename {audit => logs}/FORGE_EVENT_LOG.md (100%)
- rename {audit => logs}/HANDOFF_2026-09-04_SESSION_CHANGES.md (100%)
- rename {audit => logs}/HANDOFF_2026-09-05_SESSION_CHANGES.md (100%)
- rename {audit => logs}/HERMES_CRON_GATEWAY_HOME_AUDIT.md (100%)
-```
+1. **`scripts/ensure-hermes.ps1` (+20/-3) and `scripts/ensure-hermes.sh`
+   (+19/-3)** - stage-level install logging. Both guards now write a
+   timestamped `install-logs/hermes-install-<stamp>.log` with explicit
+   records at each boundary: `[START]`, `[PASS] Drive write check passed`,
+   `[STAGE] Incomplete-install marker created`, `[STAGE] Installation
+   staging folder created`, `[STAGE] Installer download/copy started`,
+   `[PASS] Installer acquired; installer invocation started`, then either
+   `[FAIL] Installer/validation failed (installer exit N; ...)` or
+   `[PASS] Validation passed` -> `[COMPLETE]` (or `[ABORT]` if the
+   validated stage cannot be `Move-Item`/`mv`-activated). In the PS1 the
+   `$stamp`/`$log` creation was hoisted up into the write-probe `try` block
+   (previously it sat after the block). The partial/damaged-home refusal
+   path (exit 20) now enumerates `install-logs/hermes-install-*.log`; if
+   none exists it prints "Diagnostic finding: no Hermes install log exists.
+   The setup stopped before logging began, or the logs were removed."
+   instead of pointing at an empty directory. The three-way safety gate
+   (valid / partial-or-damaged / genuinely-fresh) is unchanged - no
+   weakening, no automatic deletion of operator data.
 
-All 6 tracked files moved; `git ls-files audit/` beforehand listed exactly
-these 6 and nothing else, and the on-disk `audit/` directory is gone after
-the move (no empty dir left behind, no untracked files stranded). `git diff
---cached --stat` shows `6 files changed, 0 insertions(+), 0 deletions(-)` for
-the pure renames. History is preserved in the git sense: content is
-byte-identical, so rename detection is 100% and `git log --follow` /
-`git blame` will trace each file back through the move once this commit
-lands. Pre-commit sanity: `git log --oneline -- audit/CLAUDE_CODE_LAST_AUDIT.md`
-still returns the full chain (`cbf4baa`, `3c01cd3`, `82f9d95`, `5f8633c`,
-`713b2c3`, ...) - nothing orphaned.
+2. **`launch-north-forge.sh` (+1)** - one line added inside the
+   `if [ ! -f ".readme-shown" ]` first-run block:
+   `[ "$WELOPEN" != "ok" ] || : > ".readme-shown"`. POSIX now writes the
+   one-time WELCOME marker only after a successful opener, matching what the
+   Windows launcher already did and what the block's own comment already
+   claimed. Prior behavior: WELCOME.html reopened on every Mac/Linux launch.
 
-`logs/FORGE_EVENT_LOG.md` additionally carries a 1-line content edit (see
-item 3 below), so `git status` reports it as `RM` (staged rename + unstaged
-modification) rather than plain `R`. `git diff --cached -M --summary` still
-scores it "rename ... (100%)" because the edit was made after `git mv` and
-staged separately.
+3. **`tests/` (5 files, +42/-2 net)**:
+   - `test-drive-hermes-install.sh` (+28/-2): new log-content assertions on
+     the fresh-install and installer-failure cases, plus a genuinely new
+     scenario - launches a 30s sleeping fake installer, polls the log until
+     "installer invocation started" is durable, `kill -KILL`s the setup
+     process, then relaunches and asserts the marker survived, the log's
+     last durable stage is recorded, and the relaunch refuses with
+     "Recovery:" guidance. Final banner updated.
+   - `test_drive_hermes_contract.py` (+6): the Windows-guard string-contract
+     test now also requires the six new stage markers / the "no Hermes
+     install log exists" line to be present in `ensure-hermes.ps1`.
+   - `test_launcher_hermes_home.py` (+6): new
+     `test_posix_welcome_is_marked_shown_only_after_success` - asserts the
+     exact new launcher line and that the first-run block writes
+     `.readme-shown` exactly once.
+   - `test-free-provider.sh` (+1): fixture repair - the fake valid
+     `.hermes-home` now also `: >`-touches `hermes-agent/pyproject.toml`,
+     the validity sentinel current production code requires.
+   - `test-skill-assembly.sh` (+3/-1): fixture repair - the isolated
+     launcher scratch case now `mkdir`s `scripts/` and copies
+     `scripts/name_validation.py` (the launcher needs that helper).
 
-### 2. `.gitignore` - anchored the bare `logs/` ignore so it stops swallowing the renamed folder
+4. **`AGENTS.md` (+15)** - new "## Mandatory push log - hard requirement"
+   section: every Codex session must append one `[YYYY-MM-DD HH:MM] <hash> -
+   <summary> (full report: logs/<file>.md)` line to `logs/CODEX_PUSH_LOG.md`
+   per pushed commit, never overwriting. This is a Codex-process change to a
+   Codex-process file. Per CLAUDE.md's "Note on AGENTS.md" ("AGENTS.md's own
+   audit-report requirement ... is a Codex-process change and doesn't need
+   to route through this file"), and given `AGENTS.md` is itself a Zone A
+   file as of the 2026-09-05 extension, this is squarely in-bounds for Codex
+   to have authored and pushed. No CLAUDE.md zone definition was touched.
 
-BEFORE (lines 40-44):
-
-```
-sessions/
-memories/
-cron/
-logs/
-*.log
-```
-
-AFTER (lines 40-48):
-
-```
-sessions/
-memories/
-cron/
-# Anchored to .hermes-home/ (Hermes engine log dir). A bare "logs/" here
-# also silently ignored the tracked repo-root logs/ folder that holds the
-# session audit reports (folder renamed from audit/ -> logs/ on 2026-09-05).
-# "*.log" below still catches stray Hermes log files written anywhere else.
-/.hermes-home/logs/
-*.log
-```
-
-WHY: the pre-existing line 43 `logs/` is an un-anchored gitignore pattern. It
-sits in the "Hermes runtime/state" block (lines 32-44) whose documented
-purpose - comment line 35 literally says "(root-anchored)" - is ignoring
-per-drive Hermes engine state under `.hermes-home/`. That state is *already*
-fully ignored by `/.hermes-home/` (lines 33 and 36, anchored) and every
-actual Hermes log *file* is caught by `*.log` (now line 48). The bare
-`logs/` on line 43 was redundant for its stated purpose, and its only
-real-world effect after this rename would have been to **silently ignore the
-new tracked `logs/` folder and every future report placed in it** - which
-would break the entire audit-report-commit workflow, and would have silently
-dropped the Codex sandbox re-audit report named in the request's item 4.
-
-Verified with `git check-ignore -v` before and after the fix:
-
-| Probe path | Before fix | After fix |
-|---|---|---|
-| `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` | `.gitignore:43:logs/` -> IGNORED (exit 0) | not matched (exit 1) - **now committable** |
-| `logs/CLAUDE_CODE_LAST_AUDIT.md` | `.gitignore:43:logs/` -> IGNORED (exit 0) | not matched (exit 1) - **now committable** |
-| `.hermes-home/logs/north-forge-gateway.log` | ignored | `.gitignore:36:/.hermes-home/` -> still IGNORED (exit 0) |
-| `logs/something.log` | ignored | `.gitignore:48:*.log` -> still IGNORED (exit 0) - fine, reports are `.md` |
-| `forge-events.log` | ignored | `.gitignore:48:*.log` -> still IGNORED (exit 0) |
-
-Net effect: repo-root `logs/*.md` is now trackable; Hermes engine logs and
-every `*.log` file anywhere remain ignored exactly as before. Nothing
-currently on disk changes ignore state (the only ignored-and-present items,
-`forge-events.log` and `install-logs/*.log`, are still ignored via `*.log`).
-
-This is a judgment call within Zone A - flagged for a second opinion below.
-
-### 3. `logs/FORGE_EVENT_LOG.md` line 12 - description text path update
-
-The request explicitly asks to update this file's own description text where
-it names the `audit/` folder. One occurrence (line 12):
-
-```
--specifically (distinct from `audit/CLAUDE_CODE_LAST_AUDIT.md`, which is
-+specifically (distinct from `logs/CLAUDE_CODE_LAST_AUDIT.md`, which is
-```
-
-Lines 13, 16, and 18 of the same file use the word "audit" as a noun ("its
-own per-session audit", "the audit report") with no path - left unchanged,
-still accurate. Note this file's own lines 15-19 still say it is "not yet in
-any of CLAUDE.md's explicit zone lists; flagged for the primary
-GPT/Blacksmith to formally place in Zone A" - that self-description is
-unchanged and still true (see flag 4 below).
-
-Zone-classification note for `logs/FORGE_EVENT_LOG.md`: it is not on any
-CLAUDE.md zone list. It self-describes as "a Claude-Code-maintained
-operational record (same footing as the audit report), not authored field
-content." The request explicitly directed this edit. Treated as in-scope
-operational-record maintenance, not authored-content editing.
-
-### 4. `AGENTS.md` - 7 `audit/` -> `logs/` path updates (governance/process content, per request)
-
-`AGENTS.md` is not on any CLAUDE.md zone list. The request states it is
-"governance/process content, not Zone B" and directs updating its own
-report-path references. CLAUDE.md's own "Note on AGENTS.md" paragraph
-describes `AGENTS.md` as pointing back to CLAUDE.md's zone definitions and
-adding a Codex-specific process requirement; it explicitly says
-"AGENTS.md's own audit-report requirement ... is a Codex-process change and
-doesn't need to route through this file." Updating the literal report path in
-that requirement is exactly that kind of Codex-process-side change. Done.
-
-7 occurrences of the literal `audit/` (all folder-path references), on 6
-lines - full `git diff` (verbatim):
-
-```
-@@ -17,7 +17,7 @@
--produced or committed a report describing it - no `audit/CODEX_*.md` file,
-+produced or committed a report describing it - no `logs/CODEX_*.md` file,
-@@ -30,7 +30,7 @@
--   a report to `audit/CODEX_<short-topic>_<YYYY-MM-DD>.md` before the
-+   a report to `logs/CODEX_<short-topic>_<YYYY-MM-DD>.md` before the
-@@ -44,8 +44,8 @@
--3. **Report structure should match the existing reports already in
--   `audit/`** (see `audit/CODEX_SECOND_AUDIT_2026-09-05.md` and
--   `audit/HERMES_CRON_GATEWAY_HOME_AUDIT.md` for examples already in this
-+3. **Report structure should match the existing reports already in
-+   `logs/`** (see `logs/CODEX_SECOND_AUDIT_2026-09-05.md` and
-+   `logs/HERMES_CRON_GATEWAY_HOME_AUDIT.md` for examples already in this
-@@ -61,7 +61,7 @@
--investigated (e.g. `audit/CODEX_HERMES_HOME_ISOLATION_2026-09-06.md`), not a
-+investigated (e.g. `logs/CODEX_HERMES_HOME_ISOLATION_2026-09-06.md`), not a
-@@ -72,7 +72,7 @@
--`audit/CODEX_SECOND_AUDIT_2026-09-05.md`'s "Zone A / Zone B boundary
-+`logs/CODEX_SECOND_AUDIT_2026-09-05.md`'s "Zone A / Zone B boundary
-```
-
-Left unchanged in `AGENTS.md` (word "audit" without a path, still correct):
-line 22 `("see audit")` - a quote of a past in-code comment string; line 30
-heading "## Mandatory audit report"; line 73 "Codex's own past audit
-reports"; line 81 "say so explicitly in the audit report".
-
-### 5. Zone C sweep - `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md`, `CHANGELOG.md` (per the user's in-session choice)
-
-Every `audit/`-folder path pointer -> `logs/`. **The `forge-audit/` skill
-folder and the historical `skills-source/tsc-only/audit/ -> forge-audit/`
-rename narrative are a DIFFERENT folder and were deliberately NOT touched** -
-verified none of the replaced strings were substrings of `forge-audit/`, and
-`grep` confirmed no `forge-audit/CLAUDE...` style path exists anywhere.
-
-- `CHANGELOG.md` (Zone C): 4 replacements.
-  - line 3 (standing file description): `audit/CLAUDE_CODE_LAST_AUDIT.md` -> `logs/...`
-  - line 33 (dated `[Unreleased] - 2026-09-05` entry): `audit/CODEX_SECOND_AUDIT_2026-09-05.md` -> `logs/...`
-  - line 61 (dated `2026-09-04` entry): `audit/HANDOFF_2026-09-04_SESSION_CHANGES.md` -> `logs/...`
-  - line 79 (dated `2026-09-04` "Audited" entry): `audit/CLAUDE_CODE_LAST_AUDIT.md` -> `logs/...`
-- `NEXT_STEPS.md` (Zone C): 7 replacements.
-  - `audit/CLAUDE_CODE_LAST_AUDIT.md` -> `logs/CLAUDE_CODE_LAST_AUDIT.md` x6
-    (lines ~30, ~104, ~240, ~274, ~329, ~376 - all "full detail in ..."
-    style forward-pointers, several inside dated session sections)
-  - line ~467 `audit/HANDOFF_2026-09-04_SESSION_CHANGES.md` -> `logs/...`
-    (unbacticked in source; path still updated)
-  - NOT touched: lines 11, 46, 57, 64, 101, 123, 124, 173, 178, 180, 300 -
-    all `forge-audit/SKILL.md`, `skills-source/tsc-only/audit/`, or the
-    `audit -> forge-audit` skill-rename history (different folder).
-- `DEMO_PREP_BACKLOG.md` (Zone C): 1 replacement.
-  - line ~250 `audit/CLAUDE_CODE_LAST_AUDIT.md` -> `logs/...`
-  - NOT touched: lines 239, 246, 253 (`forge-audit/SKILL.md`).
-
-Full verbatim diffs for all three Zone C files are in this session's commit.
-
-### 6. `logs/FORGE_EVENT_LOG.md` lines 15-19 - stale zone-status self-description (commit `d8bb3c2`)
-
-A follow-on to the fourth request's `CLAUDE.md` Zone A list extension.
-`logs/FORGE_EVENT_LOG.md` became a Zone A file in that same commit, and its
-own header's "not yet in any of CLAUDE.md's explicit zone lists; flagged
-... to formally place in Zone A" clause was made false by it. Corrected to
-state it is now in Zone A as of 2026-09-05. Full detail and the before/after
-text are in the "Zone B placement" section below (kept together with the
-`CLAUDE.md` change that necessitated it). `-5 / +4`, no log entries or other
-prose touched.
-
-## Zone B placement (in-session handoff, applied)
-
-### `CLAUDE.md` - 3 `audit/` -> `logs/` path-token updates (commit `39800c1`)
-
-Trigger: named in-session handoff from Kenneth, second request of this
-session, identifying `CLAUDE.md` explicitly and instructing the `audit/` ->
-`logs/` path rename ("naming change only - the folder's purpose, contents,
-and the mandatory-report requirement ... are unchanged"). CLAUDE.md is Zone
-B and lists itself in Zone B, but its own "EXCEPTION - placing pre-approved
-content" clause plus the CONFIRMED 2026-08-26 note explicitly cover this:
-"an in-session named handoff from Kenneth ... identifying a specific Zone B
-file, including CLAUDE.md itself ... is the intended and sufficient
-trigger."
-
-Diff-before-placement check (the 2026-08-29 STANDING RULE): diffed the
-change against current HEAD for `CLAUDE.md`. It touches only the `audit/`
-path token on 3 lines; it does not remove, revert, or contradict any prior
-recorded fix. Specifically, the Zone A file-list edit (line 45) sits inside
-the list that commit `7a96ca7` extended - the seven bullets `7a96ca7` added
-(`scripts/*.sh`, `scripts/*.ps1`, `scripts/*.py`, `tests/*.sh`, `tests/*.py`,
-`full-drive-reset.sh`, `full-drive-reset.bat`) are immediately below the
-changed line and are fully intact. Commit `de94fc2`'s "Note on AGENTS.md"
-paragraph is untouched.
-
-`grep -n "audit" CLAUDE.md` was run first: exactly 3 lines carry the
-`audit/` path token, all `audit/CLAUDE_CODE_LAST_AUDIT.md`. Every other
-"audit" in the file is the word ("audit report", "audit-only", "audit
-history", "audit habit") and was left alone, per the handoff ("naming
-change only" for the path). Full `git diff` (verbatim):
-
-```
-@@ -42,7 +42,7 @@ Files:
- - `skins/north-forge.yaml`
--- `audit/CLAUDE_CODE_LAST_AUDIT.md`
-+- `logs/CLAUDE_CODE_LAST_AUDIT.md`
- - `.gitignore`
-@@ -197,7 +197,7 @@
- 1. `git pull` - get whatever's changed since last session.
--2. Read `audit/CLAUDE_CODE_LAST_AUDIT.md` if present - the only continuity
-+2. Read `logs/CLAUDE_CODE_LAST_AUDIT.md` if present - the only continuity
-    between sessions.
-@@ -321,7 +321,7 @@
- At the end of every session, write (overwriting any previous one) to:
- 
- ```
--audit/CLAUDE_CODE_LAST_AUDIT.md
-+logs/CLAUDE_CODE_LAST_AUDIT.md
- ```
-```
-
-`git diff --stat`: `CLAUDE.md | 6 +++---`, 3 insertions / 3 deletions.
-Post-edit `grep -n "audit/" CLAUDE.md` -> no matches. The three sections
-the handoff named (Zone A file list, Session Start Protocol, Session audit
-report path block) are the three that were changed; there is no other
-section naming the path.
-
-### `README.md` line 88 - 1 `audit/` -> `logs/` file-tree token (commit `6173c65`)
-
-Trigger: named in-session handoff identifying `README.md` and the single
-mechanical change. `README.md` is Zone B (CLAUDE.md's "Zone B (continued) -
-user-facing documentation" section), which carries the same "may place and
-commit a specific revised version handed over from the Blacksmith or the
-Claude Project chat, but does not compose or edit their content itself"
-exception. This is placement of a specified one-token change, not
-composition.
-
-Diff-before-placement check: `README.md`'s recent history is Codex
-Hermes-install/validation merges (`41eaaa7`, `b35bdcc`, `e9f238e`,
-`7a3efed`, `858aa89`) - none touched the file-tree block. The 2026-09-04
-"README file tree now lists USER_MANUAL.md and research-log/" change is an
-addition elsewhere in the tree, not this line. No conflict.
-
-Full `git diff` (verbatim):
-
-```
-@@ -85,7 +85,7 @@ CLAUDE.md ...
- NEXT_STEPS.md                   <- what's built vs. still to build
- DEMO_PREP_BACKLOG.md            <- running punch-list for demo prep, polish, and things flagged for later
- CHANGELOG.md                     <- plain-language running history of what changed and why, distinct from git log and from the audit report below
--audit/
-+logs/
-   CLAUDE_CODE_LAST_AUDIT.md    <- most recent Claude Code session's audit report, overwritten each session
- ```
-```
-
-`+1 / -1`. Line 89 (`  CLAUDE_CODE_LAST_AUDIT.md ...`) has no path token and
-was left as-is. Line 87's "the audit report below" is still accurate (it is
-an audit report; only its folder moved) and was not in scope. Post-edit,
-the only `audit/` left in `README.md` is line 55's `forge-audit/SKILL.md` -
-the unrelated skill folder, correctly untouched.
-
-### `CLAUDE.md` Zone A list extension + `logs/FORGE_EVENT_LOG.md` (commit `d8bb3c2`)
-
-Trigger: fourth in-session request - named Blacksmith handoff extending
-Zone A's enumerated `Files:` list to explicitly include
-`logs/FORGE_EVENT_LOG.md` and `AGENTS.md`, with a rationale that both are
-Claude-Code-maintained operational/governance records (event log; Codex
-process rules), not authored field-support or customer-facing content, and
-both have already been edited directly by Claude Code across multiple
-sessions. Zone B placement of a described change to `CLAUDE.md`, same
-mechanism and precedent as commit `7a96ca7` (which appended the seven
-`scripts/`/`tests/`/`full-drive-reset.*` entries plus a dated "Extended
-..." note).
-
-What was placed in `CLAUDE.md` (`+9`, no deletions):
-- two new bullets in the Zone A `Files:` list - `logs/FORGE_EVENT_LOG.md`
-  (directly under `logs/CLAUDE_CODE_LAST_AUDIT.md`) and `AGENTS.md`
-  (directly under `.gitignore`)
-- a new paragraph after the existing "Extended 2026-09-06 ..." note:
-  "Extended 2026-09-05 to also include `logs/FORGE_EVENT_LOG.md` and
-  `AGENTS.md`: both are Claude-Code-maintained operational/governance
-  records - the forge event log and the Codex process rules respectively -
-  not authored field-support or customer-facing content, and both have
-  already been edited directly by Claude Code across multiple sessions in
-  practice. This closes the standing zone-ambiguity flagged for both
-  files." (Wording tracks the handoff's own rationale text, fitted to the
-  file's existing "Extended YYYY-MM-DD ..." sentence style.)
-
-Diff-before-placement check (2026-08-29 STANDING RULE): additive only. The
-two bullets are inserted, none removed or reworded; the new note is
-appended after `7a96ca7`'s note, which is untouched, and all seven of
-`7a96ca7`'s entries remain. No other zone definition (Zone B list, Zone C
-list, the placement-exception clauses) is altered. `CLAUDE.md` still lists
-itself in Zone B; `AGENTS.md` and `logs/FORGE_EVENT_LOG.md` were on no zone
-list before, so nothing is being moved out of Zone B.
-
-Follow-on Zone A fix - `logs/FORGE_EVENT_LOG.md` lines 15-19 (`-5 / +4`).
-That file's own header read "... not authored field content - not yet in
-any of CLAUDE.md's explicit zone lists; flagged for the primary
-GPT/Blacksmith to formally place in Zone A alongside the audit report if
-this becomes a recurring pattern." As of `d8bb3c2` that self-description is
-false. `logs/FORGE_EVENT_LOG.md` is itself now a Zone A file, so this is an
-in-zone factual correction, not authored-content editing: the clause now
-reads "... not authored field content. Placed in CLAUDE.md's Zone A
-enumerated file list on 2026-09-05, alongside
-`logs/CLAUDE_CODE_LAST_AUDIT.md` and `AGENTS.md`." No log entries or other
-prose touched.
-
-## Post-change QUICK CHECK results
-
-`grep -rn "audit/"` across the working tree (excluding `.git`, `.hermes`,
-`.hermes-home`), after all edits, filtered to remove `forge-audit/` and
-`skills-source/tsc-only/audit/` (the unrelated skill folder). Every remaining
-hit, categorised:
-
-1. `./.gitignore:45` - `# ... folder renamed from audit/ -> logs/ on
-   2026-09-05).` This is the explanatory comment added by this session (Zone
-   A item 2). Intentional historical reference; correct as-is.
-2. `./.hermes.md:12` and `./mode-blocks/full-banner.md:3` - the string
-   `support/hotline/escalation/audit/fault-logging/training`. Here `audit` is
-   a **mode / slash-command name in a slash-delimited list**, not a
-   filesystem path. `.hermes.md` is a gitignored build artifact regenerated
-   at every launch from `mode-blocks/`; `mode-blocks/full-banner.md` is Zone
-   B. Neither is a reference to the folder. Correct to leave.
-3. `./CLAUDE.md:45`, `:200`, `:324` - 3 references to
-   `audit/CLAUDE_CODE_LAST_AUDIT.md` (Zone A file-list entry; Session Start
-   Protocol step 2; the audit-report path block). **RESOLVED** - the
-   CLAUDE.md handoff arrived later in this same session and was applied as
-   commit `39800c1` (see "Zone B placement" section above). Post-fix
-   `grep -n "audit/" CLAUDE.md` -> no matches.
-4. `./README.md:88` - `audit/` in the file-tree diagram. **RESOLVED** - a
-   named Zone B handoff arrived later this session and was applied as commit
-   `6173c65` (`audit/` -> `logs/`, +1/-1). Post-fix, the only `audit/` in
-   `README.md` is line 55's unrelated `forge-audit/SKILL.md`.
-5. Inside `logs/` itself - historical, point-in-time session records, same
-   category as "old commit messages ... correctly stay unchanged, they're
-   historical record":
-   - `logs/CODEX_SECOND_AUDIT_2026-09-05.md:11-14, 180` - a past Codex
-     session's audit report describing the files it inspected as
-     `audit/...`. Not rewritten (rewriting a past report's account of itself
-     would be falsifying the record).
-   - `logs/HANDOFF_2026-09-05_SESSION_CHANGES.md:13` - historical handoff
-     doc. Not rewritten.
-   - `logs/CLAUDE_CODE_LAST_AUDIT.md` (pre-session version) had 13 hits;
-     that file is overwritten by this report, so those are gone. This report
-     itself references `audit/` only when quoting the rename or naming the
-     old path deliberately.
-
-QUICK CHECK verdicts (final - after all three requests):
-- **Zero remaining `audit/`-folder path references anywhere in editable,
-  non-historical files.** `CLAUDE.md` (3) resolved by handoff `39800c1`;
-  `README.md` (1) resolved by handoff `6173c65`. Everything still matching a
-  `grep "audit/"` is one of: a mode-name token (`.hermes.md`,
-  `mode-blocks/full-banner.md` - not a path), this session's own
-  `.gitignore` rename-note comment, the unrelated `forge-audit/` skill
-  folder, or point-in-time text inside `logs/` reports and git history -
-  all correct to leave.
-- `logs/` contains all 6 files that were in `audit/`
-  (`CLAUDE_CODE_LAST_AUDIT.md`, `CODEX_SECOND_AUDIT_2026-09-05.md`,
-  `FORGE_EVENT_LOG.md`, `HANDOFF_2026-09-04_SESSION_CHANGES.md`,
-  `HANDOFF_2026-09-05_SESSION_CHANGES.md`, `HERMES_CRON_GATEWAY_HOME_AUDIT.md`)
-  plus this rewritten report. `ls -la logs/` and `git ls-files logs/` agree.
-- `.env`: not present on this drive at all (`ls .env` -> no such file), and
-  `*.env` / `.env` are gitignored (`.gitignore:9-10`). `git diff --cached
-  --name-only | grep -E '(^|/)\.env$'` -> no match. `.env` is NOT staged.
-- Untracked and left alone: `.hermes-install-incomplete` (empty marker file)
-  and `install-logs/` (`hermes-install-20260905-134952.log` +
-  `hermes-installer-20260905-134952.ps1`, ~240 KB) - artifacts of an
-  incomplete `hermes` install on this drive, unrelated to this task,
-  pre-existing at session start. Not staged, not committed.
+5. **`logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` (new, 209 lines)** and
+   **`logs/CODEX_PUSH_LOG.md` (new, 2 lines)** - Codex operational records.
+   The re-audit report's own headline findings: HIGH - interrupted-install
+   recovery is still a real field-support gap and the hidden-folder cleanup
+   instructions are not appropriate for a non-technical operator (Codex
+   *recommends but did NOT implement* a quarantine-based R/K/C recovery
+   dialog - flagged for Kenneth); MEDIUM - install logs now cover every
+   stage; MEDIUM - absent-log case is now stated plainly; LOW - setup
+   decision points could be consolidated (recommended, not implemented);
+   CLEAN - drive isolation, mode assembly, cron self-heal, RESET
+   boundaries, provider persistence, generated-skill atomic replace all
+   still sound in tested paths. Codex ran `pytest -q` (19 + 3 subtests) and
+   ~10 bash test scripts green in its Linux env; it could not run
+   PowerShell/Pester or ShellCheck there and explicitly asks for a native
+   Windows acceptance pass on the PS1 interruption points.
 
 ## Zone B findings (not fixed - reported only)
 
-Note: findings 1 and 2 were raised as Zone B items Claude Code could not fix
-directly, then each was resolved later the same session by a named Blacksmith
-handoff (see the "Zone B placement" section). They are kept here with their
-resolution recorded rather than deleted, so the trail is legible.
-
-1. **`README.md` line 88 - RESOLVED this session.** Originally flagged as a
-   stale `audit/` file-tree entry that Claude Code could not touch (Zone B);
-   a named handoff then arrived in-session and it was placed as commit
-   `6173c65` (`audit/` -> `logs/`, +1/-1). No longer outstanding.
-
-2. **`CLAUDE.md` lines 45, 200, 324 - RESOLVED this session.** Originally
-   left untouched by explicit instruction; the handoff then arrived
-   in-session and was applied as `39800c1` (Zone B placement section above).
-   No longer outstanding.
-
-3. **Mode-name token `audit` in Zone B `mode-blocks/full-banner.md` line 3.**
-   Not a bug and not in scope - noting it only so a future audit does not
-   re-flag it: `support/hotline/escalation/audit/fault-logging/training` is a
-   list of mode names, and the `/audit` command is unchanged by this folder
-   rename. No action needed.
+None. The pull touched no Zone B file. `git diff 039de26..7f75347 --stat`
+lists only `AGENTS.md`, `launch-north-forge.sh`, `scripts/ensure-hermes.*`,
+`tests/*`, and `logs/CODEX_*` - every one Zone A or a Codex operational
+record. `CLAUDE.md`, `README.md`, `.hermes.template.md`, `mode-blocks/`,
+`skills-source/`, `fallback/`, the KYO_KB_TITAN template, `ATTRIBUTION.md`,
+`FIRST_TIME_README.txt`, `USER_MANUAL.md` - all untouched by the pull and
+unread this session (no reason to open them).
 
 ## Commits made this session
 
-Eight commits, all on `main`, all pushed. The rename was split from its own
-audit report so the 6 file moves stay pristine 100%/95% renames rather than
-being buried under a large same-path content rewrite of
-`CLAUDE_CODE_LAST_AUDIT.md`; each subsequent Zone B handoff got its own
-placement commit plus an audit-report update.
+1. **`<this commit>`** - "Update Claude Code audit report: session-start pull
+   of Codex sandbox re-audit (PR #18)". 1 file:
+   `logs/CLAUDE_CODE_LAST_AUDIT.md`, overwritten with this report. Zone A
+   standing authorization (the audit report is Claude Code's own
+   operational record). Hash recorded in `git log`.
 
-1. **`6e6fb9c`** - "Rename audit/ -> logs/ (git mv, history preserved) and
-   update path references". 11 files:
-   - 6x rename `audit/* -> logs/*` (5x R100, `FORGE_EVENT_LOG.md` R95 from
-     its 1-line edit). `logs/CLAUDE_CODE_LAST_AUDIT.md` committed here still
-     holding the *pre-session* content, so the rename scores R100.
-   - `M .gitignore` (anchor bare `logs/` -> `/.hermes-home/logs/` + 4
-     comment lines)
-   - `M AGENTS.md` (7 path refs)
-   - `M CHANGELOG.md` (4), `M NEXT_STEPS.md` (7), `M DEMO_PREP_BACKLOG.md`
-     (1) - Zone C sweep
-   - the `FORGE_EVENT_LOG.md` 1-line edit rides on its rename in this commit
-2. **`49adaf2`** - "Update session audit report for the audit/ -> logs/
-   rename". 1 file: `logs/CLAUDE_CODE_LAST_AUDIT.md` overwritten with this
-   report (as it stood before the CLAUDE.md handoff).
-3. **`39800c1`** - "Place CLAUDE.md audit/ -> logs/ path rename (in-session
-   Blacksmith handoff)". 1 file: `CLAUDE.md`, 3 path-token lines, +3/-3.
-   Zone B placement per the confirmed 2026-08-26 handoff trigger.
-4. **`0b89ca2`** - "Update audit report: record the in-session CLAUDE.md
-   handoff placement". 1 file: `logs/CLAUDE_CODE_LAST_AUDIT.md` (adds the
-   CLAUDE.md "Zone B placement" subsection, marks CLAUDE.md items resolved).
-5. **`6173c65`** - "Place README.md file-tree audit/ -> logs/ fix (confirmed
-   handoff)". 1 file: `README.md` line 88, `+1/-1`. Zone B placement.
-6. **`b620661`** - "Update audit report: record the README.md handoff
-   placement; rename now fully consistent". 1 file:
-   `logs/CLAUDE_CODE_LAST_AUDIT.md` (adds the README.md "Zone B placement"
-   subsection, marks all rename items resolved).
-7. **`d8bb3c2`** - "Extend CLAUDE.md Zone A list: logs/FORGE_EVENT_LOG.md +
-   AGENTS.md (confirmed handoff)". 2 files: `CLAUDE.md` (`+9` - two list
-   bullets + a dated "Extended 2026-09-05 ..." note; Zone B placement) and
-   `logs/FORGE_EVENT_LOG.md` (`-5/+4` - stale zone-status clause corrected;
-   Zone A follow-on).
-8. **`<this commit>`** - "Update audit report: record the CLAUDE.md Zone A
-   list extension". 1 file: `logs/CLAUDE_CODE_LAST_AUDIT.md` (adds the Zone
-   A list-extension placement subsection, marks the FORGE_EVENT_LOG.md /
-   AGENTS.md zone-ambiguity flag resolved). Hash recorded in `git log` /
-   stated in the session-ending chat response.
-
-Never staged: `.hermes-install-incomplete`, `install-logs/` (untracked,
-unrelated to this task, pre-existing at session start). `.env` not present
-on this drive, never staged (`git diff --cached --name-only | grep -E
-'(^|/)\.env$'` -> no match at any commit).
+Nothing else staged or committed. `.env` is not present on this drive and
+was never staged. `.hermes-install-incomplete` (empty marker) and
+`install-logs/` (`hermes-install-20260905-134952.log` +
+`hermes-installer-20260905-134952.ps1`) remain untracked and untouched -
+pre-existing artifacts of an incomplete Hermes install on this drive, noted
+in the previous two audit reports, unrelated to this task and not covered by
+`.gitignore` (they would need `*.log` to catch the log and an explicit rule
+for the marker; not in scope to change here).
 
 ## Uncertain / flagged for primary GPT review
 
-1. **`.gitignore` change is a judgment call (Zone A).** The bare `logs/` on
-   old line 43 had to stop matching the repo-root folder or the rename would
-   silently break report commits. I anchored it to `/.hermes-home/logs/`
-   rather than deleting it outright or adding a negation (`!/logs/`). The
-   anchored form keeps the block's documented intent ("ignore Hermes engine
-   state under .hermes-home/") explicit and is a smaller conceptual change
-   than a negation. Trade-off considered and rejected: if some future Hermes
-   version writes a `logs/` directory somewhere *other* than under
-   `.hermes-home/` and *not* as `*.log` files, it would no longer be
-   auto-ignored. Judged low-risk because (a) `/.hermes-home/` already covers
-   the documented location, (b) `*.log` covers every log *file* anywhere,
-   (c) `state.db*`, `sessions/`, `memories/`, `cron/` in the same block are
-   equally un-anchored and were left as-is - only `logs/` collided with a
-   real tracked path. If the primary GPT would rather this were done as an
-   explicit `!/logs/` negation (keeping the bare catch-all) or by trimming
-   the whole redundant block, that is a clean follow-up.
+1. **`logs/CODEX_PUSH_LOG.md` records a commit hash that does not exist in
+   this repo.** The single entry reads:
+   `[2026-09-05 19:12] 6dd58ab71b6e3b33887bffbbe3d44a1e3185b182 - Improve
+   interrupted Hermes install diagnostics (full report:
+   logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md)`. `git cat-file -t
+   6dd58ab71b6e3b33887bffbbe3d44a1e3185b182` -> "could not get object
+   info"; it is not an ancestor of HEAD and not any object in the local
+   clone. The Codex work was squash-merged: it reached `main` as commit
+   `34785f1` (single parent `039de26`) under merge `7f75347`. So the hash
+   Codex logged is its pre-squash working-branch commit, which GitHub
+   discarded on squash-merge. Net effect: the mandatory quick-index's one
+   entry points at a dead hash. Not something Claude Code can fix - the new
+   `AGENTS.md` rule says "Never overwrite existing entries," and this is a
+   Codex-process record. Flagging so the primary GPT / Kenneth can decide
+   whether the push-log convention needs to say "log the hash only after
+   the PR is merged, using the squashed `main` hash" (or whether an
+   append-only correction line is acceptable). The full report
+   `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` does not itself cite a
+   commit hash, so only the quick-index is affected.
 
-2. **Nothing outstanding on reference consistency.** Both Zone B files
-   originally flagged (`CLAUDE.md`, `README.md`) were placed via named
-   in-session handoffs (`39800c1`, `6173c65`). A repo-wide `grep -rn
-   "audit/"` now shows zero folder-path references outside git history, the
-   `forge-audit/` skill folder, the mode-name token, this session's
-   `.gitignore` rename-note, and point-in-time text inside `logs/` reports.
+2. **The Python test suite cannot run clean on this native-Windows drive,
+   and that is a pre-existing environmental limitation, not a regression
+   from the pull.** `pytest` is not installed (`python -m pytest` -> "No
+   module named pytest"). `python -m unittest discover -s tests -p
+   "test_*.py"` ran 12 tests with 5 errors, every error
+   `OSError: [WinError 193] %1 is not a valid Win32 application` from
+   `subprocess.run([... a .sh script ...])` - the POSIX test scripts assume
+   a bash on PATH that native Windows Python will invoke, which is not the
+   case here. The two Python test *files Codex modified* are pure static
+   text-assertion tests that shell out to nothing; both were re-run
+   in isolation this session and pass, and the pulled
+   `scripts/ensure-hermes.ps1` satisfies every string the extended contract
+   test now asserts. I did not attempt to run the bash scripts under the
+   Bash tool's git-bash (Codex already ran them green in Linux, and its
+   report explicitly scopes the outstanding verification as a *native
+   Windows / PowerShell* acceptance pass, which this drive also cannot do -
+   no `powershell.exe` test harness / Pester here either). Recommend the
+   native-Windows acceptance pass Codex asks for be scheduled on a machine
+   that has both PowerShell+Pester and a bash shim, or that it be run under
+   WSL.
 
-3. **Zone C historical entries were rewritten on the user's explicit
-   in-session instruction.** `CHANGELOG.md` lines 33/61/79 and several
-   `NEXT_STEPS.md` pointers sit inside dated historical sections. The user
-   was asked directly and chose "sweep all Zone C now," so dated entries now
-   say `logs/...` even though the folder was `audit/` at the time those
-   entries were written. This is deliberate, not drift - flagging so the
-   primary GPT does not read it as an unattributed history rewrite. If the
-   preference is to keep historical entries verbatim and only fix live
-   forward-pointers, `CHANGELOG.md` lines 33/61/79 are the ones to revert.
+3. **Codex's HIGH finding is a recommendation awaiting Kenneth, carried
+   forward unchanged.** `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md`
+   Part 1 / Part 3 recommend a quarantine-based "R / K / C" recovery dialog
+   (atomically rename an invalid `.hermes-home` + `.hermes-install-staging`
+   into `install-logs/recovery-<stamp>/`, never blind-delete) plus
+   consolidating the drive-owner and assistant-name prompts and reordering
+   engine-install before personalization. Codex deliberately did NOT
+   implement any of these (onboarding/field-flow = Kenneth's call). Nothing
+   for Claude Code to do; noting it so the item is not lost between the
+   Codex report and the next session. The `.hermes-install-incomplete` +
+   `install-logs/` sitting untracked on THIS drive right now is a concrete
+   instance of exactly the damaged/partial state that recovery flow is
+   meant to handle.
 
-4. **`logs/FORGE_EVENT_LOG.md` and `AGENTS.md` zone status - RESOLVED this
-   session.** Both were flagged here as on no CLAUDE.md zone list despite
-   being edited directly by Claude Code across sessions. The fourth
-   in-session handoff added both to Zone A's enumerated list (`d8bb3c2`),
-   and `logs/FORGE_EVENT_LOG.md`'s own now-false "not yet in any of
-   CLAUDE.md's explicit zone lists" self-description was corrected in the
-   same commit. No longer ambiguous. Minor, not acted on: `CLAUDE.md`'s
-   "## Required first response" block paraphrases the Zone A list ("launch
-   scripts, toggle scripts, ...") and is not a full enumeration - it
-   already omitted `scripts/*`, `tests/*`, and `full-drive-reset.*` after
-   `7a96ca7`, and still omits the two new entries. Left as-is to match how
-   `7a96ca7` was handled; flag if the Blacksmith wants that summary kept in
-   exact sync with the enumerated list.
-
-5. **Codex sandbox re-audit report path.** Per the request's item 4, the
-   in-progress Codex re-audit should now write
-   `logs/CODEX_FULL_SANDBOX_REAUDIT_<date>.md`. The `.gitignore` fix (Zone A
-   item 2) is what makes that path committable - verified it is no longer
-   ignored. Nothing else to do here from the Claude Code side; noting it so
-   the primary GPT knows the landing zone is ready.
+4. **`hermes` still not installed on this drive.** `command -v hermes` ->
+   nothing, same as every prior session here. Session Start Protocol steps
+   5 (`hermes doctor`, `hermes skills list --source local`) could not run.
+   Not new, not blocking - flagged only for completeness.
 
 ## Status
 
-Rename complete and fully consistent across the repo; both long-standing
-zone-ambiguity flags closed. All four in-session requests landed and are
-pushed. `git mv` at 100%/95% similarity for all 6 files; `git log --follow`
-verified to cross the rename (`logs/CLAUDE_CODE_LAST_AUDIT.md` traces back
-through `cbf4baa`, `3c01cd3`, ...); `logs/` complete; `.env` never staged;
-`.gitignore` fixed so the new folder is trackable. Both Zone B files
-(`CLAUDE.md`, `README.md`) and the Zone A list extension were placed via
-named in-session handoffs (`39800c1`, `6173c65`, `d8bb3c2`). A repo-wide
-`grep -rn "audit/"` now returns only: git history / old commit messages,
-point-in-time text inside `logs/` reports, the unrelated `forge-audit/`
-skill folder, the `/audit` mode-name token, and this session's own
-`.gitignore` rename-note comment - all correct.
-
-Needs primary GPT review only for the open judgment calls, none blocking:
-(a) the `.gitignore` anchoring approach vs. an explicit `!/logs/` negation
-(flag 1); (b) confirming the deliberate Zone C historical-entry rewrite
-(flag 3) is acceptable, with the revert target named if not. Flags 2 and 4
-are now resolved. Eight commits made and pushed: `6e6fb9c`, `49adaf2`,
-`39800c1`, `0b89ca2`, `6173c65`, `b620661`, `d8bb3c2`, and the commit
-carrying this updated report.
+Clean - routine pull + verify session, no repair requested or performed.
+`main` fast-forwarded `039de26` -> `7f75347`; the Codex sandbox re-audit
+report and its push-log index are now local under `logs/`. Everything the
+pull delivered is Zone A / Codex-process / Codex operational records - no
+Zone B content moved. Working tree clean apart from the two long-standing
+untracked install artifacts. Two things want the primary GPT's eyes, neither
+blocking: (1) `logs/CODEX_PUSH_LOG.md`'s lone entry cites a squashed-away
+commit hash that resolves to nothing in `main`; (2) Codex's requested native
+Windows / PowerShell interruption acceptance pass still cannot be run on this
+drive. Codex's HIGH interrupted-install-recovery recommendation remains
+open and is Kenneth's decision.
