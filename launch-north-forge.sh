@@ -2,12 +2,57 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: launch-north-forge.sh | Script version: 1.1.0 | Updated: 2026-09-05
+# File: launch-north-forge.sh | Script version: 1.1.1 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
+
+configure_free_provider() {
+    rm -f ".provider-choice"
+    CONFIG_TMP="$(mktemp -d "${TMPDIR:-/tmp}/north-forge-provider.XXXXXX")"
+
+    SET_STATUS=0
+    hermes config set model.provider opencode-free >"$CONFIG_TMP/set.out" 2>"$CONFIG_TMP/set.err" || SET_STATUS=$?
+    if [ "$SET_STATUS" -ne 0 ]; then
+        echo "ERROR: Hermes could not select OpenCode Free (exit $SET_STATUS)."
+        echo "Nothing was saved. Please review the details below, then run North Forge again."
+        cat "$CONFIG_TMP/set.out" "$CONFIG_TMP/set.err"
+        {
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FAILURE] [provider-config]: set model.provider failed (exit $SET_STATUS); .provider-choice not written"
+            cat "$CONFIG_TMP/set.out" "$CONFIG_TMP/set.err" | sed -E 's/((api[_-]?key|token|secret|password)[[:space:]]*[:=][[:space:]]*)[^[:space:]]+/\1[REDACTED]/Ig' | sed 's/^/[provider-config detail] /'
+        } >> "forge-events.log"
+        rm -rf "$CONFIG_TMP"
+        return "$SET_STATUS"
+    fi
+
+    UNSET_STATUS=0
+    hermes config unset model.default >"$CONFIG_TMP/unset.out" 2>"$CONFIG_TMP/unset.err" || UNSET_STATUS=$?
+    UNSET_TEXT="$(cat "$CONFIG_TMP/unset.out" "$CONFIG_TMP/unset.err")"
+    # Hermes documents a missing key as exit 1 with this exact message.
+    if [ "$UNSET_STATUS" -ne 0 ] && ! { [ "$UNSET_STATUS" -eq 1 ] && [ "$UNSET_TEXT" = "Config key not set: model.default" ]; }; then
+        echo "ERROR: Hermes selected OpenCode Free, but could not clear the old default model (exit $UNSET_STATUS)."
+        echo "Nothing was saved. Please review the details below, then run North Forge again."
+        cat "$CONFIG_TMP/unset.out" "$CONFIG_TMP/unset.err"
+        {
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FAILURE] [provider-config]: unset model.default failed (exit $UNSET_STATUS); .provider-choice not written"
+            printf '%s\n' "$UNSET_TEXT" | sed -E 's/((api[_-]?key|token|secret|password)[[:space:]]*[:=][[:space:]]*)[^[:space:]]+/\1[REDACTED]/Ig' | sed 's/^/[provider-config detail] /'
+        } >> "forge-events.log"
+        rm -rf "$CONFIG_TMP"
+        return "$UNSET_STATUS"
+    fi
+
+    printf '%s\n' "free" > ".provider-choice"
+    rm -rf "$CONFIG_TMP"
+}
+
+# Narrow test hook: runs no onboarding or Hermes session, and changes only the
+# provider marker/configuration in the current working directory.
+if [ "${1:-}" = "--configure-free-provider" ]; then
+    configure_free_provider
+    exit $?
+fi
 
 # --- first run on this drive: pop open the styled quickstart once ---
 if [ ! -f ".readme-shown" ]; then
@@ -181,9 +226,7 @@ if [ ! -f ".provider-choice" ]; then
     if [ "$(printf '%s' "$PROVIDERCHOICE" | tr '[:lower:]' '[:upper:]')" = "OWNKEY" ]; then
         echo "ownkey" > ".provider-choice"
     else
-        echo "free" > ".provider-choice"
-        hermes config set model.provider opencode-free >/dev/null 2>&1 || true
-        hermes config unset model.default >/dev/null 2>&1 || true
+        configure_free_provider || exit $?
     fi
 fi
 
