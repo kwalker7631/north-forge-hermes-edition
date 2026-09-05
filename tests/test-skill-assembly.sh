@@ -8,8 +8,9 @@ passes=0
 
 new_case() {
     CASE="$SCRATCH/$1"
-    mkdir -p "$CASE/.hermes/skills" "$CASE/home/Desktop"
+    mkdir -p "$CASE/.hermes/skills" "$CASE/home/Desktop" "$CASE/scripts"
     cp "$REPO/launch-north-forge.sh" "$CASE/"
+    cp "$REPO/scripts/name_validation.py" "$CASE/scripts/"
     cp -R "$REPO/skills-source" "$CASE/"
     : > "$CASE/.readme-shown"
     printf 'Tester\n' > "$CASE/.drive-record.txt"

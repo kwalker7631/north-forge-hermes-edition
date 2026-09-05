@@ -51,6 +51,7 @@ if [ ! -f ".readme-shown" ]; then
     # the next launch instead of silently never showing the welcome page
     # again.
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$([ "$WELOPEN" = "ok" ] && echo INFO || echo WARNING)] [welcome]: first-run WELCOME.html auto-open: $WELOPEN" >> "forge-events.log"
+    [ "$WELOPEN" != "ok" ] || : > ".readme-shown"
 fi
 
 # Names are capped at 64 characters and allow letters, numbers, spaces, and

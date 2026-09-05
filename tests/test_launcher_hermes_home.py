@@ -47,6 +47,12 @@ class LauncherHermesHomeStaticTests(unittest.TestCase):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
         self.assertIn("/.hermes-home/", ignore)
 
+    def test_posix_welcome_is_marked_shown_only_after_success(self):
+        launcher = (ROOT / "launch-north-forge.sh").read_text(encoding="utf-8")
+        self.assertIn('[ "$WELOPEN" != "ok" ] || : > ".readme-shown"', launcher)
+        welcome_block = launcher.split('# --- first run on this drive:', 1)[1].split('# Names are capped', 1)[0]
+        self.assertEqual(welcome_block.count('> ".readme-shown"'), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
