@@ -325,15 +325,36 @@ intended state. I did not edit it.
 
 ## Commits made this session
 
-1. **`<this commit>`** - "Update Claude Code session audit report:
-   session-start pull (87 commits) + stash of 2 stale local artifacts to
-   unblock fast-forward". 1 file: `logs/CLAUDE_CODE_LAST_AUDIT.md`,
-   overwritten with this report. Zone A standing authorization. Hash in
-   `git log`.
+All three touch only `logs/CLAUDE_CODE_LAST_AUDIT.md` (this report). Zone A
+standing authorization.
 
-Nothing else staged or committed. `stash@{0}` is local-only and is not
-pushed by anything. `.env` (present, 798 B) is gitignored and was never
-staged.
+1. **`d80d409`** - "Update Claude Code session audit report: session-start
+   pull (87 commits) + stash of 2 stale local artifacts". The main
+   session-start writeup. Pushed `8b06653..d80d409`.
+2. **`0b80d9c`** - "Audit report: add expert recommendation on stash@{0} +
+   README title-icon question" (after Kenneth asked for a recommendation).
+   Pushed `d80d409..0b80d9c`.
+3. **`bbf01e1` -> rebased to `dcbedef`** - "Audit report: close the stash@{0}
+   loop - Kenneth dropped it this session". First push attempt was rejected
+   (non-fast-forward): a concurrent commit **`b744b10`** ("Move admin tooling
+   into `Advanced/`; generate a real-icon `North Forge.lnk` at drive root")
+   had landed on `origin/main` from another session/drive while this session
+   ran. `git pull --rebase origin main` replayed the audit-report commit
+   cleanly on top (zero file overlap - `b744b10` touches `.gitignore`,
+   `CHANGELOG.md`, `NEXT_STEPS.md`, `launch-north-forge.bat`, `Advanced/*`,
+   `tests/*`; this commit touches only the audit report), giving `dcbedef`.
+   Pushed `b744b10..dcbedef`.
+
+`b744b10` was pulled into this working tree by that rebase but was authored
+elsewhere and is not reviewed in this report (out of scope - it landed after
+the session's work was done). Flagging its existence only so the next
+session / primary GPT knows the `Advanced/` restructure happened concurrently
+and is already local. Post-rebase: `git status -sb` -> `## main...origin/main`
+(clean, in sync).
+
+Nothing else staged or committed. `.env` (present, 798 B) is gitignored and
+was never staged. `stash@{0}` was created and then dropped this session (see
+Follow-up + Uncertain item 1); `git stash list` is now empty.
 
 ## Uncertain / flagged for primary GPT review
 
