@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>North Forge - Quick Start</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F2F2F2; font-family:Verdana, Arial, sans-serif; color:#282828;">
+
+<div style="max-width:720px; margin:0 auto; padding:32px 24px 48px 24px;">
+
+  <!-- HEADER -->
+  <div style="text-align:center; padding-bottom:20px; border-bottom:3px solid #D32F2F; margin-bottom:28px;">
+    <img src="assets/north-forge-icon.svg" alt="North Forge" style="height:64px; width:64px; vertical-align:middle; margin-right:12px;">
+    <img src="assets/logo-kyocera-1024.png" alt="Kyocera" style="height:48px; width:auto; vertical-align:middle;">
+    <h1 style="color:#D32F2F; font-size:24px; margin:16px 0 4px 0; letter-spacing:0.5px;">NORTH FORGE - QUICK START</h1>
+  </div>
+
+  <!-- ATTRIBUTION -->
+  <p style="font-size:12px; color:#282828; background-color:#FFFFFF; border:1px solid #CCCCCC; border-radius:4px; padding:10px 14px; margin-bottom:28px;">
+    North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North Forge project.
+    Created and maintained by Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC.
+  </p>
+
+  <!-- WHAT THIS IS -->
+  <h2 style="color:#0A9BCD; font-size:17px; border-bottom:1px solid #DDDDDD; padding-bottom:6px;">What This Is</h2>
+  <p>
+    An AI assistant set up specifically for Kyocera field service and sales work.
+    You describe what you're dealing with, in plain English, and it helps -
+    the same way you'd ask a knowledgeable coworker.
+  </p>
+
+  <!-- HOW TO OPEN IT -->
+  <h2 style="color:#0A9BCD; font-size:17px; border-bottom:1px solid #DDDDDD; padding-bottom:6px; margin-top:28px;">How To Open It</h2>
+  <p>
+    <strong>Windows:</strong> double-click <code style="background-color:#FFFFFF; border:1px solid #CCCCCC; border-radius:3px; padding:1px 5px;">launch-north-forge.bat</code> in this folder.
+  </p>
+  <p>
+    <strong>Mac/Linux:</strong> the first time only, open Terminal and drag
+    <code style="background-color:#FFFFFF; border:1px solid #CCCCCC; border-radius:3px; padding:1px 5px;">launch-north-forge.sh</code>
+    into the window, then press Enter. After that first time, use the icon it creates on your Desktop.
+  </p>
+  <p>
+    The first time you open it on a new computer, it may take a minute or two to install - that's normal, just wait for it to finish.
+  </p>
+
+  <!-- FIRST-TIME QUESTION -->
+  <h2 style="color:#0A9BCD; font-size:17px; border-bottom:1px solid #DDDDDD; padding-bottom:6px; margin-top:28px;">The One Question It Will Ask You</h2>
+  <p>
+    The very first time you launch it, it will ask how you want to run it. You only answer this once - it remembers your choice after that.
+  </p>
+
+  <div style="background-color:#FFFFFF; border:1px solid #CCCCCC; border-radius:6px; padding:16px 18px; margin:16px 0;">
+    <div style="border-left:4px solid #00B176; padding-left:14px; margin-bottom:14px;">
+      <p style="margin:0 0 4px 0;"><strong style="color:#00B176;">Press ENTER</strong> - start now for free, no account or key needed</p>
+      <p style="margin:0; font-size:13px; color:#282828;">This is the right choice for most people, especially if you're just trying it out. Nothing to sign up for, nothing to pay, nothing to configure.</p>
+    </div>
+    <div style="border-left:4px solid #0A9BCD; padding-left:14px;">
+      <p style="margin:0 0 4px 0;"><strong style="color:#0A9BCD;">Type OWNKEY</strong> - use your own Anthropic API key instead</p>
+      <p style="margin:0; font-size:13px; color:#282828;">Pick this only if you already have your own paid API key and want to use it for real field/production use. It will walk you through where to paste it.</p>
+    </div>
+  </div>
+
+  <p style="font-size:13px; background-color:#F2F2F2; border:1px solid #DDDDDD; border-radius:4px; padding:10px 14px;">
+    <strong style="color:#D32F2F;">If you do choose OWNKEY:</strong> once you have a real key, run
+    <code style="background-color:#FFFFFF; border:1px solid #CCCCCC; border-radius:3px; padding:1px 5px;">hermes model</code>
+    and pick a standard model such as Sonnet or Opus. Avoid a premium/credits-gated model as your default unless you specifically know what that means -
+    an ordinary key alone won't cover it, and you can otherwise get a "buy credits" error on your very first real question.
+  </p>
+
+  <!-- WHAT TO DO ONCE OPEN -->
+  <h2 style="color:#0A9BCD; font-size:17px; border-bottom:1px solid #DDDDDD; padding-bottom:6px; margin-top:28px;">What To Do Once It's Open</h2>
+  <p>
+    Just describe your issue, like you're texting a coworker who knows the answer. For example:
+  </p>
+  <p style="background-color:#FFFFFF; border:1px solid #CCCCCC; border-radius:4px; padding:10px 14px; font-style:italic;">
+    "TASKalfa 5054ci throwing a C6000 code after the last firmware update"
+  </p>
+  <p style="background-color:#FFFFFF; border:1px solid #CCCCCC; border-radius:4px; padding:10px 14px; font-style:italic;">
+    "customer wants to know if the 5054ci supports Wi-Fi Direct"
+  </p>
+  <p>
+    You don't need to know any special commands to get started. If you want to see everything it can do, type:
+    <code style="background-color:#FFFFFF; border:1px solid #CCCCCC; border-radius:3px; padding:1px 5px;">/menu</code>
+  </p>
+
+  <!-- IF SOMETHING GOES WRONG -->
+  <h2 style="color:#0A9BCD; font-size:17px; border-bottom:1px solid #DDDDDD; padding-bottom:6px; margin-top:28px;">If Something Goes Wrong</h2>
+  <p>
+    If it shows an error instead of answering, don't worry about fixing it yourself - just tell your team lead exactly what it said
+    (copy/paste the error text if you can), and they'll take it from there.
+  </p>
+
+  <!-- ONE THING TO KNOW -->
+  <h2 style="color:#0A9BCD; font-size:17px; border-bottom:1px solid #DDDDDD; padding-bottom:6px; margin-top:28px;">One Thing To Know</h2>
+  <p style="background-color:#FFFFFF; border-left:4px solid #D32F2F; border-radius:0 4px 4px 0; padding:10px 14px;">
+    This tool helps you find answers faster - it doesn't replace your own judgment or your team's normal approval process.
+    Treat it like a knowledgeable coworker's suggestion, not the final word.
+  </p>
+
+</div>
+</body>
+</html>
