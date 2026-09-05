@@ -1,10 +1,169 @@
-# North Forge - Hermes Edition
+<div align="center">
 
-North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC.
+```text
+                         N
+                         ▲
+                         │
+                    W ◄──┼──► E
+                         │
+                         ▼
+                         S
 
-A field-support AI built specifically for Kyocera Document Solutions technicians and sales reps - carries KB authoring, hotline ticket handling, escalation packets, and pre-sales product guidance, runs from your own PC or a portable drive, and never asks you to remember a slash command you don't already know.
+          _   _  ___  ____ _____ _   _    _____ ___  ____   ____ _____
+         | \ | |/ _ \|  _ \_   _| | | |  |  ___/ _ \|  _ \ / ___| ____|
+         |  \| | | | | |_) || | | |_| |  | |_ | | | | |_) | |  _|  _|
+         | |\  | |_| |  _ < | | |  _  |  |  _|| |_| |  _ <| |_| | |___
+         |_| \_|\___/|_| \_\|_| |_| |_|  |_|   \___/|_| \_\\____|_____|
 
-Why this exists: a technician on a call shouldn't have to open a manual, hunt through ServiceNow, or wait on hold to find out what a code means. This tool collects the minimum evidence needed, gives a direct next step, and tells you plainly when it isn't sure - it doesn't replace judgment, it clears the fog around routine calls so judgment gets spent on the calls that actually need it.
+                         ╔═══════════════╗
+                    _____║   NORTH FORGE ║_____
+                   /     ╚═══════════════╝     \
+                  /_____________________________\
+                          \           /
+                           \_________/
+                              ||
+                            __||__
+                           /______\
+```
+
+# North Forge — Hermes Edition
+
+### Field intelligence. Built locally. Forged for the work.
+
+**Kyocera Edition v21.8**
+
+A field-support AI for Kyocera Document Solutions technicians and sales reps — designed for KB authoring, hotline work, escalation packets, pre-sales guidance, and structured field support from a local PC or portable drive.
+
+<br>
+
+[![Hermes Agent](https://img.shields.io/badge/Engine-Hermes%20Agent-4B5563?style=for-the-badge)](https://github.com/NousResearch/hermes-agent)
+![Version](https://img.shields.io/badge/North%20Forge-v21.8-2563EB?style=for-the-badge)
+![Access](https://img.shields.io/badge/Repository-Private-111827?style=for-the-badge)
+![Modes](https://img.shields.io/badge/Modes-FULL%20%7C%20SALES-059669?style=for-the-badge)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-7C3AED?style=for-the-badge)
+
+**Created and maintained by Kenneth C. Walker Jr. — Senior Technical Support Engineer, TSC**
+
+</div>
+
+---
+
+> [!NOTE]
+> **North Forge does not replace technician judgment.** It reduces the friction around routine calls, collects the minimum useful evidence, gives a direct next step, and says plainly when confidence is limited.
+
+## ⚡ At a glance
+
+| | |
+|---|---|
+| **Purpose** | Field-support AI content layer for Kyocera support and sales workflows |
+| **Engine** | Hermes Agent by Nous Research |
+| **Deployment** | Local PC or portable-drive workflow |
+| **Primary modes** | `FULL` and `SALES` |
+| **Content model** | One source tree → mode-specific generated runtime |
+| **Auth / state** | Isolated per drive through `.hermes-home` |
+| **Governance** | Private repo; sole-maintainer workflow |
+| **Current release** | `v21.8` |
+
+### What it is designed to do
+
+- Draft structured KB content.
+- Assist hotline and support-ticket intake.
+- Build escalation packets.
+- Support pre-sales product guidance.
+- Route work into purpose-built Hermes skills.
+- Keep FULL and SALES deployments synchronized from one source tree.
+- Run from a portable drive without depending on the host machine's Hermes profile.
+
+---
+
+## 🧭 Navigate
+
+[**Architecture**](#-architecture) ·
+[**Skills**](#-skills-and-runtime-content) ·
+[**Drive modes**](#-one-repo-one-toggle-two-drive-types) ·
+[**Setup**](#-setting-up-a-new-drive-windows---the-one-canonical-path) ·
+[**Launch**](#-one-click-launch-what-happens-after-provisioning-and-for-repeat-use) ·
+[**Branding**](#branding) ·
+[**Maintenance**](#-maintenance--updates) ·
+[**Attribution**](#built-on-hermes-agent)
+
+---
+
+## 🏗 Architecture
+
+```mermaid
+flowchart TD
+    A["North Forge source repo"] --> B[".hermes.template.md"]
+    A --> C["skills-source/shared"]
+    A --> D["skills-source/tsc-only"]
+    A --> E["mode-blocks"]
+    A --> F["launch scripts"]
+
+    G[".forge-mode"] --> H{"Selected mode"}
+    H -->|sales| I["Shared skills only"]
+    H -->|full| J["Shared + TSC skills"]
+
+    B --> K["Generated .hermes.md"]
+    E --> K
+    I --> L["Generated .hermes/skills"]
+    J --> L
+
+    F --> M["Drive-local Hermes runtime"]
+    K --> M
+    L --> M
+    M --> N["North Forge session"]
+```
+
+The repository intentionally separates **engine**, **content**, **generated runtime**, and **per-drive state**. That separation is one of the main safeguards against configuration drift.
+
+<details>
+<summary><strong>Why this architecture exists</strong></summary>
+
+North Forge's large master prompt exceeds the size that can safely live in a single Hermes context file. The always-loaded context therefore contains identity, routing, and universal rules, while detailed procedures live in skills that are loaded when needed.
+
+The FULL / SALES split is also generated from one source tree. There is no separately maintained “sales edition” to drift out of sync.
+
+</details>
+
+---
+
+## 🧰 Skills and runtime content
+
+The tracked source of truth is:
+
+```text
+skills-source/
+├── shared/
+│   ├── sales-assist/
+│   └── web-navigator/
+└── tsc-only/
+    ├── kb-builder/
+    ├── draft-writer/
+    ├── hotline-ticket/
+    ├── assist-intake/
+    ├── escalation-packet/
+    ├── forge-audit/
+    ├── fault-logging/
+    └── training-guide/
+```
+
+> [!IMPORTANT]
+> `.hermes/skills/` is generated at launch. **Never edit it directly.**
+
+### FULL vs SALES
+
+| Capability | SALES | FULL |
+|---|:---:|:---:|
+| Shared sales guidance | ✅ | ✅ |
+| Web navigation | ✅ | ✅ |
+| KB authoring | — | ✅ |
+| Hotline / ticket workflows | — | ✅ |
+| Escalation packet generation | — | ✅ |
+| Audit workflow | — | ✅ |
+| Fault logging | — | ✅ |
+| Training guidance | — | ✅ |
+
+---
 
 ## Built on Hermes Agent
 
@@ -15,6 +174,9 @@ This runs on top of [Hermes Agent](https://github.com/NousResearch/hermes-agent)
 - **A one-off or recurring background task** (the pattern `kyocera-research` uses): from inside a live session, `/cron add "<schedule>" "<what to do>" --skill <optional-skill-name> --name <job-name>` - for example `/cron add "every 24h" "Check for new firmware release notes" --name nightly-firmware-check`. Check what's scheduled with `/cron list`.
 - **A new skill of your own**: create a folder under `skills-source/shared/` (available in every mode) or `skills-source/tsc-only/` (FULL mode only) containing a `SKILL.md`. Give it YAML frontmatter with a `name:` field (this is what lets Hermes register it as a real `/slash-command` - without it, Hermes falls back to the folder name, which is usually not what you want) and a `description:` field, then write the actual instructions below a `---` closing line. The full Hermes documentation on skills, tools, and the wider ecosystem lives at the [Hermes Agent GitHub repo](https://github.com/NousResearch/hermes-agent) - worth a look if you want to go beyond what's built in here.
 
+
+---
+
 ## Two-repo architecture
 
 - **Engine:** `kwalker7631/north-forge-agent` - an untouched fork/mirror of NousResearch/hermes-agent. Never edited directly. Kept current with `gh repo sync` when Nous ships updates. This is a reference/audit copy only - it is not what the installed `hermes` command actually runs from (see below).
@@ -22,15 +184,24 @@ This runs on top of [Hermes Agent](https://github.com/NousResearch/hermes-agent)
 
 A thumb drive deployment keeps its own Hermes engine and dependencies in `.hermes-home` beside this repository. The launchers deliberately set `HERMES_HOME` and `PATH` so a host-wide Hermes installation is neither used nor changed. A fresh install is built in `.hermes-install-staging`, validated, and only then promoted into place.
 
+
+---
+
 ## Model choice matters - this is not Claude-only
 
 North Forge's identity, tone, and rules in `.hermes.template.md` are written model-agnostic on purpose - "you are North Forge," never "you are Claude" or any other provider name. Hermes supports 30+ model providers via `hermes model`, and switching between them is intended and encouraged, not an edge case.
 
 **Real constraint worth knowing before experimenting:** output quality depends heavily on which model is actually running underneath. A fast/cheap or lightweight model (e.g., a "flash"/"quick" tier model) will noticeably under-perform a frontier-tier model on North Forge's actual work - KB drafting, diagnostic reasoning, following the locked template correctly. This isn't a North Forge bug to fix; it's a property of the model chosen. When in doubt, prefer a stronger model over a faster one for anything going into a real KB or a real technician's hands. Track which models have actually been tried against North Forge and how they performed in `DEMO_PREP_BACKLOG.md`, so this stays evidence-based rather than assumed.
 
+
+---
+
 ## Repo governance
 
 This repo is private and not published. Kenneth Walker Jr. is the sole administrator - he is the only person who creates, edits, or commits content here. Team members who use a drive built from this repo never touch the repo itself; if someone has a suggestion or hits a problem, it's relayed to Kenneth (via a log, a description, or eventually the fault-logging skill once built) and handled through the Claude Project chat + Claude Code + Blacksmith review loop - never applied directly by whoever reported it.
+
+
+---
 
 ## What's in here
 
@@ -166,7 +337,9 @@ Hermes truncates context files over 20,000 characters (drops the middle silently
 
 Hermes skills normally refine themselves through use. North Forge's skills are the exception - see the `hermes_specific_addendum` section in `.hermes.md`. Nothing in `skills-source/` gets auto-edited. Changes go through the Blacksmith (Kenneth Walker Jr.).
 
-## Updating Hermes on a drive (not this repo)
+## 🔧 Maintenance & updates
+
+### Updating Hermes on a drive (not this repo)
 
 Each physical drive has its own Hermes engine and setup choices under `<repo>/.hermes-home`. Launch that drive first, then run `hermes update` from its North Forge window to update that drive's engine. After an update, run `hermes doctor`, `hermes skin list`, and `hermes skills list --source local`, then do one real launch in each mode before trusting it.
 
@@ -174,7 +347,10 @@ Each physical drive has its own Hermes engine and setup choices under `<repo>/.h
 
 To reset a drive's North Forge choices, use `toggle-mode.bat` or `.sh` and select **RESET** as described above. Do not delete a computer's shared Hermes folders to reset a North Forge drive.
 
-## Kenneth's own GitHub CLI setup (repo administration - NOT needed to provision a drive)
+<details>
+<summary><strong>🔐 Maintainer-only GitHub administration</strong></summary>
+
+### Kenneth's own GitHub CLI setup (repo administration - NOT needed to provision a drive)
 
 Nothing below this point is needed by a team member setting up a drive - `provision-new-drive.ps1` handles that with no `gh` dependency at all. This section is for Kenneth's own administrative tasks: creating the read-only access token that gets embedded in `provision-new-drive.ps1`, managing repo settings, syncing the engine fork, and similar `gh`-driven tasks.
 
@@ -209,3 +385,23 @@ gh auth status
 You're looking for a line confirming you're logged in to github.com. Once you see that, `gh` is ready for repo administration tasks - `gh repo view`, `gh repo sync` on the engine fork, and so on.
 
 **Generating the read-only token that goes in `provision-new-drive.ps1`:** go to `github.com/settings/personal-access-tokens/new`, scope it to this one repository only, set Repository permissions -> Contents: Read-only (nothing else needed), generate it, and paste it into the line that sets `$cloneUrl` near the top of `provision-new-drive.ps1`, replacing `YOUR_TOKEN_HERE`. This is a one-time edit before handing a drive to anyone - the script itself refuses to run with a clear message if that placeholder is still there, so a team member should never see it.
+
+
+</details>
+
+---
+
+<div align="center">
+
+### 🔥 North Forge
+
+**Guidance in the field. Discipline in the build.**
+
+`Hermes-powered` · `Portable` · `Mode-aware` · `Private` · `Field-focused`
+
+<sub>
+North Forge — Hermes Edition · Kyocera Edition v21.8<br>
+Created and maintained by Kenneth C. Walker Jr.
+</sub>
+
+</div>
