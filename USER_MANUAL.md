@@ -23,6 +23,11 @@ Everything below exists so you can ALSO drive it directly when you want to.
 3. Wait for the prompt. You are now talking to North Forge.
 4. Type what you need. Press Enter.
 
+Each physical drive carries its own Hermes engine and remembers its own model,
+provider, credentials, memory, and setup choices. A different North Forge drive
+on the same computer stays separate. Starting this drive does not change or
+delete a Hermes setup already stored on that computer.
+
 Lost? Type this and press Enter:
 
     /menu

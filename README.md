@@ -166,30 +166,13 @@ Hermes truncates context files over 20,000 characters (drops the middle silently
 
 Hermes skills normally refine themselves through use. North Forge's skills are the exception - see the `hermes_specific_addendum` section in `.hermes.md`. Nothing in `skills-source/` gets auto-edited. Changes go through the Blacksmith (Kenneth Walker Jr.).
 
-## Updating Hermes itself (not this repo)
+## Updating Hermes on a drive (not this repo)
 
-`hermes update` updates the Hermes engine on whatever machine you run it on - it has nothing to do with this repo and doesn't touch anything git-tracked. After any update, treat it as a trigger to re-verify, not just install and move on: run `hermes doctor`, `hermes skin list`, and `hermes skills list --source local`, then do one real launch in each mode before trusting it.
+Each physical drive has its own Hermes engine and setup choices under `<repo>/.hermes-home`. Launch that drive first, then run `hermes update` from its North Forge window to update that drive's engine. After an update, run `hermes doctor`, `hermes skin list`, and `hermes skills list --source local`, then do one real launch in each mode before trusting it.
 
 **Where Hermes state lives:** each North Forge drive forces Hermes to use its own `.hermes-home` folder at the repository root. This keeps that drive's `config.yaml`, skin, memory/sessions, and `cron/` jobs separate from every other North Forge drive and from the computer's shared Hermes profile. The folder is on the drive but is ignored by Git; do not commit it.
 
-**To stop and remove the background gateway** (the scheduled-task process that keeps cron jobs running even when no session is open) before deleting anything in that folder:
-```powershell
-hermes gateway stop
-hermes gateway uninstall
-```
-Skipping this step first is why a manual folder deletion sometimes fails partway through with a locked-file error - the gateway process is still holding files open.
-
-**To fully wipe a machine's Hermes state** (rotate to a new API key, or start genuinely fresh on that machine) - use `machine-reset.bat` in this repo rather than doing the above by hand. It has two options: rotate just the API key (keeps memory/sessions/config intact), or a full purge (stops and uninstalls the gateway, then deletes the entire folder above).
-
-Before either option can delete anything, the reset checks the folder with PowerShell. The folder must be an absolute local path, must not pass through a shortcut/link, and must contain **both** `config.yaml` and the `hermes-agent\` directory. It then shows the cleaned-up, full path. Type that exact path at the confirmation prompt; `YES` is deliberately not enough. If a check or gateway command fails, the safe response is to stop without deleting.
-
-Developers can run the safety regression harness from Windows PowerShell:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\machine-reset-safety.Tests.ps1
-```
-
-The harness creates a randomly named folder under Windows `%TEMP%` only. It does **not** use `%HERMES_HOME%`, the user profile, or the system-drive root. Help: a `PASS` line means an unsafe target survived or the isolated valid fixture was intentionally removed. Tip: press **Ctrl+C** to stop the harness if you launched it by mistake.
+To reset a drive's North Forge choices, use `toggle-mode.bat` or `.sh` and select **RESET** as described above. Do not delete a computer's shared Hermes folders to reset a North Forge drive.
 
 ## Kenneth's own GitHub CLI setup (repo administration - NOT needed to provision a drive)
 

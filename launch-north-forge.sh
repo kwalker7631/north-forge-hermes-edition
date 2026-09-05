@@ -33,6 +33,10 @@ export HERMES_HOME="$(pwd)/.hermes-home"
 HERMES_HOME="$(pwd)/.hermes-home"
 export HERMES_HOME
 
+# Keep the engine, configuration, credentials, memory, and setup choices on
+# this physical drive without changing the parent shell's HERMES_HOME.
+export HERMES_HOME="$(pwd)/.hermes-home"
+
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
     echo "Install it, then run this script again."
