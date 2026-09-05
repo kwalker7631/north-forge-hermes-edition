@@ -183,7 +183,7 @@ set "PW="
 set /p PW="Admin password required for %~1: "
 set /a ADMIN_ATTEMPTS+=1
 if "!PW!"=="RumpleStiltskin" (
-    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! PASS (%~1)
+    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! PASS ^(%~1^)
     exit /b 0
 )
 >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! FAIL (%~1)
