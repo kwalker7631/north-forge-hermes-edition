@@ -7,19 +7,31 @@
 # =============================================================================
 set -e
 cd "$(dirname "$0")"
+export HERMES_HOME="$(pwd -P)/.hermes-home"
+# Always replace a caller-supplied HERMES_HOME: this drive owns its complete
+# Hermes installation and runtime state instead of sharing the host profile.
+if ! mkdir -p "$HERMES_HOME" 2>/dev/null || [ ! -d "$HERMES_HOME" ]; then
+    echo "ERROR: North Forge could not create its drive-local Hermes home at '$HERMES_HOME'. Check that the drive is connected and allows new folders."
+    printf '[%s] [FAILURE] [hermes-home]: could not create drive-local Hermes home at %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$HERMES_HOME" >> "forge-events.log"
+    exit 1
+fi
+if ! HERMES_HOME_PROBE="$(mktemp "$HERMES_HOME/.north-forge-write-probe.XXXXXX" 2>/dev/null)"; then
+    echo "ERROR: North Forge cannot write to its drive-local Hermes home at '$HERMES_HOME'. Check the drive's permissions or free space."
+    printf '[%s] [FAILURE] [hermes-home]: drive-local Hermes home is not writable at %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$HERMES_HOME" >> "forge-events.log"
+    exit 1
+fi
+rm -f "$HERMES_HOME_PROBE"
+unset HERMES_HOME_PROBE
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
-# Hermes' official installers create this checkout, virtual environment, and
-# wrapper beneath HERMES_HOME.  Keep all three on this drive so a system-wide
-# `hermes` command can never take over a North Forge session.
-HERMES_HOME="$(pwd)/.hermes-home"
-HERMES_EXE="$HERMES_HOME/bin/hermes"
-export HERMES_HOME
+# Keep the engine and persistent state on this drive. Child commands inherit
+# this exact home; machine-reset.bat intentionally ignores that inheritance.
+export HERMES_HOME="$(pwd)/.hermes-home"
 
-hermes_ready() {
-    [ -d "$HERMES_HOME/hermes-agent" ] &&
-        [ -d "$HERMES_HOME/venv" ] &&
-        [ -x "$HERMES_EXE" ]
-}
+# Keep Hermes configuration, memory, and scheduled jobs with this drive.  Do
+# not allow an inherited machine-wide HERMES_HOME to merge two North Forge
+# drives into one profile.
+HERMES_HOME="$(pwd)/.hermes-home"
+export HERMES_HOME
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
@@ -222,28 +234,14 @@ fi
 echo "North Forge running in $MODE mode."
 echo "Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it."
 
-# --- install Hermes on THIS drive if its complete local runtime is absent ---
-if ! hermes_ready; then
-    echo "North Forge's drive-local Hermes is not ready - installing it now..."
-    if curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash; then
-        :
-    else
-        status=$?
-        echo "ERROR: Hermes installation did not finish successfully (exit $status)."
-        echo "Please check your internet connection and forge-events.log, then try again."
-        log_event "hermes-install" "FAILURE: official installer exited $status"
-        exit "$status"
-    fi
-    if ! hermes_ready; then
-        echo "ERROR: The installer reported success, but North Forge could not find its"
-        echo "engine, virtual environment, and launcher under .hermes-home."
-        echo "Nothing else was started. See forge-events.log for the paths checked."
-        log_event "hermes-install" "FAILURE: installer exited 0 but required markers were absent (checkout=$HERMES_HOME/hermes-agent, venv=$HERMES_HOME/venv, executable=$HERMES_EXE)"
-        exit 1
-    fi
-    log_event "hermes-install" "SUCCESS: verified drive-local checkout, venv, and executable"
-fi
-[ "${NORTH_FORGE_HERMES_READY_ONLY:-0}" = 1 ] && exit 0
+# --- require the drive's own validated engine; never fall back to host Hermes ---
+. scripts/ensure-hermes.sh
+ensure_drive_hermes "$PWD" || exit $?
+
+# Every interactive command uses the same explicit drive-local entry point as
+# cron/gateway registration; PATH can no longer redirect one operation to a
+# machine-wide Hermes installation.
+hermes() { scripts/hermes-drive.sh "$@"; }
 
 # --- provider choice: default to zero-config OpenCode Free (no key, no
 # account, no block); using your own Anthropic API key is opt-in, not the
@@ -394,17 +392,17 @@ report_cron_failure() {
     printf '[%s] [WARNING] [cron]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$warning" >> "forge-events.log"
     CRON_DEGRADED="${CRON_DEGRADED}${CRON_DEGRADED:+; }$job_name"
 }
-if ! "$HERMES_EXE" cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
+if ! scripts/hermes-drive.sh cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    if CRON_DIAGNOSTIC="$("$HERMES_EXE" cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
+    if CRON_DIAGNOSTIC="$(scripts/hermes-drive.sh cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
         report_cron_failure "nightly-kyocera-research" "automated nightly research" "$?" "$CRON_DIAGNOSTIC"
     fi
 fi
-if ! "$HERMES_EXE" cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
+if ! scripts/hermes-drive.sh cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    if CRON_DIAGNOSTIC="$("$HERMES_EXE" cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
+    if CRON_DIAGNOSTIC="$(scripts/hermes-drive.sh cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
         report_cron_failure "daily-kyocera-brief" "automated daily brief" "$?" "$CRON_DIAGNOSTIC"
