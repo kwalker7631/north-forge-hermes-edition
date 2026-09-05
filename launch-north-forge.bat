@@ -2,7 +2,7 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: launch-north-forge.bat | Script version: 1.0.0 | Updated: 2026-09-04
+rem  File: launch-north-forge.bat | Script version: 1.1.0 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal enabledelayedexpansion
@@ -140,36 +140,68 @@ if errorlevel 1 (
     exit /b
 )
 
-if not exist ".env" (
-    if exist ".env.example" (
-        copy ".env.example" ".env" >nul
+rem --- provider choice: default to zero-config OpenCode Free (no key, no
+rem     account, no block); using your own Anthropic API key is opt-in, not
+rem     the hard gate this used to be. Asked once, remembered in
+rem     .provider-choice, same pattern as .agent-name/.drive-record.txt. ---
+if not exist ".provider-choice" (
+    echo.
+    echo North Forge needs an AI provider before it can answer questions.
+    echo.
+    echo   Press ENTER  - start now for free, no account or key needed
+    echo                  ^(uses OpenCode Free - good for trying it out^)
+    echo   Type OWNKEY  - use your own Anthropic API key instead
+    echo                  ^(paid, pay-per-token - pick this for real field/production use^)
+    echo.
+    set "PROVIDERCHOICE="
+    set /p PROVIDERCHOICE="Your choice [ENTER = free / OWNKEY = your own key]: "
+    if /i "!PROVIDERCHOICE!"=="OWNKEY" (
+        echo ownkey> ".provider-choice"
+    ) else (
+        echo free> ".provider-choice"
+        hermes config set model.provider opencode-free >nul 2>nul
+        hermes config unset model.default >nul 2>nul
+    )
+)
+
+set /p PROVIDERMODE=<".provider-choice"
+for /f "tokens=* delims= " %%A in ("%PROVIDERMODE%") do set "PROVIDERMODE=%%A"
+
+if /i "%PROVIDERMODE%"=="ownkey" (
+    if not exist ".env" (
+        if exist ".env.example" (
+            copy ".env.example" ".env" >nul
+            echo.
+            echo First run: created .env from the template.
+            echo Add your Anthropic API key in the notepad window that opens, save, close it, then run this launcher again.
+            echo IMPORTANT: run 'hermes model' and pick a standard model ^(Sonnet or Opus^) -
+            echo avoid a premium/credits-gated model ^(Fable, Mythos^) unless you specifically
+            echo know it needs a separate purchased credits balance on top of this API key.
+            notepad ".env"
+            pause
+            exit /b
+        )
+    )
+
+    rem --- catch a .env that EXISTS but still holds the placeholder/an
+    rem     obviously-too-short value, instead of silently launching into a
+    rem     session that can't call a model. Real Anthropic keys run ~100+
+    rem     chars; the template placeholder and any partial paste are much
+    rem     shorter, so a length check below a safe threshold catches both
+    rem     without needing to match exact placeholder text.
+    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "$line = Get-Content '.env' | Select-String '^ANTHROPIC_API_KEY='; if (-not $line) { 'MISSING' } else { $v = $line.ToString().Split('=',2)[1].Trim(); if ($v.Length -lt 30) { 'SHORT' } else { 'OK' } }"`) do set "KEYCHECK=%%L"
+    if not "%KEYCHECK%"=="OK" (
         echo.
-        echo First run: created .env from the template.
-        echo Add your Anthropic API key in the notepad window that opens, save, close it, then run this launcher again.
+        echo Your .env exists, but ANTHROPIC_API_KEY looks like a placeholder or
+        echo is missing - not a real key. Launching anyway would just fail on
+        echo the first real question instead of telling you clearly now.
+        echo.
+        echo Add your real Anthropic API key in the notepad window that opens,
+        echo save, close it, then run this launcher again.
         notepad ".env"
         pause
         exit /b
     )
-)
-
-rem --- catch a .env that EXISTS but still holds the placeholder/an
-rem     obviously-too-short value, instead of silently launching into a
-rem     session that can't call a model. Real Anthropic keys run ~100+
-rem     chars; the template placeholder and any partial paste are much
-rem     shorter, so a length check below a safe threshold catches both
-rem     without needing to match exact placeholder text.
-for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "$line = Get-Content '.env' | Select-String '^ANTHROPIC_API_KEY='; if (-not $line) { 'MISSING' } else { $v = $line.ToString().Split('=',2)[1].Trim(); if ($v.Length -lt 30) { 'SHORT' } else { 'OK' } }"`) do set "KEYCHECK=%%L"
-if not "%KEYCHECK%"=="OK" (
-    echo.
-    echo Your .env exists, but ANTHROPIC_API_KEY looks like a placeholder or
-    echo is missing - not a real key. Launching anyway would just fail on
-    echo the first real question instead of telling you clearly now.
-    echo.
-    echo Add your real Anthropic API key in the notepad window that opens,
-    echo save, close it, then run this launcher again.
-    notepad ".env"
-    pause
-    exit /b
 )
 
 rem --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---

@@ -2,6 +2,12 @@
 
 Plain-language running log of what actually changed and why. Distinct from `git log` (which needs git to read) and `audit/CLAUDE_CODE_LAST_AUDIT.md` (which is Claude Code's own session-to-session working notes, overwritten each session). This file is the human-readable history - what happened, in the order it happened, kept permanently.
 
+## [Unreleased] - 2026-09-05
+
+### Changed (later session, Claude Code)
+- **Onboarding default switched from a hard Anthropic-key gate to zero-config OpenCode Free.** `launch-north-forge.bat`/`.sh` (both bumped 1.0.0 -> 1.1.0) now ask once, on first launch, whether to start free (OpenCode Free - no account, no key, no payment method, configured via `hermes config set model.provider opencode-free` + `hermes config unset model.default`, which Hermes's own fallback logic auto-resolves to a real working free model at runtime) or to opt in to a personal Anthropic API key (`OWNKEY`) for the existing pay-per-token flow. The choice is remembered in `.provider-choice` (same pattern as `.agent-name`/`.drive-record.txt`) and not re-asked. `.env.example` (bumped 1.0.0 -> 1.1.0) rewritten to match: ANTHROPIC_API_KEY reframed as optional/opt-in, OpenCode Free noted as the zero-cost default, plus an explicit warning against picking a premium/credits-gated model (Fable, Mythos) without understanding it needs a separate purchased credits balance. Verified empirically: both branches tested end-to-end against an isolated scratch `HERMES_HOME`, including confirming `get_default_model_for_provider("opencode-free")` resolves to a real model (`deepseek-v4-flash-free`) with no manual model ID hardcoded into the scripts. Requested by Kenneth directly, following a recon session that found the previous hard gate had no free path at all and that the credits-gated `claude-fable-5` model has no visible warning distinguishing it from ordinary metered models.
+- **`toggle-mode.bat` / `machine-reset.bat` Script version bumped 1.0.0 -> 1.0.1** to reflect the `e342f7a` admin_gate password-bypass fix, which predated the 1.0.0 versioning baseline set in the prior session (that baseline was a fresh starting point, not a reconstruction of real prior history - see that session's audit for detail).
+
 ## [Unreleased] - 2026-09-04
 
 ### Added (later session, Claude Code)

@@ -2,7 +2,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: launch-north-forge.sh | Script version: 1.0.0 | Updated: 2026-09-04
+# File: launch-north-forge.sh | Script version: 1.1.0 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 set -e
@@ -163,32 +163,63 @@ if ! command -v hermes >/dev/null 2>&1; then
     exit 0
 fi
 
-if [ ! -f ".env" ]; then
-    if [ -f ".env.example" ]; then
-        cp ".env.example" ".env"
-        echo ""
-        echo "First run: created .env from the template."
-        echo "Add your Anthropic API key, save, then run this script again."
-        "${EDITOR:-nano}" ".env"
-        exit 0
+# --- provider choice: default to zero-config OpenCode Free (no key, no
+# account, no block); using your own Anthropic API key is opt-in, not the
+# hard gate this used to be. Asked once, remembered in .provider-choice,
+# same pattern as .agent-name/.drive-record.txt. ---
+if [ ! -f ".provider-choice" ]; then
+    echo ""
+    echo "North Forge needs an AI provider before it can answer questions."
+    echo ""
+    echo "  Press ENTER  - start now for free, no account or key needed"
+    echo "                 (uses OpenCode Free - good for trying it out)"
+    echo "  Type OWNKEY  - use your own Anthropic API key instead"
+    echo "                 (paid, pay-per-token - pick this for real field/production use)"
+    echo ""
+    PROVIDERCHOICE=""
+    read -p "Your choice [ENTER = free / OWNKEY = your own key]: " PROVIDERCHOICE || PROVIDERCHOICE=""
+    if [ "$(printf '%s' "$PROVIDERCHOICE" | tr '[:lower:]' '[:upper:]')" = "OWNKEY" ]; then
+        echo "ownkey" > ".provider-choice"
+    else
+        echo "free" > ".provider-choice"
+        hermes config set model.provider opencode-free >/dev/null 2>&1 || true
+        hermes config unset model.default >/dev/null 2>&1 || true
     fi
 fi
 
-# --- catch a .env that EXISTS but still holds the placeholder/an
-# obviously-too-short value, instead of silently launching into a session
-# that can't call a model. Real Anthropic keys run ~100+ chars; the
-# template placeholder and any partial paste are much shorter, so a length
-# check below a safe threshold catches both without matching exact text.
-KEYVAL="$(grep '^ANTHROPIC_API_KEY=' .env 2>/dev/null | head -1 | cut -d'=' -f2- | tr -d '[:space:]')"
-if [ -z "$KEYVAL" ] || [ "${#KEYVAL}" -lt 30 ]; then
-    echo ""
-    echo "Your .env exists, but ANTHROPIC_API_KEY looks like a placeholder or"
-    echo "is missing - not a real key. Launching anyway would just fail on"
-    echo "the first real question instead of telling you clearly now."
-    echo ""
-    echo "Add your real Anthropic API key, save, then run this script again."
-    "${EDITOR:-nano}" ".env"
-    exit 0
+PROVIDERMODE="$(tr '[:upper:]' '[:lower:]' < .provider-choice | tr -d '[:space:]')"
+
+if [ "$PROVIDERMODE" = "ownkey" ]; then
+    if [ ! -f ".env" ]; then
+        if [ -f ".env.example" ]; then
+            cp ".env.example" ".env"
+            echo ""
+            echo "First run: created .env from the template."
+            echo "Add your Anthropic API key, save, then run this script again."
+            echo "IMPORTANT: run 'hermes model' and pick a standard model (Sonnet or Opus) -"
+            echo "avoid a premium/credits-gated model (Fable, Mythos) unless you specifically"
+            echo "know it needs a separate purchased credits balance on top of this API key."
+            "${EDITOR:-nano}" ".env"
+            exit 0
+        fi
+    fi
+
+    # --- catch a .env that EXISTS but still holds the placeholder/an
+    # obviously-too-short value, instead of silently launching into a session
+    # that can't call a model. Real Anthropic keys run ~100+ chars; the
+    # template placeholder and any partial paste are much shorter, so a length
+    # check below a safe threshold catches both without matching exact text.
+    KEYVAL="$(grep '^ANTHROPIC_API_KEY=' .env 2>/dev/null | head -1 | cut -d'=' -f2- | tr -d '[:space:]')"
+    if [ -z "$KEYVAL" ] || [ "${#KEYVAL}" -lt 30 ]; then
+        echo ""
+        echo "Your .env exists, but ANTHROPIC_API_KEY looks like a placeholder or"
+        echo "is missing - not a real key. Launching anyway would just fail on"
+        echo "the first real question instead of telling you clearly now."
+        echo ""
+        echo "Add your real Anthropic API key, save, then run this script again."
+        "${EDITOR:-nano}" ".env"
+        exit 0
+    fi
 fi
 
 # --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
