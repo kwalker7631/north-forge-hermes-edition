@@ -9,81 +9,36 @@ set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
-configure_free_provider() {
-    rm -f ".provider-choice"
-    CONFIG_TMP="$(mktemp -d "${TMPDIR:-/tmp}/north-forge-provider.XXXXXX")"
-
-    SET_STATUS=0
-    hermes config set model.provider opencode-free >"$CONFIG_TMP/set.out" 2>"$CONFIG_TMP/set.err" || SET_STATUS=$?
-    if [ "$SET_STATUS" -ne 0 ]; then
-        echo "ERROR: Hermes could not select OpenCode Free (exit $SET_STATUS)."
-        echo "Nothing was saved. Please review the details below, then run North Forge again."
-        cat "$CONFIG_TMP/set.out" "$CONFIG_TMP/set.err"
-        {
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FAILURE] [provider-config]: set model.provider failed (exit $SET_STATUS); .provider-choice not written"
-            cat "$CONFIG_TMP/set.out" "$CONFIG_TMP/set.err" | sed -E 's/((api[_-]?key|token|secret|password)[[:space:]]*[:=][[:space:]]*)[^[:space:]]+/\1[REDACTED]/Ig' | sed 's/^/[provider-config detail] /'
-        } >> "forge-events.log"
-        rm -rf "$CONFIG_TMP"
-        return "$SET_STATUS"
-    fi
-
-    UNSET_STATUS=0
-    hermes config unset model.default >"$CONFIG_TMP/unset.out" 2>"$CONFIG_TMP/unset.err" || UNSET_STATUS=$?
-    UNSET_TEXT="$(cat "$CONFIG_TMP/unset.out" "$CONFIG_TMP/unset.err")"
-    # Hermes documents a missing key as exit 1 with this exact message.
-    if [ "$UNSET_STATUS" -ne 0 ] && ! { [ "$UNSET_STATUS" -eq 1 ] && [ "$UNSET_TEXT" = "Config key not set: model.default" ]; }; then
-        echo "ERROR: Hermes selected OpenCode Free, but could not clear the old default model (exit $UNSET_STATUS)."
-        echo "Nothing was saved. Please review the details below, then run North Forge again."
-        cat "$CONFIG_TMP/unset.out" "$CONFIG_TMP/unset.err"
-        {
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FAILURE] [provider-config]: unset model.default failed (exit $UNSET_STATUS); .provider-choice not written"
-            printf '%s\n' "$UNSET_TEXT" | sed -E 's/((api[_-]?key|token|secret|password)[[:space:]]*[:=][[:space:]]*)[^[:space:]]+/\1[REDACTED]/Ig' | sed 's/^/[provider-config detail] /'
-        } >> "forge-events.log"
-        rm -rf "$CONFIG_TMP"
-        return "$UNSET_STATUS"
-    fi
-
-    printf '%s\n' "free" > ".provider-choice"
-    rm -rf "$CONFIG_TMP"
-}
-
-# Narrow test hook: runs no onboarding or Hermes session, and changes only the
-# provider marker/configuration in the current working directory.
-if [ "${1:-}" = "--configure-free-provider" ]; then
-    configure_free_provider
-    exit $?
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "python3 is required for this launcher and wasn't found on this machine."
+    echo "Install it, then run this script again."
+    exit 1
 fi
 
 # --- first run on this drive: pop open the styled quickstart once ---
 if [ ! -f ".readme-shown" ]; then
-    if command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
-    elif command -v open >/dev/null 2>&1; then
-        open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
+    if [ ! -f "WELCOME.html" ]; then
+        WELOPEN="failed: WELCOME.html is missing"
+    elif command -v xdg-open >/dev/null 2>&1 && xdg-open "WELCOME.html"; then
+        WELOPEN=ok
+    elif command -v open >/dev/null 2>&1 && open "WELCOME.html"; then
+        WELOPEN=ok
     else
-        WELOPEN="no opener available"
+        WELOPEN="failed: no working opener available"
     fi
-    touch .readme-shown
+    if [ "$WELOPEN" = "ok" ]; then
+        touch .readme-shown
+    fi
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$([ "$WELOPEN" = "ok" ] && echo INFO || echo WARNING)] [welcome]: first-run WELCOME.html auto-open: $WELOPEN" >> "forge-events.log"
 fi
 
+# Names are capped at 64 characters and allow letters, numbers, spaces, and
+# apostrophe, hyphen, period, comma, and parentheses. The shared helper strips
+# ASCII controls and rejects parsing/log metacharacters before anything is used.
+# Help: Enter a normal person's name; press Enter to keep the shown default.
 # --- user tier: who-has-this-drive record (accountability only, never blocks) ---
 log_event() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] [$1]: $2" >> "forge-events.log"; }
-if [ ! -f ".drive-record.txt" ]; then
-    DRIVENAME=""
-    read -p "First launch: your name for this drive's record: " DRIVENAME || DRIVENAME=""
-    [ -z "$DRIVENAME" ] && DRIVENAME="Unregistered"
-    printf '%s\n%s\n' "$DRIVENAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
-    log_event "drive-record" "CREATE: registered to $DRIVENAME"
-else
-    CURNAME="$(sed -n 1p ".drive-record.txt")"
-    NEWNAME=""
-    read -p "Still $CURNAME? [Enter to continue / type a new name to re-register]: " NEWNAME || NEWNAME=""
-    if [ -n "$NEWNAME" ]; then
-        printf '%s\n%s\n' "$NEWNAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
-        log_event "drive-record" "RE-REGISTER: $CURNAME -> $NEWNAME"
-    fi
-fi
+python3 scripts/name_validation.py drive
 
 # --- log repo state at launch (no git pull happens here by design - drives
 # update manually; this records what code the session ran on) ---
@@ -137,26 +92,7 @@ if [ "$MODE" = "full" ]; then
     cp -r skills-source/tsc-only/. .hermes/skills/ 2>/dev/null || true
 fi
 
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "python3 is required for this launcher and wasn't found on this machine."
-    echo "Install it (e.g. 'brew install python3' on Mac, or your distro's package manager on Linux), then run this script again."
-    exit 1
-fi
-
-if [ ! -f ".agent-name" ]; then
-    echo ""
-    echo "First launch on this drive: you can give your assistant a personal"
-    echo "name if you'd like - it still runs as North Forge underneath, this"
-    echo "just changes what it calls itself when talking to you."
-    echo ""
-    read -p "Name your assistant (press Enter to keep 'North Forge'): " CUSTOMNAME || CUSTOMNAME=""
-    if [ -z "$CUSTOMNAME" ]; then
-        echo "North Forge" > ".agent-name"
-    else
-        echo "$CUSTOMNAME" > ".agent-name"
-    fi
-    echo ""
-fi
+python3 scripts/name_validation.py agent
 
 python3 - "$MODE" << 'PYEOF'
 import sys, os
@@ -167,12 +103,9 @@ with open(f"mode-blocks/{mode}-banner.md", "r", encoding="utf-8") as f:
     banner = f.read()
 with open(f"mode-blocks/{mode}-menu.md", "r", encoding="utf-8") as f:
     menu = f.read()
-agent_name = "North Forge"
-if os.path.exists(".agent-name"):
-    with open(".agent-name", "r", encoding="utf-8") as f:
-        n = f.read().strip()
-        if n:
-            agent_name = n
+from scripts.name_validation import read_validated
+from pathlib import Path
+agent_name, _ = read_validated(Path(".agent-name"), "North Forge")
 tmpl = tmpl.replace("{{MODE_BANNER_BLOCK}}", banner).replace("{{COMMAND_MENU_BLOCK}}", menu).replace("{{AGENT_NAME}}", agent_name)
 size = len(tmpl)
 if size >= 20000:
@@ -284,21 +217,38 @@ hermes skills trust .
 # Self-healing scheduled jobs - re-adds the research and daily-brief cron
 # entries if either is missing (e.g. after an AppData flush wiped them).
 # No manual /cron add ever needed again.
+CRON_DEGRADED=""
+report_cron_failure() {
+    job_name="$1"
+    automation="$2"
+    exit_status="$3"
+    raw_diagnostic="$4"
+    diagnostic="$(printf '%s' "$raw_diagnostic" | tr '\r\n' '  ' | LC_ALL=C sed 's/[^[:print:]\t]/?/g' | cut -c1-500)"
+    [ -n "$diagnostic" ] || diagnostic="no diagnostic output"
+    warning="WARNING: Could not schedule $job_name (exit $exit_status; diagnostic: $diagnostic). Interactive North Forge can continue, but the $automation will not run. Check Hermes with 'hermes cron list', then relaunch North Forge to try again."
+    printf '%s\n' "$warning"
+    printf '[%s] [WARNING] [cron]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$warning" >> "forge-events.log"
+    CRON_DEGRADED="${CRON_DEGRADED}${CRON_DEGRADED:+; }$job_name"
+}
 if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    if hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1; then
+    if CRON_DIAGNOSTIC="$(hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED" >> "forge-events.log"
+        report_cron_failure "nightly-kyocera-research" "automated nightly research" "$?" "$CRON_DIAGNOSTIC"
     fi
 fi
 if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    if hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >/dev/null 2>&1; then
+    if CRON_DIAGNOSTIC="$(hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED" >> "forge-events.log"
+        report_cron_failure "daily-kyocera-brief" "automated daily brief" "$?" "$CRON_DIAGNOSTIC"
     fi
+fi
+
+if [ -n "$CRON_DEGRADED" ]; then
+    echo "WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job(s): $CRON_DEGRADED. Interactive North Forge is still available; run 'hermes cron list' to check Hermes, then relaunch to retry."
 fi
 
 # Plain call instead of exec so the exit status can be logged after the

@@ -2,7 +2,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: toggle-mode.sh | Script version: 1.0.0 | Updated: 2026-09-04
+# File: toggle-mode.sh | Script version: 1.1.0 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 cd "$(dirname "$0")"
@@ -54,15 +54,15 @@ while true; do
         reset)
             admin_gate "RESET" || continue
             echo ""
-            echo "RESET wipes this drive's PERSONAL setup back to a clean first-use state:"
-            echo "  .env           - your Anthropic API key"
-            echo "  .forge-mode    - the FULL/SALES toggle"
-            echo "  .hermes.md     - generated at launch, rebuilds automatically"
-            echo "  .hermes/skills/ - generated at launch, rebuilds automatically"
+            echo "RESET performs a credential/config reset back to a clean first-use state:"
+            echo "  .env, .forge-mode, .hermes.md, .drive-record.txt"
+            echo "  .provider-choice, .agent-name, .readme-shown, .hermes/skills/"
             echo ""
             echo "The tracked repo content is NOT touched - skills-source/, mode-blocks/, the scripts."
-            echo "Use this before handing this physical drive to a different person, so your"
-            echo "API key does not travel with it and the next person gets a genuine first run."
+            echo "forge-events.log is intentionally RETAINED as an accountability record."
+            echo "It can contain names entered by prior users; RESET is not a privacy/log purge."
+            echo "Use this before handing the drive to someone else so credentials and settings"
+            echo "do not travel with it and the next person gets a genuine first run."
             echo ""
             read -p "Type YES (all caps) to confirm: " CONFIRM
             if [ "$CONFIRM" = "YES" ]; then
@@ -71,15 +71,31 @@ while true; do
                 else
                     log_event "reset" "RESET executed (no drive record present)"
                 fi
-                rm -f ".env" ".forge-mode" ".hermes.md" ".drive-record.txt"
+                rm -f ".env" ".forge-mode" ".hermes.md" ".drive-record.txt" \
+                    ".provider-choice" ".agent-name" ".readme-shown"
                 rm -rf ".hermes/skills"
+                RESET_FAILED=0
+                for TARGET in .env .forge-mode .hermes.md .drive-record.txt \
+                    .provider-choice .agent-name .readme-shown .hermes/skills; do
+                    if [ -e "$TARGET" ] || [ -L "$TARGET" ]; then
+                        echo "ERROR: Could not remove $TARGET. Check permissions, then try RESET again."
+                        RESET_FAILED=1
+                    fi
+                done
                 echo ""
-                echo "Done. This drive is back to a clean first-use state."
-                echo "Next person: run launch-north-forge.sh - it recreates .env from .env.example"
-                echo "and prompts for their own API key. Mode defaults to SALES until toggle-mode sets it."
+                if [ "$RESET_FAILED" -ne 0 ]; then
+                    echo "Credential/config reset was incomplete. forge-events.log was intentionally retained."
+                    exit 1
+                fi
+                echo "Done. Credential/config reset completed; first-use setup will run next time."
+                echo "forge-events.log was intentionally retained as the accountability record"
+                echo "and can contain names entered by prior users."
+                echo "Next person: run launch-north-forge.sh and follow the first-use prompts."
+                exit 0
             else
                 echo ""
                 echo "Cancelled - nothing was deleted."
+                exit 1
             fi
             ;;
         *)

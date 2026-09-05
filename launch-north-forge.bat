@@ -5,7 +5,7 @@ rem  Forge project.
 rem  File: launch-north-forge.bat | Script version: 1.1.1 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
-setlocal enabledelayedexpansion
+setlocal DisableDelayedExpansion
 cd /d "%~dp0"
 
 if /i "%~1"=="--configure-free-provider" (
@@ -15,33 +15,27 @@ if /i "%~1"=="--configure-free-provider" (
 
 rem --- first run on this drive: pop open the styled quickstart once ---
 if not exist ".readme-shown" (
-    start "" "WELCOME.html"
-    if errorlevel 1 (
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED
+    if not exist "WELCOME.html" (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED - file is missing
     ) else (
-        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [welcome]: first-run WELCOME.html auto-open: ok
+        start "" "WELCOME.html"
+        if errorlevel 1 (
+            >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED
+        ) else (
+            echo. > .readme-shown
+            >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [welcome]: first-run WELCOME.html auto-open: ok
+        )
     )
-    echo. > .readme-shown
 )
 
-rem --- user tier: who-has-this-drive record (accountability only, never blocks) ---
-if not exist ".drive-record.txt" (
-    set "DRIVENAME="
-    set /p DRIVENAME="First launch: your name for this drive's record: "
-    if not defined DRIVENAME set "DRIVENAME=Unregistered"
-    > ".drive-record.txt" echo !DRIVENAME!
-    >> ".drive-record.txt" echo %DATE% %TIME%
-    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [drive-record]: CREATE: registered to !DRIVENAME!
-) else (
-    set /p CURNAME=<".drive-record.txt"
-    set "NEWNAME="
-    set /p NEWNAME="Still !CURNAME!? [Enter to continue / type a new name to re-register]: "
-    if defined NEWNAME (
-        > ".drive-record.txt" echo !NEWNAME!
-        >> ".drive-record.txt" echo %DATE% %TIME%
-        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [drive-record]: RE-REGISTER: !CURNAME! -^> !NEWNAME!
-    )
-)
+rem Names: 64 characters maximum; letters, numbers, spaces, apostrophe, hyphen,
+rem period, comma, and parentheses only. Help: press Enter to keep the default.
+%PYTHON_CMD% scripts\name_validation.py drive
+if errorlevel 1 exit /b 1
+
+rem User name input is finished, so delayed expansion is safe for existing
+rem launcher bookkeeping below. It was deliberately OFF while names were read.
+setlocal EnableDelayedExpansion
 
 rem --- first run on this machine: put a real North Forge icon on the Desktop
 rem (Windows twin of the Mac launcher's "North Forge.command" desktop icon).
@@ -100,27 +94,19 @@ if /i "%MODE%"=="full" (
     xcopy /e /i /y "skills-source\tsc-only" ".hermes\skills" >nul
 )
 
-if not exist ".agent-name" (
-    echo.
-    echo First launch on this drive: you can give your assistant a personal
-    echo name if you'd like - it still runs as North Forge underneath, this
-    echo just changes what it calls itself when talking to you.
-    echo.
-    set /p CUSTOMNAME="Name your assistant (press Enter to keep 'North Forge'): "
-    if "!CUSTOMNAME!"=="" (
-        echo North Forge> ".agent-name"
-    ) else (
-        echo !CUSTOMNAME! > ".agent-name"
-    )
-    echo.
-)
+rem Disable delayed expansion around the assistant-name prompt too. The helper
+rem owns the raw text, so characters such as ! never enter a batch variable.
+setlocal DisableDelayedExpansion
+%PYTHON_CMD% scripts\name_validation.py agent
+if errorlevel 1 exit /b 1
+endlocal
 
 powershell -NoProfile -Command ^
     "$m='%MODE%';" ^
     "$t=Get-Content '.hermes.template.md' -Raw;" ^
     "$b=Get-Content \"mode-blocks\$m-banner.md\" -Raw;" ^
     "$c=Get-Content \"mode-blocks\$m-menu.md\" -Raw;" ^
-    "$name='North Forge'; if (Test-Path '.agent-name') { $n=(Get-Content '.agent-name' -Raw).Trim(); if ($n) { $name=$n } };" ^
+    "$name=(& %PYTHON_CMD% scripts\name_validation.py get --file .agent-name --default 'North Forge'); if ($LASTEXITCODE -ne 0) { exit 1 };" ^
     "$t=$t.Replace('{{MODE_BANNER_BLOCK}}',$b).Replace('{{COMMAND_MENU_BLOCK}}',$c).Replace('{{AGENT_NAME}}',$name);" ^
     "if ($t.Length -ge 20000) { Add-Content 'forge-events.log' ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [FAILURE] [size-guard]: assembled .hermes.md ' + $t.Length + ' chars ge 20000 ceiling - launch aborted'); Write-Host ('FATAL: assembled .hermes.md is ' + $t.Length + ' chars - at or over the 20,000-char context-file ceiling. Hermes would silently drop the middle of the file. Trim the template/banner/menu before launching.'); exit 1 };" ^
     "if ($t.Length -ge 19800) { Add-Content 'forge-events.log' ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [WARNING] [size-guard]: assembled .hermes.md ' + $t.Length + ' chars - within 200 of the 20000 ceiling'); Write-Host ('WARNING: assembled .hermes.md is ' + $t.Length + ' chars - within 200 of the 20,000-char ceiling. Trim soon.') };" ^
@@ -231,26 +217,37 @@ hermes skills trust .
 rem Self-healing scheduled jobs - re-adds the research and daily-brief cron
 rem entries if either is missing (e.g. after an AppData flush wiped them).
 rem No manual /cron add ever needed again.
+set "CRON_DEGRADED="
 hermes cron list 2>nul | findstr /C:"nightly-kyocera-research" >nul
 if errorlevel 1 (
     echo Scheduling the nightly Kyocera research job...
-    hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >nul 2>nul
-    if errorlevel 1 (
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED
+    set "CRON_DIAG=%TEMP%\north-forge-cron-!RANDOM!-!RANDOM!.txt"
+    hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >"!CRON_DIAG!" 2>&1
+    set "CRON_EXIT=!ERRORLEVEL!"
+    if not "!CRON_EXIT!"=="0" (
+        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule nightly-kyocera-research (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated nightly research will not run. Check Hermes with ''hermes cron list'', then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
+        set "CRON_DEGRADED=nightly-kyocera-research"
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered nightly-kyocera-research ^(0 6 * * *^)
     )
+    del /q "!CRON_DIAG!" 2>nul
 )
 hermes cron list 2>nul | findstr /C:"daily-kyocera-brief" >nul
 if errorlevel 1 (
     echo Scheduling the daily Kyocera brief job...
-    hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >nul 2>nul
-    if errorlevel 1 (
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED
+    set "CRON_DIAG=%TEMP%\north-forge-cron-!RANDOM!-!RANDOM!.txt"
+    hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >"!CRON_DIAG!" 2>&1
+    set "CRON_EXIT=!ERRORLEVEL!"
+    if not "!CRON_EXIT!"=="0" (
+        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule daily-kyocera-brief (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated daily brief will not run. Check Hermes with ''hermes cron list'', then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
+        if defined CRON_DEGRADED (set "CRON_DEGRADED=!CRON_DEGRADED!; daily-kyocera-brief") else set "CRON_DEGRADED=daily-kyocera-brief"
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered daily-kyocera-brief ^(0 8 * * *^)
     )
+    del /q "!CRON_DIAG!" 2>nul
 )
+
+if defined CRON_DEGRADED echo WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job^(s^): !CRON_DEGRADED!. Interactive North Forge is still available; run 'hermes cron list' to check Hermes, then relaunch to retry.
 
 rem Plain call (was already not exec'd on Windows) - log how the session ended.
 hermes
