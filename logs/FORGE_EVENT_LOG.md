@@ -13,10 +13,9 @@ specifically (distinct from `logs/CLAUDE_CODE_LAST_AUDIT.md`, which is
 Claude Code's own per-session audit, and `CHANGELOG.md`, which is the
 human-readable change history). Newest entries appended at the bottom.
 Treated as a Claude-Code-maintained operational record (same footing as
-the audit report), not authored field content - not yet in any of
-CLAUDE.md's explicit zone lists; flagged for the primary GPT/Blacksmith to
-formally place in Zone A alongside the audit report if this becomes a
-recurring pattern.
+the audit report), not authored field content. Placed in CLAUDE.md's Zone A
+enumerated file list on 2026-09-05, alongside
+`logs/CLAUDE_CODE_LAST_AUDIT.md` and `AGENTS.md`.
 
 ---
 

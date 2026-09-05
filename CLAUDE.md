@@ -43,7 +43,9 @@ Files:
 - `.env.example`
 - `skins/north-forge.yaml`
 - `logs/CLAUDE_CODE_LAST_AUDIT.md`
+- `logs/FORGE_EVENT_LOG.md`
 - `.gitignore`
+- `AGENTS.md`
 - `scripts/*.sh`
 - `scripts/*.ps1`
 - `scripts/*.py`
@@ -58,6 +60,13 @@ category already justifying Zone A status for the files explicitly named
 above. Multiple sessions (Claude Code and Codex) have already treated it
 this way in practice - this closes a recurring gap rather than establishing
 new policy.
+
+Extended 2026-09-05 to also include `logs/FORGE_EVENT_LOG.md` and
+`AGENTS.md`: both are Claude-Code-maintained operational/governance records
+- the forge event log and the Codex process rules respectively - not
+authored field-support or customer-facing content, and both have already
+been edited directly by Claude Code across multiple sessions in practice.
+This closes the standing zone-ambiguity flagged for both files.
 
 `archive/` is explicitly outside this list's scope - read-only historical
 storage. Claude Code does not modify its contents or move files into or
