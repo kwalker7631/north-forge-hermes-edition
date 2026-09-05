@@ -88,31 +88,40 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     exit 0
 }
 
-Set-Location "${target}:\"
+$repositoryPath = Join-Path "${target}:\" "north-forge-hermes-edition"
 
-# Native executables don't throw on a nonzero exit even under
-# $ErrorActionPreference = "Stop" - $LASTEXITCODE has to be checked
-# explicitly, or a failed pull/clone launches stale or half-cloned content.
-if (Test-Path "north-forge-hermes-edition") {
+if (Test-Path -LiteralPath $repositoryPath -PathType Container) {
     Write-Host "north-forge-hermes-edition already exists on ${target}: - pulling the latest instead of cloning."
-    Set-Location "north-forge-hermes-edition"
-    git pull
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host ""
-        Write-Host "ERROR: 'git pull' failed (exit code $LASTEXITCODE) - see the git output above." -ForegroundColor Red
-        Write-Host "Not launching against a possibly-stale checkout. Fix the pull and run this script again." -ForegroundColor Red
-        exit 1
+    git -C $repositoryPath pull
+    $gitExitCode = $LASTEXITCODE
+    if ($gitExitCode -ne 0) {
+        Write-Host "ERROR: Provisioning stopped because the existing North Forge copy could not be updated." -ForegroundColor Red
+        Write-Host "Review Git's error above, then check network access and repository permissions before trying again." -ForegroundColor Red
+        exit $gitExitCode
     }
 } else {
     Write-Host "Cloning North Forge onto ${target}:..."
-    git clone $cloneUrl
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host ""
-        Write-Host "ERROR: 'git clone' failed (exit code $LASTEXITCODE) - see the git output above." -ForegroundColor Red
-        exit 1
+    git clone $cloneUrl $repositoryPath
+    $gitExitCode = $LASTEXITCODE
+    if ($gitExitCode -ne 0) {
+        Write-Host "ERROR: Provisioning stopped because North Forge could not be cloned." -ForegroundColor Red
+        Write-Host "Review Git's error above, then check network access and repository permissions before trying again." -ForegroundColor Red
+        exit $gitExitCode
     }
-    Set-Location "north-forge-hermes-edition"
 }
+
+$launcherPath = Join-Path $repositoryPath "launch-north-forge.bat"
+if (-not (Test-Path -LiteralPath $repositoryPath -PathType Container)) {
+    Write-Host "ERROR: Provisioning stopped because the expected repository folder was not found: $repositoryPath" -ForegroundColor Red
+    exit 1
+}
+if (-not (Test-Path -LiteralPath $launcherPath -PathType Leaf)) {
+    Write-Host "ERROR: Provisioning stopped because the North Forge launcher was not found: $launcherPath" -ForegroundColor Red
+    Write-Host "The download may be incomplete. Check network access and repository permissions, then try again." -ForegroundColor Red
+    exit 1
+}
+
+Set-Location -LiteralPath $repositoryPath
 
 Write-Host ""
 Write-Host "Starting North Forge..." -ForegroundColor Cyan
@@ -152,4 +161,4 @@ if (Test-Path $hermesConfigFile) {
     }
 }
 
-.\launch-north-forge.bat
+& $launcherPath
