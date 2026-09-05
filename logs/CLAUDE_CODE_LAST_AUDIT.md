@@ -1,11 +1,66 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-05 (~15:40-16:00 America/New_York), on the `F:` drive clone
-Requested task: None beyond session start. User message was the harness
-attribution/system reminder only - no repair, no handoff, no question. Per
-CLAUDE.md ("If none was given, a clean session-start check IS the whole task -
-write the audit report and stop"), this session is: run the Session Start
-Protocol, resolve whatever blocks the mandatory `git pull`, report state.
+Timestamp: 2026-09-05 (~15:40-16:20 America/New_York), on the `F:` drive clone
+Requested task: Initially none beyond session start (first user message was the
+harness attribution/system reminder only). After the session-start report,
+Kenneth followed up: "Please do what's best moving forward, act as my expert,
+suggest to me the best choice with best outcome" - i.e. resolve the
+`stash@{0}` disposition question I had flagged rather than leaving it open.
+This report covers both: the Session Start Protocol run, and my expert
+recommendation on the stash + the README title-icon question.
+
+## Follow-up: expert recommendation on `stash@{0}` and the README `<img>` title icon (2026-09-05, second half of session)
+
+Kenneth delegated the call and asked for a recommendation. Mine:
+
+**1. `stash@{0}` - drop it. Both halves are obsolete.**
+- `WELCOME.html` half: the upstream-committed `WELCOME.html` (PR #2) already
+  won and ships to every drive; it is strictly more complete than the stashed
+  139-line draft. The draft has no remaining use and would *conflict* on any
+  `git stash pop` now that the file is tracked. Zero reason to keep it.
+- `README.md` half: the one-line `<img>` title edit is preserved verbatim in
+  this report (quoted in full under "Zone B findings" item 1) AND in git's
+  own object DB via the stash commit sha `git rev-parse` would show (loose
+  object, recoverable with `git stash apply <sha>` for ~2-4 weeks even after
+  a drop). Nothing is lost by dropping the stash. Keeping a one-drive-local
+  stash indefinitely is fragile (dies on `git stash clear` / a reset / just
+  being forgotten) and is a latent foot-gun.
+
+  **Status of the drop: BLOCKED this session.** `git stash drop stash@{0}`
+  was denied by the Claude Code auto-mode permission classifier (destructive
+  git operation). I did not attempt to work around it. The stash is inert
+  where it sits, so this is not urgent. To actually drop it, Kenneth can run
+  `!git stash drop stash@{0}` from the prompt, or approve the command / add a
+  Bash permission rule. If he prefers to keep it as a redundant record,
+  that is also fine - the only caveat is: do NOT `git stash pop` it blindly
+  later, because the `WELCOME.html` half will collide with the now-tracked
+  file. `git stash show -p --include-untracked stash@{0}` reproduces both
+  halves exactly.
+
+**2. The README title icon itself - my recommendation is DON'T add it.**
+- This repo is private and unpublished (README's own "Repo governance"
+  section states this). A logo-next-to-the-H1 is a public-repo polish move;
+  here the README audience is Kenneth + a few team members + the
+  GPT/Claude-Code/Blacksmith review loop.
+- The current upstream `README.md` already opens cleanly: `# North Forge -
+  Hermes Edition` followed immediately by the Blacksmith attribution line.
+  It reads fine as-is.
+- `assets/north-forge-icon.svg` already earns its keep where team members
+  actually see it: the tracked `WELCOME.html` quick-start page and the CLI
+  skin (`skins/north-forge.yaml`). The README title bar is not a
+  high-value surface.
+- The `<img>` edit was made against a base 3 days + 87 commits stale, and
+  nobody carried it forward through multiple *deliberate* README handoffs
+  (`6173c65`, `b620661`). That is the content authors implicitly not wanting
+  it.
+- Net value: near zero. Cost: a Zone B handoff cycle. Not worth it.
+- If Kenneth disagrees and does want it: it is a ~30-second change. Re-issue
+  it as a Zone B handoff *against current HEAD* (`d80d409`+), fitted to the
+  new line 1 + attribution-line structure - not a blind re-apply of the
+  stale hunk. I will place exactly what is handed over.
+
+I did NOT touch `README.md` or `WELCOME.html` this session. This section is a
+recommendation only.
 
 ## Summary
 
@@ -351,16 +406,21 @@ handoff can consolidate it intentionally.
 
 ## Status
 
-Needs primary GPT review - one item wants an explicit decision: the
-disposition of `stash@{0}` (the orphaned `README.md` `<img>` title edit + the
-superseded `WELCOME.html` draft), created this session solely to unblock the
-mandatory session-start fast-forward. Both parts appear obsolete against
-current `origin/main`, but dropping the stash and confirming the `<img>`
-title idea is abandoned is a Blacksmith/Zone-B call, not Claude Code's. The
-`<img>` hunk is quoted verbatim above so it is preserved regardless of what
-happens to the stash. Everything else is routine: `main` fast-forwarded
-`cc32003` -> `8b06653` (87 commits, all Zone A / Codex-process / operational
-records / upstream Blacksmith handoffs), working tree clean, CLAUDE.md
-re-read after its in-pull changes, no Zone B content edited or composed by
-Claude Code. `hermes` unavailable on this drive so protocol step 5 did not
-run.
+Clean / one trivial loose end for Kenneth. `main` fast-forwarded `cc32003` ->
+`8b06653` (87 commits, all Zone A / Codex-process / operational records /
+upstream Blacksmith handoffs), working tree clean, CLAUDE.md re-read after
+its in-pull changes, no Zone B content edited or composed by Claude Code.
+`hermes` unavailable on this drive so protocol step 5 did not run.
+
+Kenneth asked for an expert recommendation on the `stash@{0}` question rather
+than leaving it open. Recommendation (full reasoning in the "Follow-up"
+section near the top): **drop `stash@{0}`** - both halves are obsolete
+(`WELCOME.html` superseded by the committed upstream version; the `README.md`
+`<img>` hunk preserved verbatim in this report + git object DB), and **do
+not add the README title icon** - low-value on a private/unpublished repo,
+the icon already lives on the surfaces team members actually see
+(`WELCOME.html`, the CLI skin). The `git stash drop` itself was blocked by
+the Claude Code permission classifier this session and is left for Kenneth to
+run (`!git stash drop stash@{0}`) or approve; the stash is inert meanwhile.
+Nothing here needs primary-GPT adjudication - it is Kenneth's call and the
+recommendation is on record.
