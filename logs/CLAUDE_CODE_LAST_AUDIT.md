@@ -26,16 +26,20 @@ Kenneth delegated the call and asked for a recommendation. Mine:
   stash indefinitely is fragile (dies on `git stash clear` / a reset / just
   being forgotten) and is a latent foot-gun.
 
-  **Status of the drop: BLOCKED this session.** `git stash drop stash@{0}`
-  was denied by the Claude Code auto-mode permission classifier (destructive
-  git operation). I did not attempt to work around it. The stash is inert
-  where it sits, so this is not urgent. To actually drop it, Kenneth can run
-  `!git stash drop stash@{0}` from the prompt, or approve the command / add a
-  Bash permission rule. If he prefers to keep it as a redundant record,
-  that is also fine - the only caveat is: do NOT `git stash pop` it blindly
-  later, because the `WELCOME.html` half will collide with the now-tracked
-  file. `git stash show -p --include-untracked stash@{0}` reproduces both
-  halves exactly.
+  **Status of the drop: DONE this session.** My first attempt
+  (`git stash drop stash@{0}` via the Bash tool) was denied by the Claude
+  Code auto-mode permission classifier (destructive git operation); I did not
+  work around it. Kenneth then ran it himself from the prompt:
+  `git stash drop stash@{0}` -> `Dropped stash@{0}
+  (de954fc75c25e42ebae65983adee56d094cb7c09)`. Verified afterward:
+  `git stash list` empty, `git status -sb` -> `## main...origin/main` (clean,
+  no file lines), `README.md` line 1 still `# North Forge - Hermes Edition`,
+  `WELCOME.html` still the tracked upstream version. The dropped stash commit
+  `de954fc75c25e42ebae65983adee56d094cb7c09` is still a loose object in the
+  DB (`git cat-file -t` -> `commit`) and can be restored with
+  `git stash apply de954fc75c25e42ebae65983adee56d094cb7c09` until git gc
+  prunes it (~2 weeks default). The `README.md` `<img>` hunk also remains
+  quoted verbatim under "Zone B findings" item 1 as the durable record.
 
 **2. The README title icon itself - my recommendation is DON'T add it.**
 - This repo is private and unpublished (README's own "Repo governance"
@@ -333,21 +337,24 @@ staged.
 
 ## Uncertain / flagged for primary GPT review
 
-### 1. `stash@{0}` needs an explicit disposition decision (see Zone B findings 1 & 2).
+### 1. `stash@{0}` - RESOLVED this session, no longer open. (Zone B findings 1 & 2 below are the pre-resolution record.)
 
-I created it this session, deliberately and documented, purely to unblock the
-mandatory session-start fast-forward. It holds:
-- `README.md` - the orphaned 1-line `<img>` title edit (finding 1). Zone B;
-  I will not apply it and am not authorized to drop it.
-- `WELCOME.html` - a 139-line stale draft (finding 2), now superseded by the
-  tracked upstream `WELCOME.html` and would conflict on `pop`.
+I created the stash this session, deliberately and documented, purely to
+unblock the mandatory session-start fast-forward. It held:
+- `README.md` - the orphaned 1-line `<img>` title edit (finding 1).
+- `WELCOME.html` - a 139-line stale draft (finding 2), superseded by the
+  tracked upstream `WELCOME.html`.
 
-`git stash show -p stash@{0}` + `git show stash@{0}^3` reproduce both exactly;
-the README hunk is quoted verbatim in finding 1. Recommended: primary GPT /
-Kenneth decide (a) drop the stash (both parts obsolete - upstream `README.md`
-+ `WELCOME.html` are authoritative), or (b) re-issue the `<img>` title change
-as a Zone B handoff against HEAD `8b06653` for proper placement. Until then
-the stash stays as-is.
+Kenneth asked for a recommendation, I recommended dropping it (both parts
+obsolete; the `README.md` `<img>` hunk preserved verbatim in finding 1 and
+recoverable from git object `de954fc75c25e42ebae65983adee56d094cb7c09` until
+gc), and Kenneth ran `git stash drop stash@{0}` himself from the prompt.
+Post-drop state verified: `git stash list` empty, working tree clean against
+`origin/main`, `README.md` / `WELCOME.html` unchanged (tracked upstream
+versions). Nothing further needed. The README title-icon idea is recommended
+*against* (see the "Follow-up" section near the top) but that is advice only -
+no Zone B change was made or is pending, so there is nothing here for the
+primary GPT to adjudicate.
 
 ### 2. `hermes` is not installed on THIS machine at all - Session Start Protocol step 5 cannot run here, ever, in its current form.
 
@@ -419,8 +426,11 @@ section near the top): **drop `stash@{0}`** - both halves are obsolete
 `<img>` hunk preserved verbatim in this report + git object DB), and **do
 not add the README title icon** - low-value on a private/unpublished repo,
 the icon already lives on the surfaces team members actually see
-(`WELCOME.html`, the CLI skin). The `git stash drop` itself was blocked by
-the Claude Code permission classifier this session and is left for Kenneth to
-run (`!git stash drop stash@{0}`) or approve; the stash is inert meanwhile.
-Nothing here needs primary-GPT adjudication - it is Kenneth's call and the
-recommendation is on record.
+(`WELCOME.html`, the CLI skin). **Kenneth acted on the first part this
+session:** he ran `git stash drop stash@{0}` himself from the prompt
+(`Dropped stash@{0} (de954fc75c25e42ebae65983adee56d094cb7c09)`) after the
+Bash-tool attempt was blocked by the permission classifier. `git stash list`
+is now empty; working tree is clean against `origin/main`; `README.md` and
+`WELCOME.html` are unchanged (the tracked upstream versions). The README
+title-icon recommendation (don't add it) stands as advice only - no Zone B
+change was made or is pending. Nothing here needs primary-GPT adjudication.
