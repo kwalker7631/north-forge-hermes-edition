@@ -2,7 +2,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: launch-north-forge.sh | Script version: 1.2.0 | Updated: 2026-09-05
+# File: launch-north-forge.sh | Script version: 1.2.1 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 set -e
@@ -86,22 +86,90 @@ if [ "$MODE" != "full" ] && [ "$MODE" != "sales" ]; then
     MODE="sales"
 fi
 
-rm -rf .hermes/skills
-mkdir -p .hermes/skills
-if ! cp -r skills-source/shared/. .hermes/skills/; then
-    echo ""
-    echo "FATAL: failed to copy skills-source/shared/ into .hermes/skills/ (see error above)."
-    echo "Launch aborted - this drive's skills would be missing or incomplete."
-    exit 1
-fi
-if [ "$MODE" = "full" ]; then
-    if ! cp -r skills-source/tsc-only/. .hermes/skills/; then
-        echo ""
-        echo "FATAL: failed to copy skills-source/tsc-only/ into .hermes/skills/ (see error above)."
-        echo "Launch aborted - FULL mode skills would be missing or incomplete."
-        exit 1
+assemble_skills() {
+    local skills_parent=".hermes" live
+    live="$skills_parent/skills"
+    local stage backup source_count stage_count skill
+    local shared_skills="daily-brief flush kyocera-research manual menu sales-assist switch web-navigator"
+    local tsc_skills="assist-intake draft-writer escalation-packet fault-logging forge-audit hotline-ticket kb-builder training-guide"
+
+    if [ ! -d "skills-source/shared" ] || { [ "$MODE" = "full" ] && [ ! -d "skills-source/tsc-only" ]; }; then
+        log_event "skills" "FAILURE: required skills-source directory is missing; current build preserved"
+        echo "ERROR: A required skills-source folder is missing. Your existing skills were left untouched."
+        return 1
     fi
-fi
+    if ! mkdir -p "$skills_parent"; then
+        echo "ERROR: Could not create .hermes. Check drive permissions; existing skills were not changed."
+        return 1
+    fi
+    stage="$skills_parent/.skills-staging-$$-${RANDOM:-0}"
+    backup="$skills_parent/.skills-backup-$$-${RANDOM:-0}"
+    rm -rf -- "$stage" "$backup"
+    if ! mkdir "$stage"; then
+        echo "ERROR: Could not create the temporary skills folder. Existing skills were not changed."
+        return 1
+    fi
+    # Always clean abandoned staging. A backup is only removed after a verified
+    # success, or after it has restored the last-known-good build.
+    trap "rm -rf -- $(printf '%q' "$stage"); if [ -d $(printf '%q' "$backup") ] && [ ! -e $(printf '%q' "$live") ]; then mv -- $(printf '%q' "$backup") $(printf '%q' "$live") || true; fi" EXIT
+
+    if [ "${NORTH_FORGE_TEST_FAIL_COPY:-0}" = 1 ] || ! cp -R "skills-source/shared/." "$stage/"; then
+        log_event "skills" "FAILURE: shared skill copy failed; current build preserved"
+        echo "ERROR: Could not copy shared skills. Your existing skills were left untouched."
+        return 1
+    fi
+    if [ "$MODE" = "full" ]; then
+        if ! cp -R "skills-source/tsc-only/." "$stage/"; then
+            log_event "skills" "FAILURE: TSC-only skill copy failed; current build preserved"
+            echo "ERROR: Could not copy FULL-mode skills. Your existing skills were left untouched."
+            return 1
+        fi
+    fi
+    for skill in $shared_skills; do
+        if [ ! -d "$stage/$skill" ] || [ ! -f "$stage/$skill/SKILL.md" ]; then
+            log_event "skills" "FAILURE: staged shared skill '$skill' is incomplete; current build preserved"
+            echo "ERROR: Shared skill '$skill' is incomplete (folder or SKILL.md missing). Existing skills were left untouched."
+            return 1
+        fi
+    done
+    if [ "$MODE" = "full" ]; then
+        for skill in $tsc_skills; do
+            if [ ! -d "$stage/$skill" ] || [ ! -f "$stage/$skill/SKILL.md" ]; then
+                log_event "skills" "FAILURE: staged FULL skill '$skill' is incomplete; current build preserved"
+                echo "ERROR: FULL-mode skill '$skill' is incomplete (folder or SKILL.md missing). Existing skills were left untouched."
+                return 1
+            fi
+        done
+    fi
+    source_count=$(find skills-source/shared -type f | wc -l | tr -d ' ')
+    [ "$MODE" = "full" ] && source_count=$((source_count + $(find skills-source/tsc-only -type f | wc -l | tr -d ' ')))
+    stage_count=$(find "$stage" -type f | wc -l | tr -d ' ')
+    if [ "$source_count" -eq 0 ] || [ "$stage_count" -ne "$source_count" ]; then
+        log_event "skills" "FAILURE: partial staged build ($stage_count of $source_count files); current build preserved"
+        echo "ERROR: Skill validation found a zero-file or partial build ($stage_count of $source_count files). Existing skills were left untouched."
+        return 1
+    fi
+
+    if [ -e "$live" ] && ! mv -- "$live" "$backup"; then
+        echo "ERROR: Could not back up the current skills. Nothing was changed."
+        return 1
+    fi
+    if [ "${NORTH_FORGE_TEST_FAIL_SWAP:-0}" = 1 ] || ! mv -- "$stage" "$live"; then
+        [ ! -e "$live" ] && [ -e "$backup" ] && mv -- "$backup" "$live"
+        log_event "skills" "FAILURE: final skill swap failed; previous build restored"
+        echo "ERROR: Could not activate the staged skills. The previous build was restored."
+        return 1
+    fi
+    if [ -e "$backup" ] && ! rm -rf -- "$backup"; then
+        echo "WARNING: Skills activated, but the temporary backup could not be removed: $backup"
+        log_event "skills" "WARNING: activated skills but could not remove backup $backup"
+    fi
+    trap - EXIT
+    log_event "skills" "SUCCESS: activated validated $MODE build ($stage_count files)"
+}
+
+assemble_skills || exit 1
+[ "${NORTH_FORGE_ASSEMBLE_ONLY:-0}" = 1 ] && exit 0
 
 python3 scripts/name_validation.py agent
 
@@ -156,6 +224,61 @@ fi
 # account, no block); using your own Anthropic API key is opt-in, not the
 # hard gate this used to be. Asked once, remembered in .provider-choice,
 # same pattern as .agent-name/.drive-record.txt. ---
+log_provider_detail() {
+    # Mirrors the .bat launcher's LOG_PROVIDER_DETAIL: redact anything that
+    # looks like a credential before it reaches forge-events.log.
+    local safe
+    safe="$(printf '%s' "$1" | sed -E 's/(api[_-]?key|token|secret|password)([[:space:]]*[:=][[:space:]]*)[^[:space:]]+/\1\2[REDACTED]/Ig')"
+    printf '[provider-config detail] %s\n' "$safe" >> "forge-events.log"
+}
+
+configure_free_provider() {
+    # `hermes config set` must actually succeed for the free path to work -
+    # do NOT write .provider-choice=free (which skips this block on every
+    # future launch) unless it did. `unset model.default` returns nonzero
+    # whenever the key was never set in the first place (the common,
+    # expected case), so that alone isn't a failure - only treat it as one
+    # when the output doesn't match that exact benign message. Each `if
+    # VAR=$(...); then` assignment is the condition of its own `if` so a
+    # nonzero exit doesn't trip `set -e` before it can be handled.
+    rm -f ".provider-choice"
+    local set_out set_status unset_out unset_status unset_absent
+    if set_out="$(hermes config set model.provider opencode-free 2>&1)"; then
+        set_status=0
+    else
+        set_status=$?
+    fi
+    if [ "$set_status" -ne 0 ]; then
+        echo "ERROR: Hermes could not select OpenCode Free (exit $set_status)."
+        echo "Nothing was saved. Please review the details below, then run North Forge again."
+        printf '%s\n' "$set_out"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FAILURE] [provider-config]: set model.provider failed (exit $set_status); .provider-choice not written" >> "forge-events.log"
+        log_provider_detail "$set_out"
+        return "$set_status"
+    fi
+
+    if unset_out="$(hermes config unset model.default 2>&1)"; then
+        unset_status=0
+    else
+        unset_status=$?
+    fi
+    unset_absent=0
+    if [ "$unset_status" -eq 1 ] && [ "$unset_out" = "Config key not set: model.default" ]; then
+        unset_absent=1
+    fi
+    if [ "$unset_status" -ne 0 ] && [ "$unset_absent" -ne 1 ]; then
+        echo "ERROR: Hermes selected OpenCode Free, but could not clear the old default model (exit $unset_status)."
+        echo "Nothing was saved. Please review the details below, then run North Forge again."
+        printf '%s\n' "$unset_out"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FAILURE] [provider-config]: unset model.default failed (exit $unset_status); .provider-choice not written" >> "forge-events.log"
+        log_provider_detail "$unset_out"
+        return "$unset_status"
+    fi
+
+    echo "free" > ".provider-choice"
+    return 0
+}
+
 if [ ! -f ".provider-choice" ]; then
     echo ""
     echo "North Forge needs an AI provider before it can answer questions."
@@ -170,31 +293,7 @@ if [ ! -f ".provider-choice" ]; then
     if [ "$(printf '%s' "$PROVIDERCHOICE" | tr '[:lower:]' '[:upper:]')" = "OWNKEY" ]; then
         echo "ownkey" > ".provider-choice"
     else
-        # `hermes config set` must actually succeed for the free path to work -
-        # do NOT mark .provider-choice=free (which skips this block on every
-        # future launch) unless it did. `unset model.default` is best-effort:
-        # it always returns nonzero when the key was never set in the first
-        # place (the common, expected case), so that alone isn't a failure -
-        # only warn if its own output doesn't say so. The assignment is the
-        # condition of the `if` itself (not a separate statement) so a
-        # nonzero exit here doesn't trip `set -e` before it can be handled.
-        if SET_OUT="$(hermes config set model.provider opencode-free 2>&1)"; then
-            if ! UNSET_OUT="$(hermes config unset model.default 2>&1)" && ! echo "$UNSET_OUT" | grep -qi "not set"; then
-                echo ""
-                echo "WARNING: could not clear a leftover model.default (hermes config said:"
-                echo "  $UNSET_OUT"
-                echo ") - if a question fails with a model error, run 'hermes model' to pick one."
-            fi
-            echo "free" > ".provider-choice"
-        else
-            echo ""
-            echo "WARNING: could not configure the free provider automatically."
-            echo "hermes config said:"
-            echo "  $SET_OUT"
-            echo "Falling back to the your-own-key path - add an Anthropic API key below,"
-            echo "or run 'hermes model' / 'hermes setup' yourself once this launches."
-            echo "ownkey" > ".provider-choice"
-        fi
+        configure_free_provider || exit $?
     fi
 fi
 
@@ -252,23 +351,38 @@ hermes skills trust .
 # Self-healing scheduled jobs - re-adds the research and daily-brief cron
 # entries if either is missing (e.g. after an AppData flush wiped them).
 # No manual /cron add ever needed again.
+CRON_DEGRADED=""
+report_cron_failure() {
+    job_name="$1"
+    automation="$2"
+    exit_status="$3"
+    raw_diagnostic="$4"
+    diagnostic="$(printf '%s' "$raw_diagnostic" | tr '\r\n' '  ' | LC_ALL=C sed 's/[^[:print:]\t]/?/g' | cut -c1-500)"
+    [ -n "$diagnostic" ] || diagnostic="no diagnostic output"
+    warning="WARNING: Could not schedule $job_name (exit $exit_status; diagnostic: $diagnostic). Interactive North Forge can continue, but the $automation will not run. Check Hermes with 'hermes cron list', then relaunch North Forge to try again."
+    printf '%s\n' "$warning"
+    printf '[%s] [WARNING] [cron]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$warning" >> "forge-events.log"
+    CRON_DEGRADED="${CRON_DEGRADED}${CRON_DEGRADED:+; }$job_name"
+}
 if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    if hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >/dev/null 2>&1; then
+    if CRON_DIAGNOSTIC="$(hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
-        echo "WARNING: could not schedule the nightly research job - the /kyocera-research pass will not run automatically. See forge-events.log."
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED" >> "forge-events.log"
+        report_cron_failure "nightly-kyocera-research" "automated nightly research" "$?" "$CRON_DIAGNOSTIC"
     fi
 fi
 if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    if hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >/dev/null 2>&1; then
+    if CRON_DIAGNOSTIC="$(hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
-        echo "WARNING: could not schedule the daily brief job - the /daily-brief pass will not run automatically. See forge-events.log."
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED" >> "forge-events.log"
+        report_cron_failure "daily-kyocera-brief" "automated daily brief" "$?" "$CRON_DIAGNOSTIC"
     fi
+fi
+
+if [ -n "$CRON_DEGRADED" ]; then
+    echo "WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job(s): $CRON_DEGRADED. Interactive North Forge is still available; run 'hermes cron list' to check Hermes, then relaunch to retry."
 fi
 
 # Plain call instead of exec so the exit status can be logged after the

@@ -100,7 +100,7 @@ There is no separate "sales version" to maintain. Every skill is authored exactl
 
 `.forge-mode` is a one-word file (`full` or `sales`) that lives on each physical drive, is never committed to git, and is set once with `toggle-mode.bat`/`.sh` (Kenneth-only tooling, not something a rep needs). Missing the file at all defaults to `sales` - fails safe rather than fails open.
 
-`toggle-mode.bat`/`.sh` also has a third option: **RESET**, which wipes a drive's personal setup (`.env` - the API key, `.forge-mode` - the toggle, and the generated `.hermes.md`/`.hermes/skills/` - safe to delete, they rebuild automatically) back to a clean first-use state. Use this before handing a physical drive to a different person, so your API key doesn't travel with it and the next person gets a genuine first-run experience. Requires typing `YES` to confirm - it's destructive and worth the extra step.
+`toggle-mode.bat`/`.sh` also has a third option: **RESET**, a credential/config reset that removes eight first-use state targets: `.env`, `.forge-mode`, `.hermes.md`, `.drive-record.txt`, `.provider-choice`, `.agent-name`, `.readme-shown`, and `.hermes/skills/`. The scripts verify their removal and return an error if any target remains. Any confirmation other than uppercase `YES` leaves all eight intact and returns an error. `forge-events.log` is intentionally retained as an accountability record and can contain names entered by prior users, so RESET is not a privacy or history wipe.
 
 On a Sales-mode drive, the TSC-only skill files are never copied into the live `.hermes/skills/` folder at all - not hidden, not disabled by a prompt instruction alone, physically absent from that session. The `.hermes.md` generated for that mode also tells the model plainly to redirect any support/repair/KB request to the normal TSC channel rather than attempt it from general knowledge.
 
@@ -177,6 +177,16 @@ hermes gateway uninstall
 Skipping this step first is why a manual folder deletion sometimes fails partway through with a locked-file error - the gateway process is still holding files open.
 
 **To fully wipe a machine's Hermes state** (rotate to a new API key, or start genuinely fresh on that machine) - use `machine-reset.bat` in this repo rather than doing the above by hand. It has two options: rotate just the API key (keeps memory/sessions/config intact), or a full purge (stops and uninstalls the gateway, then deletes the entire folder above).
+
+Before either option can delete anything, the reset checks the folder with PowerShell. The folder must be an absolute local path, must not pass through a shortcut/link, and must contain **both** `config.yaml` and the `hermes-agent\` directory. It then shows the cleaned-up, full path. Type that exact path at the confirmation prompt; `YES` is deliberately not enough. If a check or gateway command fails, the safe response is to stop without deleting.
+
+Developers can run the safety regression harness from Windows PowerShell:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\machine-reset-safety.Tests.ps1
+```
+
+The harness creates a randomly named folder under Windows `%TEMP%` only. It does **not** use `%HERMES_HOME%`, the user profile, or the system-drive root. Help: a `PASS` line means an unsafe target survived or the isolated valid fixture was intentionally removed. Tip: press **Ctrl+C** to stop the harness if you launched it by mistake.
 
 ## Kenneth's own GitHub CLI setup (repo administration - NOT needed to provision a drive)
 

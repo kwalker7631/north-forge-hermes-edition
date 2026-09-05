@@ -2,14 +2,22 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: launch-north-forge.bat | Script version: 1.2.0 | Updated: 2026-09-05
+rem  File: launch-north-forge.bat | Script version: 1.2.1 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
 
+if /i "%~1"=="--configure-free-provider" (
+    call :CONFIGURE_FREE_PROVIDER
+    exit /b !ERRORLEVEL!
+)
+
 rem Locate Python before accepting names. Keeping input inside the shared helper
-rem avoids cmd.exe metacharacter and delayed-expansion surprises.
+rem avoids cmd.exe metacharacter and delayed-expansion surprises. (Restored
+rem during merge: this block was present after the name-validation fix but
+rem missing from the free-provider-hardening fix that landed on top of it -
+rem without it, %PYTHON_CMD% below is empty and name_validation.py never runs.)
 set "PYTHON_CMD="
 where py >nul 2>nul && set "PYTHON_CMD=py -3"
 if not defined PYTHON_CMD where python >nul 2>nul && set "PYTHON_CMD=python"
@@ -92,27 +100,12 @@ if /i not "%MODE%"=="full" if /i not "%MODE%"=="sales" (
     set "MODE=sales"
 )
 
-if exist "skills" rmdir /s /q "skills"
-if exist ".hermes\skills" rmdir /s /q ".hermes\skills"
-mkdir ".hermes\skills"
-xcopy /e /i /y "skills-source\shared" ".hermes\skills" >nul
+powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\assemble-skills.ps1" -Mode "%MODE%"
 if errorlevel 1 (
-    echo.
-    echo FATAL: failed to copy skills-source\shared into .hermes\skills -
-    echo this drive's skills would be missing or incomplete. Launch aborted.
-    pause
+    echo ERROR: Skills could not be assembled. The previous working build was preserved.
     exit /b 1
 )
-if /i "%MODE%"=="full" (
-    xcopy /e /i /y "skills-source\tsc-only" ".hermes\skills" >nul
-    if errorlevel 1 (
-        echo.
-        echo FATAL: failed to copy skills-source\tsc-only into .hermes\skills -
-        echo FULL mode skills would be missing or incomplete. Launch aborted.
-        pause
-        exit /b 1
-    )
-)
+if "%NORTH_FORGE_ASSEMBLE_ONLY%"=="1" exit /b 0
 
 rem Disable delayed expansion around the assistant-name prompt too. The helper
 rem owns the raw text, so characters such as ! never enter a batch variable.
@@ -169,40 +162,8 @@ if not exist ".provider-choice" (
     if /i "!PROVIDERCHOICE!"=="OWNKEY" (
         echo ownkey> ".provider-choice"
     ) else (
-        rem `hermes config set` must actually succeed for the free path to
-        rem work - do NOT mark .provider-choice=free ^(which skips this block
-        rem on every future launch^) unless it did. `unset model.default`
-        rem always returns nonzero when the key was never set in the first
-        rem place ^(the common, expected case^), so that alone isn't a
-        rem failure - only warn if its own output doesn't say so.
-        hermes config set model.provider opencode-free >nul 2>nul
-        if errorlevel 1 (
-            echo.
-            echo WARNING: could not configure the free provider automatically.
-            echo Falling back to the your-own-key path - add an Anthropic API key
-            echo below, or run 'hermes model' / 'hermes setup' yourself once this launches.
-            echo ownkey> ".provider-choice"
-        ) else (
-            rem `for /f` erases the inner command's own errorlevel, so success
-            rem vs. failure has to be told apart from its text instead: the
-            rem benign "already absent" case says "not set", genuine success
-            rem says "Unset" - anything matching neither is worth a warning.
-            set "UNSETOUT="
-            for /f "usebackq delims=" %%U in (`hermes config unset model.default 2^>^&1`) do set "UNSETOUT=%%U"
-            echo !UNSETOUT! | findstr /i "not set" >nul
-            if errorlevel 1 (
-                echo !UNSETOUT! | findstr /i "Unset" >nul
-                if errorlevel 1 (
-                    if defined UNSETOUT (
-                        echo.
-                        echo WARNING: could not clear a leftover model.default ^(hermes config said:
-                        echo   !UNSETOUT!
-                        echo ^) - if a question fails with a model error, run 'hermes model' to pick one.
-                    )
-                )
-            )
-            echo free> ".provider-choice"
-        )
+        call :CONFIGURE_FREE_PROVIDER
+        if errorlevel 1 exit /b !ERRORLEVEL!
     )
 )
 
@@ -269,28 +230,37 @@ hermes skills trust .
 rem Self-healing scheduled jobs - re-adds the research and daily-brief cron
 rem entries if either is missing (e.g. after an AppData flush wiped them).
 rem No manual /cron add ever needed again.
+set "CRON_DEGRADED="
 hermes cron list 2>nul | findstr /C:"nightly-kyocera-research" >nul
 if errorlevel 1 (
     echo Scheduling the nightly Kyocera research job...
-    hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >nul 2>nul
-    if errorlevel 1 (
-        echo WARNING: could not schedule the nightly research job - the /kyocera-research pass will not run automatically. See forge-events.log.
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [cron]: re-registration of nightly-kyocera-research FAILED
+    set "CRON_DIAG=%TEMP%\north-forge-cron-!RANDOM!-!RANDOM!.txt"
+    hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >"!CRON_DIAG!" 2>&1
+    set "CRON_EXIT=!ERRORLEVEL!"
+    if not "!CRON_EXIT!"=="0" (
+        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule nightly-kyocera-research (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated nightly research will not run. Check Hermes with ''hermes cron list'', then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
+        set "CRON_DEGRADED=nightly-kyocera-research"
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered nightly-kyocera-research ^(0 6 * * *^)
     )
+    del /q "!CRON_DIAG!" 2>nul
 )
 hermes cron list 2>nul | findstr /C:"daily-kyocera-brief" >nul
 if errorlevel 1 (
     echo Scheduling the daily Kyocera brief job...
-    hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >nul 2>nul
-    if errorlevel 1 (
-        echo WARNING: could not schedule the daily brief job - the /daily-brief pass will not run automatically. See forge-events.log.
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [cron]: re-registration of daily-kyocera-brief FAILED
+    set "CRON_DIAG=%TEMP%\north-forge-cron-!RANDOM!-!RANDOM!.txt"
+    hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >"!CRON_DIAG!" 2>&1
+    set "CRON_EXIT=!ERRORLEVEL!"
+    if not "!CRON_EXIT!"=="0" (
+        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule daily-kyocera-brief (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated daily brief will not run. Check Hermes with ''hermes cron list'', then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
+        if defined CRON_DEGRADED (set "CRON_DEGRADED=!CRON_DEGRADED!; daily-kyocera-brief") else set "CRON_DEGRADED=daily-kyocera-brief"
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered daily-kyocera-brief ^(0 8 * * *^)
     )
+    del /q "!CRON_DIAG!" 2>nul
 )
+
+if defined CRON_DEGRADED echo WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job^(s^): !CRON_DEGRADED!. Interactive North Forge is still available; run 'hermes cron list' to check Hermes, then relaunch to retry.
 
 rem Plain call (was already not exec'd on Windows) - log how the session ended.
 hermes
@@ -301,3 +271,45 @@ if "%HERMES_EXIT%"=="0" (
     >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [hermes]: session ended with exit %HERMES_EXIT%
 )
 exit /b %HERMES_EXIT%
+
+:CONFIGURE_FREE_PROVIDER
+del /q ".provider-choice" >nul 2>nul
+set "CONFIG_TMP=%TEMP%\north-forge-provider-!RANDOM!-!RANDOM!"
+mkdir "!CONFIG_TMP!" >nul 2>nul
+
+hermes config set model.provider opencode-free >"!CONFIG_TMP!\set.out" 2>"!CONFIG_TMP!\set.err"
+set "SET_STATUS=!ERRORLEVEL!"
+if not "!SET_STATUS!"=="0" (
+    echo ERROR: Hermes could not select OpenCode Free ^(exit !SET_STATUS!^).
+    echo Nothing was saved. Please review the details below, then run North Forge again.
+    type "!CONFIG_TMP!\set.out" & type "!CONFIG_TMP!\set.err"
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [provider-config]: set model.provider failed ^(exit !SET_STATUS!^); .provider-choice not written
+    call :LOG_PROVIDER_DETAIL "!CONFIG_TMP!\set.out" "!CONFIG_TMP!\set.err"
+    rmdir /s /q "!CONFIG_TMP!"
+    exit /b !SET_STATUS!
+)
+
+hermes config unset model.default >"!CONFIG_TMP!\unset.out" 2>"!CONFIG_TMP!\unset.err"
+set "UNSET_STATUS=!ERRORLEVEL!"
+set "UNSET_ABSENT=0"
+if "!UNSET_STATUS!"=="1" (
+    powershell -NoProfile -Command "$a=(Get-Content -Raw -LiteralPath ($env:CONFIG_TMP+'\unset.out'))+(Get-Content -Raw -LiteralPath ($env:CONFIG_TMP+'\unset.err')); if ($a.TrimEnd([char]13,[char]10) -ceq 'Config key not set: model.default') { exit 0 } else { exit 1 }"
+    if not errorlevel 1 set "UNSET_ABSENT=1"
+)
+if not "!UNSET_STATUS!"=="0" if not "!UNSET_ABSENT!"=="1" (
+    echo ERROR: Hermes selected OpenCode Free, but could not clear the old default model ^(exit !UNSET_STATUS!^).
+    echo Nothing was saved. Please review the details below, then run North Forge again.
+    type "!CONFIG_TMP!\unset.out" & type "!CONFIG_TMP!\unset.err"
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [provider-config]: unset model.default failed ^(exit !UNSET_STATUS!^); .provider-choice not written
+    call :LOG_PROVIDER_DETAIL "!CONFIG_TMP!\unset.out" "!CONFIG_TMP!\unset.err"
+    rmdir /s /q "!CONFIG_TMP!"
+    exit /b !UNSET_STATUS!
+)
+
+> ".provider-choice" echo free
+rmdir /s /q "!CONFIG_TMP!"
+exit /b 0
+
+:LOG_PROVIDER_DETAIL
+powershell -NoProfile -Command "$text=((Get-Content -Raw -LiteralPath '%~1')+(Get-Content -Raw -LiteralPath '%~2')); $safe=$text -replace '(?i)(api[_-]?key|token|secret|password)(\s*[:=]\s*)\S+','$1$2[REDACTED]'; Add-Content -LiteralPath 'forge-events.log' -Value ('[provider-config detail] '+$safe.Trim())"
+exit /b 0
