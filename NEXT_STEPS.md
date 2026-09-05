@@ -434,10 +434,33 @@ forward.
 - [ ] If the "4279 commits behind" banner reappears: capture a screenshot
       or raw copy-paste immediately, including any visible escape codes,
       before investigating further. Do not run `hermes update` until the
-      figure is explained.
+      figure is explained. STILL UNRESOLVED as of 2026-09-04 (later
+      session, Claude Code open-items review) - no new evidence found;
+      `git branch -vv`, a fresh `git pull`, and `git fsck` all still show
+      clean/zero-behind for this repo. Not run: `hermes update` remains
+      blocked per this instruction.
 - [ ] Fix ANSI/VT100 rendering on whatever terminal produced the raw
       `?[1;33m` escape-code output - separate issue from the commits-behind
-      number itself.
+      number itself. STATUS UNCLEAR, flagged for review, NOT closed
+      (2026-09-04 later session, Claude Code): `forge-events.log` contains
+      an entry timestamped 2026-09-04 20:56:57 claiming this was fixed -
+      `[INFO] [ansi-fix]: HKCU\Console VirtualTerminalLevel was MISSING
+      (ForceV2=0x1); set to 1 and re-query confirmed 0x1`. That entry does
+      not correspond to any code in either launcher (neither script writes
+      an `[ansi-fix]` log line or touches the registry) - it was written by
+      something else, likely a live Hermes session using its own
+      terminal/computer-use tools. Re-checked directly this session
+      (`Get-ItemProperty HKCU:\Console`, `Get-ChildItem HKCU:\Console`): no
+      `VirtualTerminalLevel` value exists anywhere under `HKCU\Console` or
+      its per-app subkeys (`ForceV2=1` is present and unrelated). The
+      claimed fix does not currently hold on this machine - either it was
+      reverted since, or the "confirmed 0x1" re-query never actually
+      happened as logged. Not treated as resolved; not attempted as a Zone
+      A fix this session because the reproduction case for the original
+      symptom (the raw `?[1;33m` text) was never directly observed, only
+      inferred from this log line. Needs Kenneth to reproduce the original
+      garbled-escape-code symptom (or confirm it hasn't recurred) before
+      further action.
 
 ## Session 2026-09-04 (later, Claude Code) - cron shakedown + fix batch
 
@@ -460,3 +483,67 @@ fallback paste version not synced (/manual, 6 AM schedule); drift-audit
 item 4 (source-package decision); sales-assist FAQ content; live-mode QA
 parts 2/4 - NO LONGER KEY-BLOCKED, the successful cron run proved the key
 works.
+
+## Session 2026-09-04 (open-items review, Claude Code)
+
+Requested: "fix all open items." Went through NEXT_STEPS.md and
+DEMO_PREP_BACKLOG.md end to end; fixed what falls in Zone A/C, reported the
+rest (Zone B, or blocked on a decision/spend only Kenneth or the Blacksmith
+chat can make).
+
+### Zone A fix made this session (committed)
+- `launch-north-forge.bat` - Desktop shortcut creation was silently failing
+  on every launch on this machine. Reproduced directly (not guessed):
+  `$s.Save()` on the WScript.Shell shortcut threw `DirectoryNotFoundException`
+  because `%USERPROFILE%\Desktop` (`C:\Users\kwalk\Desktop`) does not exist -
+  this machine's Desktop is OneDrive-redirected to
+  `C:\Users\kwalk\OneDrive\Desktop`, a common Windows setup the script never
+  accounted for. Matches the real `[WARNING] [shortcut]: Desktop shortcut
+  creation FAILED` line already sitting in this drive's own
+  `forge-events.log`. Fix: resolve the real Desktop folder via
+  `(New-Object -ComObject WScript.Shell).SpecialFolders('Desktop')` (falls
+  back to the old `%USERPROFILE%\Desktop` if that call ever returns nothing)
+  instead of hardcoding the path, for both the existence check and the
+  shortcut creation itself. Verified end-to-end twice: once via direct
+  PowerShell repro against the real OneDrive Desktop, once by extracting the
+  exact new batch snippet into a standalone `.bat` and running it under real
+  `cmd.exe` (not just Git Bash) - both created and then removed a real test
+  shortcut at `C:\Users\kwalk\OneDrive\Desktop`. Paren balance re-checked at
+  0 after the edit. `.sh` untouched - this is a Windows-only failure mode
+  (OneDrive Desktop redirection doesn't exist as a Mac/Linux concept).
+
+### Zone C corrections made this session (stale entries, committed)
+- `DEMO_PREP_BACKLOG.md` item 2 (fault-logging skill) marked RESOLVED - the
+  skill was actually built 2026-08-28 (`d414f81`) but this backlog entry was
+  never updated to say so.
+- `DEMO_PREP_BACKLOG.md` item 12 (/audit missing from skills list) marked
+  RESOLVED - the real fix landed and was verified 2026-08-29 (`a49580f`,
+  see "Real-fix placement" above) but this backlog entry still read "OPEN".
+- This file's own 2026-09-04 "Open items" section annotated in place (see
+  above): the commits-behind banner item re-checked, still unresolved, no
+  new evidence either way; the ANSI/VT100 item found to have a suspicious
+  unverified/possibly-false "fixed" claim in `forge-events.log` - see that
+  entry above for detail, NOT closed.
+
+### Zone B findings (not fixed - reported only)
+- `README.md` has an uncommitted working-tree edit (adding an `<img>` icon
+  tag to the title line, `assets/north-forge-icon.svg`) sitting unstaged at
+  session start. Not made by Claude Code this session, no in-session handoff
+  named it, so left untouched and uncommitted per Zone B rules - flagging so
+  it doesn't get lost or mistaken for a Claude Code change.
+- `WELCOME.html` (repo root) is untracked and NOT in any CLAUDE.md zone list
+  at all - a real gap, same class as the `research-log/` gap the last audit
+  found. This one is more urgent: `launch-north-forge.bat` line 7
+  (`start "" "WELCOME.html"`) already depends on this file existing, so a
+  fresh `git clone` onto a new drive right now would hit the "first-run
+  WELCOME.html auto-open FAILED" branch and log a warning, silently
+  degrading the onboarding experience this session's own commit history
+  (`82bd18b` "welcome open" logging) was built to support. Content-wise this
+  reads as Zone B material (user-facing quickstart doc, same category as
+  README.md/FIRST_TIME_README.txt), so Claude Code is not composing or
+  committing it without an explicit handoff naming it - flagged for Kenneth
+  or the Claude Project chat to either hand it over for placement or confirm
+  it should just be committed as-is.
+- The `assets/` icon and Kyocera logo files it depends on ARE already
+  tracked (committed `3e979ed`/`4cc2c9f`), so once `WELCOME.html` itself is
+  committed the images it references will resolve correctly.

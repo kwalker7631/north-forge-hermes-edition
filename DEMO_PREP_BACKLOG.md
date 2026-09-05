@@ -62,16 +62,22 @@ building from scratch.
 
 ## (add more items here as they come up)
 
-## 2. Fault-logging skill - priority bumped (OPEN)
+## 2. Fault-logging skill - priority bumped (RESOLVED - built 2026-08-28)
 
 Kenneth confirmed the actual support loop he wants: a team member never
 touches this repo directly. If someone has a problem or suggestion, it comes
 to Kenneth as a log/description, he relays it into the Claude Project chat,
 gets a diagnosis + fix, and applies it (directly or via Claude Code). This
-makes `skills-source/tsc-only/fault-logging/` (still just a placeholder, not
-built) load-bearing for how the whole team-facing side of this is actually
-meant to work, not just one item in a list of six equally-weighted unbuilt
-skills. Build this one next, ahead of the other five placeholders.
+made `skills-source/tsc-only/fault-logging/` load-bearing for how the whole
+team-facing side of this is actually meant to work, not just one item in a
+list of six equally-weighted unbuilt skills.
+
+STALE - this entry was never updated when the skill was actually built.
+`skills-source/tsc-only/fault-logging/SKILL.md` (/log, /fault, /report) was
+placed 2026-08-28 from the full-skillset-v3 reissue handoff (commit
+`d414f81`), same as the other five tsc-only placeholders named here. See
+`NEXT_STEPS.md`'s "Done" section. Closed - noted during 2026-09-04 open-items
+review (Claude Code).
 
 ## 3. Pine Barren Farms - separate deployment, not started (OPEN)
 
@@ -217,7 +223,7 @@ they previously returned 200. No credentials were ever exposed in the
 window it was public (`.env` never committed, confirmed by full history
 scan). Closed.
 
-## 12. `/audit` skill still missing from `hermes skills list` (OPEN - Zone B reword needed)
+## 12. `/audit` skill still missing from `hermes skills list` (RESOLVED - fixed and verified 2026-08-29)
 
 Full-repo evaluation 2026-08-29 disproved the recorded explanation. The
 `audit` -> `forge-audit` folder rename (commit `8759d15`) did NOT stop the
@@ -242,6 +248,16 @@ docs correction in `.hermes.template.md` L26 and `README.md` L42 - flagged
 to the Blacksmith / Claude Project chat, not changed by Claude Code. Detail
 in `NEXT_STEPS.md` (QA FINDING 1 CORRECTION) and
 `audit/CLAUDE_CODE_LAST_AUDIT.md`.
+
+STALE - this entry was never updated when the real fix landed. Zone B
+handoff `a49580f` (2026-08-29) reworded `forge-audit/SKILL.md` line 3 to
+drop the literal `CLAUDE.md` token and corrected `.hermes.template.md` L26 /
+`README.md` L42. Verified against a live rebuild: `hermes skills list
+--source local` showed `forge-audit` listed (10/10 local skills, up from 9),
+skills-guard scan verdict changed from `dangerous`/`agent_config_mod` to
+`safe`/`rules=[]`. See `NEXT_STEPS.md`'s "Real-fix placement + live
+verification" section. Closed - noted during 2026-09-04 open-items review
+(Claude Code).
 
 
 
