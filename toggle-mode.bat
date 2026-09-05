@@ -2,7 +2,7 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: toggle-mode.bat | Script version: 1.0.1 | Updated: 2026-09-05
+rem  File: toggle-mode.bat | Script version: 1.1.0 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal enabledelayedexpansion
@@ -49,39 +49,50 @@ goto :menu
 call :admin_gate "RESET"
 if errorlevel 1 goto :menu
 echo.
-echo RESET wipes this drive's PERSONAL setup back to a clean first-use state:
-echo   .env            - your Anthropic API key
-echo   .forge-mode     - the FULL/SALES toggle
-echo   .hermes.md      - generated at launch, rebuilds automatically
-echo   .hermes\skills\  - generated at launch, rebuilds automatically
+echo RESET performs a credential/config reset back to a clean first-use state:
+echo   .env, .forge-mode, .hermes.md, .drive-record.txt
+echo   .provider-choice, .agent-name, .readme-shown, .hermes\skills\
 echo.
 echo The tracked repo content is NOT touched - skills-source, mode-blocks, the scripts.
-echo Use this before handing this physical drive to a different person, so your
-echo API key does not travel with it and the next person gets a genuine first run.
+echo forge-events.log is intentionally RETAINED as an accountability record.
+echo It can contain names entered by prior users; RESET is not a privacy/log purge.
+echo Use this before handing the drive to someone else so credentials and settings
+echo do not travel with it and the next person gets a genuine first run.
 echo.
 set "CONFIRM="
 set /p CONFIRM="Type YES (all caps) to confirm: "
 if not "%CONFIRM%"=="YES" (
     echo.
     echo Cancelled - nothing was deleted.
-    goto :menu
+    exit /b 1
 )
-if exist ".env" del /q ".env"
 if exist ".drive-record.txt" (
     set /p RESETWHO=<".drive-record.txt"
     >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [reset]: RESET executed by !RESETWHO!
-    del /q ".drive-record.txt"
 ) else (
     >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [reset]: RESET executed ^(no drive record present^)
 )
-if exist ".forge-mode" del /q ".forge-mode"
-if exist ".hermes.md" del /q ".hermes.md"
+for %%F in (".env" ".forge-mode" ".hermes.md" ".drive-record.txt" ".provider-choice" ".agent-name" ".readme-shown") do if exist "%%~F" del /f /q "%%~F"
 if exist ".hermes\skills" rmdir /s /q ".hermes\skills"
+set "RESET_FAILED=0"
+for %%F in (".env" ".forge-mode" ".hermes.md" ".drive-record.txt" ".provider-choice" ".agent-name" ".readme-shown") do if exist "%%~F" (
+    echo ERROR: Could not remove %%~F. Check permissions, then try RESET again.
+    set "RESET_FAILED=1"
+)
+if exist ".hermes\skills" (
+    echo ERROR: Could not remove .hermes\skills. Check permissions, then try RESET again.
+    set "RESET_FAILED=1"
+)
 echo.
-echo Done. This drive is back to a clean first-use state.
-echo Next person: run launch-north-forge.bat - it recreates .env from .env.example
-echo and prompts for their own API key. Mode defaults to SALES until toggle-mode sets it.
-goto :menu
+if "!RESET_FAILED!"=="1" (
+    echo Credential/config reset was incomplete. forge-events.log was intentionally retained.
+    exit /b 1
+)
+echo Done. Credential/config reset completed; first-use setup will run next time.
+echo forge-events.log was intentionally retained as the accountability record
+echo and can contain names entered by prior users.
+echo Next person: run launch-north-forge.bat and follow the first-use prompts.
+exit /b 0
 
 :admin_gate
 rem Arg 1 = action name for the prompt and log. Returns errorlevel 0 on
