@@ -8,6 +8,25 @@ if not exist ".readme-shown" (
     echo. > .readme-shown
 )
 
+rem --- user tier: who-has-this-drive record (accountability only, never blocks) ---
+if not exist ".drive-record.txt" (
+    set "DRIVENAME="
+    set /p DRIVENAME="First launch: your name for this drive's record: "
+    if not defined DRIVENAME set "DRIVENAME=Unregistered"
+    > ".drive-record.txt" echo !DRIVENAME!
+    >> ".drive-record.txt" echo %DATE% %TIME%
+    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [drive-record]: CREATE: registered to !DRIVENAME!
+) else (
+    set /p CURNAME=<".drive-record.txt"
+    set "NEWNAME="
+    set /p NEWNAME="Still !CURNAME!? [Enter to continue / type a new name to re-register]: "
+    if defined NEWNAME (
+        > ".drive-record.txt" echo !NEWNAME!
+        >> ".drive-record.txt" echo %DATE% %TIME%
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [drive-record]: RE-REGISTER: !CURNAME! -^> !NEWNAME!
+    )
+)
+
 rem --- first run on this machine: put a real North Forge icon on the Desktop
 rem (Windows twin of the Mac launcher's "North Forge.command" desktop icon).
 rem Points at this launcher wherever the drive is mounted right now.

@@ -1,6 +1,29 @@
 #!/usr/bin/env bash
 cd "$(dirname "$0")"
 
+# --- admin gate (Phase 4): required before mode switches and RESET ---
+# Failed-attempt count lives in this variable only - session-scoped, never
+# written to any file. The log records PASS/FAIL + attempt number, never
+# the entered value.
+ADMIN_ATTEMPTS=0
+log_event() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] [$1]: $2" >> "forge-events.log"; }
+admin_gate() {
+    local PW=""
+    read -r -s -p "Admin password required for $1: " PW
+    echo ""
+    ADMIN_ATTEMPTS=$((ADMIN_ATTEMPTS+1))
+    if [ "$PW" = "RumpleStiltskin" ]; then
+        log_event "admin-gate" "attempt $ADMIN_ATTEMPTS PASS ($1)"
+        return 0
+    fi
+    log_event "admin-gate" "attempt $ADMIN_ATTEMPTS FAIL ($1)"
+    echo "Wrong password - $1 cancelled."
+    if [ "$ADMIN_ATTEMPTS" -ge 3 ]; then
+        echo "Hint: Brothers Grimm"
+    fi
+    return 1
+}
+
 while true; do
     echo ""
     echo "Current mode file:"
@@ -13,14 +36,17 @@ while true; do
             break
             ;;
         full)
+            admin_gate "mode switch to FULL" || continue
             echo "full" > ".forge-mode"
             echo "Set to FULL. Run launch-north-forge.sh to rebuild this drive's live skills/context with everything."
             ;;
         sales)
+            admin_gate "mode switch to SALES" || continue
             echo "sales" > ".forge-mode"
             echo "Set to SALES. Run launch-north-forge.sh to rebuild this drive's live skills/context with Sales Assist only."
             ;;
         reset)
+            admin_gate "RESET" || continue
             echo ""
             echo "RESET wipes this drive's PERSONAL setup back to a clean first-use state:"
             echo "  .env           - your Anthropic API key"
@@ -34,7 +60,12 @@ while true; do
             echo ""
             read -p "Type YES (all caps) to confirm: " CONFIRM
             if [ "$CONFIRM" = "YES" ]; then
-                rm -f ".env" ".forge-mode" ".hermes.md"
+                if [ -f ".drive-record.txt" ]; then
+                    log_event "reset" "RESET executed by $(sed -n 1p .drive-record.txt) (registered $(sed -n 2p .drive-record.txt))"
+                else
+                    log_event "reset" "RESET executed (no drive record present)"
+                fi
+                rm -f ".env" ".forge-mode" ".hermes.md" ".drive-record.txt"
                 rm -rf ".hermes/skills"
                 echo ""
                 echo "Done. This drive is back to a clean first-use state."

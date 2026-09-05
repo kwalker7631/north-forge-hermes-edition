@@ -10,6 +10,7 @@ AGENTS.override.md
 .forge-mode
 .agent-name
 .readme-shown
+.drive-record.txt
 
 # Generated at each launch from skills-source/ + .hermes.template.md + mode-blocks/
 # - these are build artifacts, not source. Never edit them directly; edit the

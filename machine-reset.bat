@@ -1,6 +1,11 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 cd /d "%~dp0"
+
+rem --- admin gate (Phase 4): required before key rotation and full purge ---
+rem Failed-attempt count is session-scoped (this variable only), never
+rem persisted. The log records PASS/FAIL + attempt number, never the value.
+set /a ADMIN_ATTEMPTS=0
 
 rem ===========================================================================
 rem  machine-reset.bat - reset Hermes state on THIS COMPUTER
@@ -56,6 +61,8 @@ goto :end
 
 
 :rotate_key
+call :admin_gate "API key rotation"
+if errorlevel 1 goto :end
 echo.
 if not exist "%HERMES_DIR%\.env" (
     echo No .env found at "%HERMES_DIR%\.env" - nothing to rotate.
@@ -92,6 +99,8 @@ goto :end
 
 
 :full_purge
+call :admin_gate "full machine purge"
+if errorlevel 1 goto :end
 echo.
 if not exist "%HERMES_DIR%\" (
     echo No Hermes folder found at "%HERMES_DIR%" - nothing to purge.
@@ -165,6 +174,22 @@ goto :end
 echo.
 echo Cancelled - nothing was changed.
 goto :end
+
+
+:admin_gate
+rem Arg 1 = action name for the prompt and log. Returns errorlevel 0 on
+rem correct password, 1 on wrong. Never logs the entered value.
+set "PW="
+set /p PW="Admin password required for %~1: "
+set /a ADMIN_ATTEMPTS+=1
+if "!PW!"=="RumpleStiltskin" (
+    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! PASS (%~1)
+    exit /b 0
+)
+>> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: attempt !ADMIN_ATTEMPTS! FAIL (%~1)
+echo Wrong password - %~1 cancelled.
+if !ADMIN_ATTEMPTS! GEQ 3 echo Hint: Brothers Grimm
+exit /b 1
 
 
 :end

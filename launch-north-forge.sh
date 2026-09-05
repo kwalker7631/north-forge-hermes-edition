@@ -11,6 +11,24 @@ if [ ! -f ".readme-shown" ]; then
     touch .readme-shown
 fi
 
+# --- user tier: who-has-this-drive record (accountability only, never blocks) ---
+log_event() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] [$1]: $2" >> "forge-events.log"; }
+if [ ! -f ".drive-record.txt" ]; then
+    DRIVENAME=""
+    read -p "First launch: your name for this drive's record: " DRIVENAME || DRIVENAME=""
+    [ -z "$DRIVENAME" ] && DRIVENAME="Unregistered"
+    printf '%s\n%s\n' "$DRIVENAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
+    log_event "drive-record" "CREATE: registered to $DRIVENAME"
+else
+    CURNAME="$(sed -n 1p ".drive-record.txt")"
+    NEWNAME=""
+    read -p "Still $CURNAME? [Enter to continue / type a new name to re-register]: " NEWNAME || NEWNAME=""
+    if [ -n "$NEWNAME" ]; then
+        printf '%s\n%s\n' "$NEWNAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
+        log_event "drive-record" "RE-REGISTER: $CURNAME -> $NEWNAME"
+    fi
+fi
+
 # exFAT (needed for a drive that works on Windows/Mac/Linux) can't store the
 # executable permission bit, so this file can't be made double-clickable
 # directly off the drive. First run creates a real, permanent, double-clickable

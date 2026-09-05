@@ -221,3 +221,53 @@ intact; .env not staged. The staged assets/logo-kyocera-*.png files were
 NOT used, per instruction - they remain reference material. The earlier
 "wire the 128x64 into the template" open decision is now CLOSED by this
 patch.
+
+## Addendum 6: Phase 4 two-tier passcode/activation system (your spec, executed)
+
+Implemented per the finalized simplified spec. All five validation tests
+RUN (not assumed) against the real scripts in an isolated temp copy - 5/5
+PASS, plus the never-log-the-password security check verified empirically
+(wrong entries made, log grepped: no entered value present, any case).
+
+USER TIER: .drive-record.txt (name line + timestamp line) handled in both
+launchers, inserted after the README auto-open block. Virgin -> CREATE
+prompt (blank input recorded as "Unregistered"); existing -> "Still
+<name>?" with Enter=continue-unchanged, any-input=overwrite+fresh
+timestamp. Never blocks, no password. Gitignored (per-drive state, same
+category as .forge-mode).
+
+ADMIN TIER: literal password gate (exact case-sensitive string per spec -
+verified 1 occurrence per gate file, no typos, wrong-case fails in test 4)
+in toggle-mode.sh, toggle-mode.bat (mode switches + RESET), and
+machine-reset.bat (key rotation + full purge) - all four protected
+actions covered. Attempt counter is a shell variable only, session-scoped,
+never persisted (grep-verified nothing writes it). Hint "Brothers Grimm"
+prints on-screen only at attempt >= 3, never written to any file.
+AMBIGUITY RESOLVED PER YOUR DEFAULT: per-action prompt, not session-wide
+unlock - nothing in .hermes.template.md or the skills specified either
+way, so the safer per-action default was taken as instructed; each gated
+invocation prompts fresh (a PASS does not reset the counter's history but
+each action asks again).
+
+RESET: gated; logs "RESET executed by <name> (registered <ts>)" from
+.drive-record.txt BEFORE wiping; wipe list now includes .drive-record.txt;
+next launch re-enters CREATE (test 5: denied-on-wrong-password, wiped,
+recreated - all verified).
+
+LOGGING: forge-events.log at repo root, format
+[timestamp] [INFO] [component]: message. Covers admin-gate PASS/FAIL with
+attempt number, reset execution, drive-record CREATE/RE-REGISTER. The log
+file is caught by the existing *.log gitignore rule - it stays per-drive,
+never committed. NOTE FOR YOUR LEDGER: the spec said "ties into Phase 1's
+logger" - no Phase 1 logger exists anywhere in this repo (grep-verified
+before building), so this log format IS the logger as of this commit; if
+your side has a Phase 1 handoff pending, reconcile formats then.
+
+Windows-side note: the .bat user-tier/gate logic uses delayed expansion
+(both .bat files switched to setlocal enabledelayedexpansion - verified
+paren-balanced, and the launcher already used it). The five-test matrix
+exercised the .sh implementations end-to-end; the .bat twins are
+line-for-line ports whose syntax was machine-checked but whose interactive
+flows should get one manual spot-check on a real Windows launch (piping
+stdin into cmd.exe set /p is not reliably scriptable from this harness -
+honest limitation, not an assumed pass).
