@@ -10,9 +10,14 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 run_case() {
     name="$1" set_status="$2" unset_status="$3" unset_message="$4" expected_status="$5" expected_marker="$6"
     work="$TMP_ROOT/$name"
-    mkdir -p "$work/bin"
-    cp "$ROOT/launch-north-forge.sh" "$work/"
-    cat > "$work/bin/hermes" <<'FAKE'
+    mkdir -p "$work"
+    cp -R "$ROOT/." "$work/"
+    rm -rf "$work/.git"
+    mkdir -p "$work/.hermes-home/bin" "$work/.hermes-home/hermes-agent" "$work/.hermes-home/venv"
+    : > "$work/.readme-shown"
+    printf "Tester\n" > "$work/.drive-record.txt"
+    printf "North Forge\n" > "$work/.agent-name"
+    cat > "$work/.hermes-home/bin/hermes" <<'FAKE'
 #!/usr/bin/env bash
 if [ "$1 $2 $3" = "config set model.provider" ]; then
     echo "${FAKE_SET_MESSAGE:-provider set}"
@@ -24,10 +29,10 @@ if [ "$1 $2 $3" = "config unset model.default" ]; then
 fi
 exit 99
 FAKE
-    chmod +x "$work/bin/hermes"
+    chmod +x "$work/.hermes-home/bin/hermes"
 
     status=0
-    (cd "$work" && PATH="$work/bin:$PATH" FAKE_SET_STATUS="$set_status" \
+    (cd "$work" && PATH="$PATH" FAKE_SET_STATUS="$set_status" \
         FAKE_UNSET_STATUS="$unset_status" FAKE_UNSET_MESSAGE="$unset_message" \
         bash ./launch-north-forge.sh --configure-free-provider) >"$work/terminal.txt" 2>&1 || status=$?
 

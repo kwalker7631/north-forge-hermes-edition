@@ -126,14 +126,7 @@ Set-Location -LiteralPath $repositoryPath
 Write-Host ""
 Write-Host "Starting North Forge..." -ForegroundColor Cyan
 
-# The launcher deliberately sets HERMES_HOME to this repository-local folder.
-# This check is informational only: provisioning never reads, changes, or
-# deletes a shared-machine or caller-supplied Hermes profile.
-$driveHermesHome = Join-Path $repositoryPath ".hermes-home"
-if (Test-Path -LiteralPath (Join-Path $driveHermesHome "config.yaml") -PathType Leaf) {
-    Write-Host "Using this drive's existing Hermes setup: $driveHermesHome" -ForegroundColor Green
-} else {
-    Write-Host "First launch on this drive will save its Hermes setup in: $driveHermesHome" -ForegroundColor Cyan
-}
+# The launcher uses a drive-local .hermes-home. It intentionally does not read,
+# prompt about, or alter an unrelated Hermes configuration on this computer.
 
 & $launcherPath

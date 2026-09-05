@@ -238,15 +238,14 @@ fi
 echo "North Forge running in $MODE mode."
 echo "Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it."
 
-# --- install Hermes FIRST if missing - nothing below this works without it ---
-if ! command -v hermes >/dev/null 2>&1; then
-    echo "Hermes not found for this drive - installing its engine now..."
-    curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-    echo ""
-    echo "Install finished. Open a new terminal and run this script again:"
-    echo "  bash launch-north-forge.sh"
-    exit 0
-fi
+# --- require the drive's own validated engine; never fall back to host Hermes ---
+. scripts/ensure-hermes.sh
+ensure_drive_hermes "$PWD" || exit $?
+
+# Every interactive command uses the same explicit drive-local entry point as
+# cron/gateway registration; PATH can no longer redirect one operation to a
+# machine-wide Hermes installation.
+hermes() { scripts/hermes-drive.sh "$@"; }
 
 # --- provider choice: default to zero-config OpenCode Free (no key, no
 # account, no block); using your own Anthropic API key is opt-in, not the
@@ -271,7 +270,7 @@ configure_free_provider() {
     # nonzero exit doesn't trip `set -e` before it can be handled.
     rm -f ".provider-choice"
     local set_out set_status unset_out unset_status unset_absent
-    if set_out="$(hermes config set model.provider opencode-free 2>&1)"; then
+    if set_out="$("$HERMES_EXE" config set model.provider opencode-free 2>&1)"; then
         set_status=0
     else
         set_status=$?
@@ -285,7 +284,7 @@ configure_free_provider() {
         return "$set_status"
     fi
 
-    if unset_out="$(hermes config unset model.default 2>&1)"; then
+    if unset_out="$("$HERMES_EXE" config unset model.default 2>&1)"; then
         unset_status=0
     else
         unset_status=$?
@@ -306,6 +305,11 @@ configure_free_provider() {
     echo "free" > ".provider-choice"
     return 0
 }
+
+if [ "${1:-}" = "--configure-free-provider" ]; then
+    configure_free_provider
+    exit $?
+fi
 
 if [ ! -f ".provider-choice" ]; then
     echo ""
@@ -366,15 +370,15 @@ mkdir -p "$HERMES_SKIN_DIR"
 cp -f "skins/north-forge.yaml" "$HERMES_SKIN_DIR/north-forge.yaml"
 
 echo "Activating North Forge skin..."
-hermes skin use north-forge
+"$HERMES_EXE" skin use north-forge
 echo "Skin list after activation (look for * next to north-forge):"
-hermes skin list
+"$HERMES_EXE" skin list
 
 # Project-local skills require an explicit trust decision before Hermes will
 # load them (security gate against a git pull silently injecting a skill).
 # Auto-approved here since this repo is Blacksmith-reviewed before it ever
 # reaches a drive - see README for the tradeoff this makes.
-hermes skills trust .
+"$HERMES_EXE" skills trust .
 
 # Self-healing scheduled jobs - re-adds the research and daily-brief cron
 # entries if either is missing (e.g. after an AppData flush wiped them).
@@ -392,17 +396,17 @@ report_cron_failure() {
     printf '[%s] [WARNING] [cron]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$warning" >> "forge-events.log"
     CRON_DEGRADED="${CRON_DEGRADED}${CRON_DEGRADED:+; }$job_name"
 }
-if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
+if ! scripts/hermes-drive.sh cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    if CRON_DIAGNOSTIC="$(hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
+    if CRON_DIAGNOSTIC="$(scripts/hermes-drive.sh cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
         report_cron_failure "nightly-kyocera-research" "automated nightly research" "$?" "$CRON_DIAGNOSTIC"
     fi
 fi
-if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
+if ! scripts/hermes-drive.sh cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    if CRON_DIAGNOSTIC="$(hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
+    if CRON_DIAGNOSTIC="$(scripts/hermes-drive.sh cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
         report_cron_failure "daily-kyocera-brief" "automated daily brief" "$?" "$CRON_DIAGNOSTIC"
@@ -417,7 +421,7 @@ fi
 # session ends (exec would replace this process and nothing could run after).
 # The || guard keeps set -e from aborting before the log line is written.
 HERMES_EXIT=0
-hermes || HERMES_EXIT=$?
+"$HERMES_EXE" || HERMES_EXIT=$?
 if [ "$HERMES_EXIT" -eq 0 ]; then
     log_event "hermes" "session ended normally (exit 0)"
 else

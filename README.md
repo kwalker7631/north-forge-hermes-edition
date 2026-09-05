@@ -20,7 +20,7 @@ This runs on top of [Hermes Agent](https://github.com/NousResearch/hermes-agent)
 - **Engine:** `kwalker7631/north-forge-agent` - an untouched fork/mirror of NousResearch/hermes-agent. Never edited directly. Kept current with `gh repo sync` when Nous ships updates. This is a reference/audit copy only - it is not what the installed `hermes` command actually runs from (see below).
 - **Content (this repo):** `kwalker7631/north-forge-hermes-edition` - North Forge's own material only: the always-loaded context file, the per-mode skills, and setup tooling. This is what gets built, versioned, and demoed.
 
-A thumb drive deployment is self-contained: its launcher sets `HERMES_HOME` to `<repo>/.hermes-home`, so that physical drive carries its own Hermes engine, model/provider choice, credentials, memory, sessions, and logs. Two North Forge drives used on the same computer therefore keep separate setup choices. The launchers intentionally ignore—but never delete or modify—any caller-supplied `HERMES_HOME`, `%LOCALAPPDATA%\hermes`, or `$HOME/.hermes` profile.
+A thumb drive deployment keeps its own Hermes engine and dependencies in `.hermes-home` beside this repository. The launchers deliberately set `HERMES_HOME` and `PATH` so a host-wide Hermes installation is neither used nor changed. A fresh install is built in `.hermes-install-staging`, validated, and only then promoted into place.
 
 ## Model choice matters - this is not Claude-only
 
@@ -137,7 +137,7 @@ No GitHub CLI (`gh`), no `gh auth login`, no browser sign-in step for whoever ru
 
 ## One-click launch (what happens after provisioning, and for repeat use)
 
-`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root - `provision-new-drive.ps1` calls the `.bat` automatically at the end of first-time setup, and either one is what a team member runs on every visit after that. Each one: points Hermes at that drive's private `.hermes-home`, rebuilds `.hermes/skills/` and `.hermes.md` for whatever mode this drive is set to, installs the drive's Hermes engine if needed, sets up its provider choice on first run, copies the current skin into place, and starts North Forge - so a team member just needs to double-click (Windows) or run the script (Mac/Linux) rather than type commands or think about mode at all.
+`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root. Each launcher distinguishes a missing, valid, or incomplete drive-local `.hermes-home`; installs and validates the drive's independent copy when absent; then configures the provider, applies the skin, and starts North Forge. A failed install leaves details in `install-logs` and requires the operator to remove or rename the clearly identified partial folders before retrying.
 
 **One real caveat on Mac/Linux:** exFAT (needed for a drive that works across Windows/Mac/Linux) can't store the Unix "executable" permission bit, and macOS doesn't auto-run anything on drive insert (Apple removed that years ago for security). So the very first time on any given Mac needs one manual step - after that, it's a real double-click icon every time.
 
