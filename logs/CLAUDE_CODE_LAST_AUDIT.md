@@ -3,13 +3,25 @@
 Timestamp: 2026-09-05 18:36 EDT (America/New_York), on the `E:` drive clone
 (`E:\north-forge-hermes-edition`)
 
-Requested task: Kenneth's prompt, verbatim - "Check this pull fix any erros
-wil execute first run. May have an isue with cheap usb flash". Read as: check
-the pulled repo, fix anything that would break the **first run** off this
-drive, with a hint that the problem is drive/USB-flash related. No handoff
-file, no named Zone B target.
+Requested tasks (two, in one session):
+1. Kenneth's prompt, verbatim - "Check this pull fix any erros wil execute
+   first run. May have an isue with cheap usb flash". Read as: check the
+   pulled repo, fix anything that would break the **first run** off this
+   drive, drive/USB-flash related. No handoff file, no named Zone B target.
+2. Follow-up in the same session: Kenneth pasted a complete revised
+   `README.md` ("bling navigation Wingding and Github elements ... Just for
+   me ... when I'm working and someone is watching they see bling") and,
+   after being shown a diff-flag summary, answered the place/revise question
+   with **"Place as-is + push"**. Treated as an in-session Blacksmith Zone B
+   placement handoff.
 
-## Outcome: FIXED (Zone A). Every shell script on this drive was CRLF and the macOS/Linux first run was broken. Added `.gitattributes`, renormalized the working tree.
+## Outcome
+- Task 1: FIXED (Zone A). Every shell script on this drive was CRLF and the
+  macOS/Linux first run was broken. Added `.gitattributes`, renormalized the
+  working tree. Commit `b768e29`.
+- Task 2: PLACED (Zone B placement). Wrote the pasted `README.md`
+  byte-for-byte, committed `4fd9fa6`, pushed. See "Task 2" section near the
+  end of this report.
 
 ---
 
@@ -151,6 +163,8 @@ and crossing platforms is exactly what trips the CRLF.
   Read only, not modified.
 - `CLAUDE.md` (full, via system context, 19 425 bytes) - Zone B. Zone
   definitions + standing rules.
+- `README.md` (full read, 212 lines / 24 413 bytes) - Zone B. Read for
+  Task 2 to diff against Kenneth's pasted revision before placement.
 - `logs/CLAUDE_CODE_LAST_AUDIT.md` (prior session's report) - Zone A.
 - `NEXT_STEPS.md` (targeted reads: header, lines 200-340, 425-460, tail) -
   Zone C. Found the pre-existing 2026-08-29 carry-over flag naming the
@@ -287,14 +301,22 @@ Post-fix verification:
 
 ## Zone B findings (not fixed - reported only)
 
-None new this session. Pre-existing open Zone B items are unchanged and were
-not touched:
-- The prior session's BLOCKED `README.md` / `USER_MANUAL.md` `Advanced/`
-  path update still needs byte-for-byte content.
+- **Task 2 placed a new `README.md` (see the "Task 2" section below).** That
+  was a Blacksmith placement, not a Claude-Code edit - byte-for-byte as
+  pasted. The one carry-over it does NOT resolve: the still-open `b744b10` /
+  prior-session `Advanced/` path update. The pasted README keeps the old
+  flat-root paths (`toggle-mode.bat / .sh`, `full-drive-reset.bat / .sh`,
+  `machine-reset.bat`, `provision-new-drive.ps1` in the file tree;
+  `.\provision-new-drive.ps1` in the powershell example). Nothing was
+  reverted - those paths were never fixed in README - but that Zone B gap is
+  still open and now sits under a large decorative commit. Still needs its
+  own byte-for-byte handoff (Option A / Option B from the b85d649 report).
+- The prior session's BLOCKED `USER_MANUAL.md` `Advanced/` path update still
+  needs byte-for-byte content (unchanged, not touched).
 - An earlier audit flagged an unstaged `README.md` `<img>` title-icon edit.
-  It is NOT present in this checkout - `git status` / `git diff` were clean
-  at session start with no `README.md` modification. Either it was resolved
-  or the drive was re-cloned since. Noted, no action.
+  It was NOT present in this checkout - `git status` / `git diff` were clean
+  at session start. The new pasted README does not carry an `<img>` title
+  tag either (it uses an ASCII wordmark). Noted, no action.
 - `WELCOME.html` at repo root is still untracked and still not in any
   CLAUDE.md zone list (prior audit's finding). `launch-north-forge.bat`
   L52-63 depends on it; a fresh clone hits the "WELCOME.html is missing"
@@ -303,20 +325,21 @@ not touched:
 
 ## Commits made this session
 
-Pending in one commit (about to `git add` + `git commit` + `git push` under
-the Zone A / Zone C standing authorization):
+1. **`b768e29`** "Add .gitattributes to pin shell scripts to LF (fixes
+   broken macOS/Linux first run)" - pushed to `origin/main`. Files:
+   `.gitattributes` (NEW, Zone A), `NEXT_STEPS.md` (Zone C dated entry),
+   `logs/CLAUDE_CODE_LAST_AUDIT.md` (Zone A, the first version of this
+   report). The 13 `*.sh` files are NOT in this commit - their committed
+   content did not change (blobs were already LF); only this drive's working
+   copies were corrected, a local checkout artifact.
+2. **`4fd9fa6`** "Place blinged README.md (in-session Blacksmith handoff)" -
+   pushed to `origin/main`. One file: `README.md` (Zone B placement),
+   202 insertions / 6 deletions. Written byte-for-byte as Kenneth pasted it.
+3. **(this commit, pending)** `logs/CLAUDE_CODE_LAST_AUDIT.md` - this
+   rewritten report covering both tasks. Zone A standing authorization.
 
-- `.gitattributes` - NEW, Zone A. Line-ending policy; fixes the CRLF `*.sh`
-  checkout.
-- `NEXT_STEPS.md` - Zone C. Dated session entry for this fix.
-- `logs/CLAUDE_CODE_LAST_AUDIT.md` - this report (Zone A).
-
-The 13 `*.sh` files are **not** in the commit - their committed content did
-not change (blobs were already LF); only this drive's working copies were
-corrected, which is a local checkout artifact, not a content change.
-
-`.env` never staged (not present on this drive). `git status` clean at start;
-after the commit, clean again.
+`.env` never staged (not present on this drive). `git status` clean between
+each commit and at end.
 
 ## Uncertain / flagged for primary GPT review
 
@@ -352,10 +375,115 @@ after the commit, clean again.
    does not modify the file (it is already CRLF and stays CRLF); it only
    pins that. Flagging that the rule's glob does reach into `archive/`.
 
+## Task 2 - `README.md` Zone B placement (commit `4fd9fa6`)
+
+### Trigger / authorization
+In the same session, after Task 1 was committed, Kenneth pasted a full
+revised `README.md` and described wanting "bling navigation Wingding and
+Github elements ... Just for me ... when I'm working and someone is watching
+they see bling." I did NOT auto-apply it. I read the current `README.md`
+(Zone B, 212 lines), read the pasted version, and presented a diff-flag
+summary (dropped intro paragraph; the `Advanced/` path fix not folded in;
+em-dash vs house-style hyphen; new `img.shields.io` dependency; some
+sections now condensed + full). I then asked place-as-is vs revise-first vs
+skin-only. Kenneth answered **"Place as-is + push"**. Per CLAUDE.md's Zone B
+placement exception + the 2026-08-26 CONFIRMED note ("an in-session named
+handoff from Kenneth ... identifying a specific Zone B file ... with an
+instruction to commit it - is the intended and sufficient trigger"), this
+is a valid placement. It is placement, not editing: I wrote the file
+byte-for-byte as pasted and did not compose, rephrase, or extend it.
+
+### Diff-before-placement check (CLAUDE.md 2026-08-29 STANDING RULE)
+`git diff --cached -M README.md`: 202 insertions, 6 deletions. Verified line
+by line that no previously-recorded deliberate fix is reverted:
+- `forge-audit` CLAUDE.md-token CORRECTION note in the file tree - PRESERVED
+  verbatim.
+- `.hermes/skills/` folder-name correction paragraph - PRESERVED.
+- "Project skills need to be trusted" auto-trust-tradeoff section - PRESERVED.
+- "Setting up a new drive" FAT32-refusal / exFAT-or-NTFS text - PRESERVED.
+- `%%LOCALAPPDATA%%\hermes`, the `full-drive-reset` "type the full path not
+  YES" section, the RESET eight-marker list - all PRESERVED.
+- "Built on Hermes Agent" + "Branding" ATTRIBUTION.md references and the
+  "Nous Research is not affiliated with or endorsing this deployment" line -
+  PRESERVED.
+- `## Repo governance`, `## Model choice matters`, `## Two-repo
+  architecture`, the full `## What's in here` tree, the GitHub-CLI admin
+  steps (now inside a `<details>`) - all PRESERVED, content unchanged.
+
+### What the 6 deletions are
+1. Old H1 `# North Forge - Hermes Edition` -> `<div align="center">` + ASCII
+   header + `# North Forge — Hermes Edition` (em-dash).
+2. `North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the
+   North Forge project. Created and maintained by Kenneth C. Walker Jr. -
+   Senior Technical Support Engineer, TSC.` -> the descriptor moves into the
+   centered badge block; the "Created and maintained by Kenneth C. Walker
+   Jr. — Senior Technical Support Engineer, TSC" credit is kept there.
+3. `A field-support AI built specifically for Kyocera ... never asks you to
+   remember a slash command you don't already know.` -> shorter one-line
+   description.
+4. **`Why this exists: a technician on a call shouldn't have to open a
+   manual ...` - DELETED with no replacement.** Kenneth was shown this
+   specific flag before answering "place as-is".
+(5-6 are the blank lines around those.)
+
+### Additions (the "bling")
+ASCII compass + `NORTH FORGE` wordmark + anvil in a fenced block; 5
+`img.shields.io` `for-the-badge` shields (Engine / Version / Repository /
+Modes / Platform); `> [!NOTE]` and `> [!IMPORTANT]` GitHub admonitions;
+`## ⚡ At a glance` 2-col table; `### What it is designed to do` bullet list;
+`## 🧭 Navigate` anchor-link row; `## 🏗 Architecture` with a
+```mermaid flowchart TD``` and a `<details>` "Why this architecture exists";
+`## 🧰 Skills and runtime content` with a `skills-source/` tree and a
+`### FULL vs SALES` capability table (✅ / —); `🔧` on the Maintenance
+heading; the GitHub-admin block wrapped in `<details><summary>🔐
+Maintainer-only GitHub administration`; a centered `### 🔥 North Forge`
+footer with `<sub>` credit line. Several `---` rules and blank lines between
+existing sections.
+
+### Verification
+- `git diff --cached --stat` -> `README.md | 208 +/- , 202 insertions(+), 6
+  deletions(-)`.
+- Fenced-block delimiters: 20 ` ``` ` lines = 10 balanced blocks
+  (`text` ASCII art, `mermaid`, `text` skills tree, the big `What's in here`
+  block, `powershell` x2, `powershell` x2 more in the admin steps...). Even
+  count, no unterminated block.
+- 26 `#`-headings total; all 19 `## ` sections listed and present; anchor
+  targets in the Navigate row match the generated slugs for the headings
+  they point at (GitHub strips the emoji + leading space, hence the
+  leading `-` in `#-architecture` etc).
+- Not rendered/checked: actual GitHub preview (no network render this
+  session), and whether every `img.shields.io` URL returns 200 (external,
+  not fetched).
+- `git ls-files --eol README.md` -> `w/lf` (my Write wrote LF; the other
+  `.md` files on this drive are CRLF in the working tree). `.md` has no
+  `.gitattributes` rule; `core.autocrlf=true` will store the blob as LF
+  anyway, same as every other tracked `.md`. Cosmetic working-tree-only
+  difference, left as-is.
+
+### Flagged for primary GPT (Task 2)
+- The `b744b10` `Advanced/` path gap is still open and now sits under this
+  large decorative commit. If/when the Option A/B handoff for it arrives, it
+  must be diffed against `4fd9fa6`, not against `b85d649`.
+- `README.md` now depends on `img.shields.io` (5 external image requests on
+  render). This repo is otherwise deliberately self-contained (it gitignores
+  `.claude/` for that reason). Called out; Kenneth accepted it via
+  "place as-is".
+- The "Why this exists" rationale paragraph is gone from the README. If that
+  copy still has value it now lives nowhere in the repo's user-facing docs.
+- House style drift: the placed file uses em-dashes in headings/taglines
+  where every other file here uses spaced hyphens. Placement fidelity vs
+  house style - placement won, per instruction.
+
 ## Status
 
-Needs primary GPT review - specifically item 1 (ratify `.gitattributes` as a
-Zone A addition or tell me to revert it) and item 2 (confirm on real
-macOS/Linux hardware that the renormalized `launch-north-forge.sh` now runs).
-The immediate first-run break on this drive is fixed and verified at the
-byte / parse level.
+Needs primary GPT review.
+- Task 1: ratify `.gitattributes` as a Zone A addition or tell me to revert
+  (Uncertain item 1); confirm on real macOS/Linux hardware that the
+  renormalized `launch-north-forge.sh` now runs (Uncertain item 2). The
+  first-run break on this drive is fixed and verified at the byte / `bash
+  -n` level.
+- Task 2: `README.md` placed byte-for-byte per an explicit in-session
+  Blacksmith instruction and pushed (`4fd9fa6`). Confirm the placement is
+  accepted, and note the four Task-2 flags above - especially that the
+  `Advanced/` path gap is still open on top of this commit and that the
+  "Why this exists" paragraph was dropped.
