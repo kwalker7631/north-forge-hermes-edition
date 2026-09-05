@@ -423,6 +423,11 @@ North Forge work.
 
 ## Open items (2026-09-04)
 
+DECISION (2026-09-04, primary GPT review): `research-log/` is intentionally
+NOT gitignored. Its contents are a real, KB-relevant historical record -
+same discipline as CHANGELOG.md - and are meant to be committed going
+forward.
+
 - [x] Add `research-log/` to README.md's file-tree section as a real
       tracked/committed path. DONE 2026-09-04 (later session). First cron
       output committed at `a801cb8`.
