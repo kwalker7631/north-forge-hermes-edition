@@ -9,36 +9,36 @@ set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "python3 is required for this launcher and wasn't found on this machine."
+    echo "Install it, then run this script again."
+    exit 1
+fi
+
 # --- first run on this drive: pop open the styled quickstart once ---
 if [ ! -f ".readme-shown" ]; then
-    if command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
-    elif command -v open >/dev/null 2>&1; then
-        open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
+    if [ ! -f "WELCOME.html" ]; then
+        WELOPEN="failed: WELCOME.html is missing"
+    elif command -v xdg-open >/dev/null 2>&1 && xdg-open "WELCOME.html"; then
+        WELOPEN=ok
+    elif command -v open >/dev/null 2>&1 && open "WELCOME.html"; then
+        WELOPEN=ok
     else
-        WELOPEN="no opener available"
+        WELOPEN="failed: no working opener available"
     fi
-    touch .readme-shown
+    if [ "$WELOPEN" = "ok" ]; then
+        touch .readme-shown
+    fi
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$([ "$WELOPEN" = "ok" ] && echo INFO || echo WARNING)] [welcome]: first-run WELCOME.html auto-open: $WELOPEN" >> "forge-events.log"
 fi
 
+# Names are capped at 64 characters and allow letters, numbers, spaces, and
+# apostrophe, hyphen, period, comma, and parentheses. The shared helper strips
+# ASCII controls and rejects parsing/log metacharacters before anything is used.
+# Help: Enter a normal person's name; press Enter to keep the shown default.
 # --- user tier: who-has-this-drive record (accountability only, never blocks) ---
 log_event() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] [$1]: $2" >> "forge-events.log"; }
-if [ ! -f ".drive-record.txt" ]; then
-    DRIVENAME=""
-    read -p "First launch: your name for this drive's record: " DRIVENAME || DRIVENAME=""
-    [ -z "$DRIVENAME" ] && DRIVENAME="Unregistered"
-    printf '%s\n%s\n' "$DRIVENAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
-    log_event "drive-record" "CREATE: registered to $DRIVENAME"
-else
-    CURNAME="$(sed -n 1p ".drive-record.txt")"
-    NEWNAME=""
-    read -p "Still $CURNAME? [Enter to continue / type a new name to re-register]: " NEWNAME || NEWNAME=""
-    if [ -n "$NEWNAME" ]; then
-        printf '%s\n%s\n' "$NEWNAME" "$(date '+%Y-%m-%d %H:%M:%S')" > ".drive-record.txt"
-        log_event "drive-record" "RE-REGISTER: $CURNAME -> $NEWNAME"
-    fi
-fi
+python3 scripts/name_validation.py drive
 
 # --- log repo state at launch (no git pull happens here by design - drives
 # update manually; this records what code the session ran on) ---
@@ -92,26 +92,7 @@ if [ "$MODE" = "full" ]; then
     cp -r skills-source/tsc-only/. .hermes/skills/ 2>/dev/null || true
 fi
 
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "python3 is required for this launcher and wasn't found on this machine."
-    echo "Install it (e.g. 'brew install python3' on Mac, or your distro's package manager on Linux), then run this script again."
-    exit 1
-fi
-
-if [ ! -f ".agent-name" ]; then
-    echo ""
-    echo "First launch on this drive: you can give your assistant a personal"
-    echo "name if you'd like - it still runs as North Forge underneath, this"
-    echo "just changes what it calls itself when talking to you."
-    echo ""
-    read -p "Name your assistant (press Enter to keep 'North Forge'): " CUSTOMNAME || CUSTOMNAME=""
-    if [ -z "$CUSTOMNAME" ]; then
-        echo "North Forge" > ".agent-name"
-    else
-        echo "$CUSTOMNAME" > ".agent-name"
-    fi
-    echo ""
-fi
+python3 scripts/name_validation.py agent
 
 python3 - "$MODE" << 'PYEOF'
 import sys, os
@@ -122,12 +103,9 @@ with open(f"mode-blocks/{mode}-banner.md", "r", encoding="utf-8") as f:
     banner = f.read()
 with open(f"mode-blocks/{mode}-menu.md", "r", encoding="utf-8") as f:
     menu = f.read()
-agent_name = "North Forge"
-if os.path.exists(".agent-name"):
-    with open(".agent-name", "r", encoding="utf-8") as f:
-        n = f.read().strip()
-        if n:
-            agent_name = n
+from scripts.name_validation import read_validated
+from pathlib import Path
+agent_name, _ = read_validated(Path(".agent-name"), "North Forge")
 tmpl = tmpl.replace("{{MODE_BANNER_BLOCK}}", banner).replace("{{COMMAND_MENU_BLOCK}}", menu).replace("{{AGENT_NAME}}", agent_name)
 size = len(tmpl)
 if size >= 20000:

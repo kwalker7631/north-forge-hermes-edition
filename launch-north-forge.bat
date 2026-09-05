@@ -5,38 +5,43 @@ rem  Forge project.
 rem  File: launch-north-forge.bat | Script version: 1.1.0 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
-setlocal enabledelayedexpansion
+setlocal DisableDelayedExpansion
 cd /d "%~dp0"
+
+rem Locate Python before accepting names. Keeping input inside the shared helper
+rem avoids cmd.exe metacharacter and delayed-expansion surprises.
+set "PYTHON_CMD="
+where py >nul 2>nul && set "PYTHON_CMD=py -3"
+if not defined PYTHON_CMD where python >nul 2>nul && set "PYTHON_CMD=python"
+if not defined PYTHON_CMD (
+    echo Python 3 is required. Install it, then double-click this launcher again.
+    pause
+    exit /b 1
+)
 
 rem --- first run on this drive: pop open the styled quickstart once ---
 if not exist ".readme-shown" (
-    start "" "WELCOME.html"
-    if errorlevel 1 (
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED
+    if not exist "WELCOME.html" (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED - file is missing
     ) else (
-        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [welcome]: first-run WELCOME.html auto-open: ok
+        start "" "WELCOME.html"
+        if errorlevel 1 (
+            >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED
+        ) else (
+            echo. > .readme-shown
+            >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [welcome]: first-run WELCOME.html auto-open: ok
+        )
     )
-    echo. > .readme-shown
 )
 
-rem --- user tier: who-has-this-drive record (accountability only, never blocks) ---
-if not exist ".drive-record.txt" (
-    set "DRIVENAME="
-    set /p DRIVENAME="First launch: your name for this drive's record: "
-    if not defined DRIVENAME set "DRIVENAME=Unregistered"
-    > ".drive-record.txt" echo !DRIVENAME!
-    >> ".drive-record.txt" echo %DATE% %TIME%
-    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [drive-record]: CREATE: registered to !DRIVENAME!
-) else (
-    set /p CURNAME=<".drive-record.txt"
-    set "NEWNAME="
-    set /p NEWNAME="Still !CURNAME!? [Enter to continue / type a new name to re-register]: "
-    if defined NEWNAME (
-        > ".drive-record.txt" echo !NEWNAME!
-        >> ".drive-record.txt" echo %DATE% %TIME%
-        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [drive-record]: RE-REGISTER: !CURNAME! -^> !NEWNAME!
-    )
-)
+rem Names: 64 characters maximum; letters, numbers, spaces, apostrophe, hyphen,
+rem period, comma, and parentheses only. Help: press Enter to keep the default.
+%PYTHON_CMD% scripts\name_validation.py drive
+if errorlevel 1 exit /b 1
+
+rem User name input is finished, so delayed expansion is safe for existing
+rem launcher bookkeeping below. It was deliberately OFF while names were read.
+setlocal EnableDelayedExpansion
 
 rem --- first run on this machine: put a real North Forge icon on the Desktop
 rem (Windows twin of the Mac launcher's "North Forge.command" desktop icon).
@@ -95,27 +100,19 @@ if /i "%MODE%"=="full" (
     xcopy /e /i /y "skills-source\tsc-only" ".hermes\skills" >nul
 )
 
-if not exist ".agent-name" (
-    echo.
-    echo First launch on this drive: you can give your assistant a personal
-    echo name if you'd like - it still runs as North Forge underneath, this
-    echo just changes what it calls itself when talking to you.
-    echo.
-    set /p CUSTOMNAME="Name your assistant (press Enter to keep 'North Forge'): "
-    if "!CUSTOMNAME!"=="" (
-        echo North Forge> ".agent-name"
-    ) else (
-        echo !CUSTOMNAME! > ".agent-name"
-    )
-    echo.
-)
+rem Disable delayed expansion around the assistant-name prompt too. The helper
+rem owns the raw text, so characters such as ! never enter a batch variable.
+setlocal DisableDelayedExpansion
+%PYTHON_CMD% scripts\name_validation.py agent
+if errorlevel 1 exit /b 1
+endlocal
 
 powershell -NoProfile -Command ^
     "$m='%MODE%';" ^
     "$t=Get-Content '.hermes.template.md' -Raw;" ^
     "$b=Get-Content \"mode-blocks\$m-banner.md\" -Raw;" ^
     "$c=Get-Content \"mode-blocks\$m-menu.md\" -Raw;" ^
-    "$name='North Forge'; if (Test-Path '.agent-name') { $n=(Get-Content '.agent-name' -Raw).Trim(); if ($n) { $name=$n } };" ^
+    "$name=(& %PYTHON_CMD% scripts\name_validation.py get --file .agent-name --default 'North Forge'); if ($LASTEXITCODE -ne 0) { exit 1 };" ^
     "$t=$t.Replace('{{MODE_BANNER_BLOCK}}',$b).Replace('{{COMMAND_MENU_BLOCK}}',$c).Replace('{{AGENT_NAME}}',$name);" ^
     "if ($t.Length -ge 20000) { Add-Content 'forge-events.log' ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [FAILURE] [size-guard]: assembled .hermes.md ' + $t.Length + ' chars ge 20000 ceiling - launch aborted'); Write-Host ('FATAL: assembled .hermes.md is ' + $t.Length + ' chars - at or over the 20,000-char context-file ceiling. Hermes would silently drop the middle of the file. Trim the template/banner/menu before launching.'); exit 1 };" ^
     "if ($t.Length -ge 19800) { Add-Content 'forge-events.log' ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [WARNING] [size-guard]: assembled .hermes.md ' + $t.Length + ' chars - within 200 of the 20000 ceiling'); Write-Host ('WARNING: assembled .hermes.md is ' + $t.Length + ' chars - within 200 of the 20,000-char ceiling. Trim soon.') };" ^
