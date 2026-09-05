@@ -87,13 +87,12 @@ if /i not "%MODE%"=="full" if /i not "%MODE%"=="sales" (
     set "MODE=sales"
 )
 
-if exist "skills" rmdir /s /q "skills"
-if exist ".hermes\skills" rmdir /s /q ".hermes\skills"
-mkdir ".hermes\skills"
-xcopy /e /i /y "skills-source\shared" ".hermes\skills" >nul
-if /i "%MODE%"=="full" (
-    xcopy /e /i /y "skills-source\tsc-only" ".hermes\skills" >nul
+powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\assemble-skills.ps1" -Mode "%MODE%"
+if errorlevel 1 (
+    echo ERROR: Skills could not be assembled. The previous working build was preserved.
+    exit /b 1
 )
+if "%NORTH_FORGE_ASSEMBLE_ONLY%"=="1" exit /b 0
 
 if not exist ".agent-name" (
     echo.

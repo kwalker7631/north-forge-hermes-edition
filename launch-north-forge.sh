@@ -85,12 +85,90 @@ if [ "$MODE" != "full" ] && [ "$MODE" != "sales" ]; then
     MODE="sales"
 fi
 
-rm -rf .hermes/skills
-mkdir -p .hermes/skills
-cp -r skills-source/shared/. .hermes/skills/ 2>/dev/null || true
-if [ "$MODE" = "full" ]; then
-    cp -r skills-source/tsc-only/. .hermes/skills/ 2>/dev/null || true
-fi
+assemble_skills() {
+    local skills_parent=".hermes" live
+    live="$skills_parent/skills"
+    local stage backup source_count stage_count skill
+    local shared_skills="daily-brief flush kyocera-research manual menu sales-assist switch web-navigator"
+    local tsc_skills="assist-intake draft-writer escalation-packet fault-logging forge-audit hotline-ticket kb-builder training-guide"
+
+    if [ ! -d "skills-source/shared" ] || { [ "$MODE" = "full" ] && [ ! -d "skills-source/tsc-only" ]; }; then
+        log_event "skills" "FAILURE: required skills-source directory is missing; current build preserved"
+        echo "ERROR: A required skills-source folder is missing. Your existing skills were left untouched."
+        return 1
+    fi
+    if ! mkdir -p "$skills_parent"; then
+        echo "ERROR: Could not create .hermes. Check drive permissions; existing skills were not changed."
+        return 1
+    fi
+    stage="$skills_parent/.skills-staging-$$-${RANDOM:-0}"
+    backup="$skills_parent/.skills-backup-$$-${RANDOM:-0}"
+    rm -rf -- "$stage" "$backup"
+    if ! mkdir "$stage"; then
+        echo "ERROR: Could not create the temporary skills folder. Existing skills were not changed."
+        return 1
+    fi
+    # Always clean abandoned staging. A backup is only removed after a verified
+    # success, or after it has restored the last-known-good build.
+    trap "rm -rf -- $(printf '%q' "$stage"); if [ -d $(printf '%q' "$backup") ] && [ ! -e $(printf '%q' "$live") ]; then mv -- $(printf '%q' "$backup") $(printf '%q' "$live") || true; fi" EXIT
+
+    if [ "${NORTH_FORGE_TEST_FAIL_COPY:-0}" = 1 ] || ! cp -R "skills-source/shared/." "$stage/"; then
+        log_event "skills" "FAILURE: shared skill copy failed; current build preserved"
+        echo "ERROR: Could not copy shared skills. Your existing skills were left untouched."
+        return 1
+    fi
+    if [ "$MODE" = "full" ]; then
+        if ! cp -R "skills-source/tsc-only/." "$stage/"; then
+            log_event "skills" "FAILURE: TSC-only skill copy failed; current build preserved"
+            echo "ERROR: Could not copy FULL-mode skills. Your existing skills were left untouched."
+            return 1
+        fi
+    fi
+    for skill in $shared_skills; do
+        if [ ! -d "$stage/$skill" ] || [ ! -f "$stage/$skill/SKILL.md" ]; then
+            log_event "skills" "FAILURE: staged shared skill '$skill' is incomplete; current build preserved"
+            echo "ERROR: Shared skill '$skill' is incomplete (folder or SKILL.md missing). Existing skills were left untouched."
+            return 1
+        fi
+    done
+    if [ "$MODE" = "full" ]; then
+        for skill in $tsc_skills; do
+            if [ ! -d "$stage/$skill" ] || [ ! -f "$stage/$skill/SKILL.md" ]; then
+                log_event "skills" "FAILURE: staged FULL skill '$skill' is incomplete; current build preserved"
+                echo "ERROR: FULL-mode skill '$skill' is incomplete (folder or SKILL.md missing). Existing skills were left untouched."
+                return 1
+            fi
+        done
+    fi
+    source_count=$(find skills-source/shared -type f | wc -l | tr -d ' ')
+    [ "$MODE" = "full" ] && source_count=$((source_count + $(find skills-source/tsc-only -type f | wc -l | tr -d ' ')))
+    stage_count=$(find "$stage" -type f | wc -l | tr -d ' ')
+    if [ "$source_count" -eq 0 ] || [ "$stage_count" -ne "$source_count" ]; then
+        log_event "skills" "FAILURE: partial staged build ($stage_count of $source_count files); current build preserved"
+        echo "ERROR: Skill validation found a zero-file or partial build ($stage_count of $source_count files). Existing skills were left untouched."
+        return 1
+    fi
+
+    if [ -e "$live" ] && ! mv -- "$live" "$backup"; then
+        echo "ERROR: Could not back up the current skills. Nothing was changed."
+        return 1
+    fi
+    if [ "${NORTH_FORGE_TEST_FAIL_SWAP:-0}" = 1 ] || ! mv -- "$stage" "$live"; then
+        [ ! -e "$live" ] && [ -e "$backup" ] && mv -- "$backup" "$live"
+        log_event "skills" "FAILURE: final skill swap failed; previous build restored"
+        echo "ERROR: Could not activate the staged skills. The previous build was restored."
+        return 1
+    fi
+    if [ -e "$backup" ] && ! rm -rf -- "$backup"; then
+        echo "WARNING: Skills activated, but the temporary backup could not be removed: $backup"
+        log_event "skills" "WARNING: activated skills but could not remove backup $backup"
+    fi
+    trap - EXIT
+    log_event "skills" "SUCCESS: activated validated $MODE build ($stage_count files)"
+}
+
+assemble_skills || exit 1
+[ "${NORTH_FORGE_ASSEMBLE_ONLY:-0}" = 1 ] && exit 0
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required for this launcher and wasn't found on this machine."
