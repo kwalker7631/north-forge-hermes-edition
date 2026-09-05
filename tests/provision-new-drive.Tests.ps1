@@ -4,7 +4,7 @@
 
 $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$sourceScript = Join-Path $repositoryRoot "provision-new-drive.ps1"
+$sourceScript = Join-Path $repositoryRoot "Advanced\provision-new-drive.ps1"
 $powerShell = (Get-Process -Id $PID).Path
 $testRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("north-forge-provision-test-" + [guid]::NewGuid())
 

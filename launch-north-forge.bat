@@ -2,7 +2,7 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: launch-north-forge.bat | Script version: 1.2.1 | Updated: 2026-09-05
+rem  File: launch-north-forge.bat | Script version: 1.3.0 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal DisableDelayedExpansion
@@ -91,6 +91,23 @@ if not exist "!DESKTOPDIR!\North Forge.lnk" (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [shortcut]: Desktop shortcut created with icon at !DESKTOPDIR!
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [shortcut]: Desktop shortcut creation FAILED ^(target: !DESKTOPDIR!^)
+    )
+)
+
+rem --- one obvious thing to double-click at the drive root itself: a real
+rem .lnk carrying assets\north-forge.ico and pointing at this launcher. A .bat
+rem can never show a custom icon; only a .lnk can. The target path is
+rem drive-letter-specific, so it is generated here (and by
+rem provision-new-drive.ps1 at provisioning time) and never committed.
+if not exist "%~dp0North Forge.lnk" (
+    powershell -NoProfile -Command ^
+        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%~dp0North Forge.lnk');" ^
+        "$s.TargetPath='%~f0'; $s.WorkingDirectory='%~dp0';" ^
+        "$s.IconLocation='%~dp0assets\north-forge.ico'; $s.Description='North Forge - double-click to start'; $s.Save()" >nul 2>nul
+    if exist "%~dp0North Forge.lnk" (
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [shortcut]: drive-root North Forge.lnk created with icon
+    ) else (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [shortcut]: drive-root North Forge.lnk creation FAILED
     )
 )
 

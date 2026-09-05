@@ -1,6 +1,9 @@
 @echo off
 setlocal DisableDelayedExpansion
-cd /d "%~dp0"
+rem This script lives in Advanced\ but purges the drive root's .hermes-home.
+rem "%~dp0.." is the drive root regardless of drive letter; scripts\ and
+rem forge-events.log below resolve against it.
+cd /d "%~dp0.."
 set "REPO=%CD%"
 set "CANDIDATE=%CD%\.hermes-home"
 set "CHECK=%TEMP%\north-forge-drive-purge-%RANDOM%-%RANDOM%.txt"

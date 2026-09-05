@@ -19,6 +19,10 @@ AGENTS.override.md
 .provider-choice
 .readme-shown
 .drive-record.txt
+# Drive-root launcher shortcut - generated per drive by launch-north-forge.bat
+# and provision-new-drive.ps1; its target path is drive-letter-specific, so it
+# must never be committed (same reason as the per-drive markers above).
+/North Forge.lnk
 
 # Generated at each launch from skills-source/ + .hermes.template.md + mode-blocks/
 # - these are build artifacts, not source. Never edit them directly; edit the

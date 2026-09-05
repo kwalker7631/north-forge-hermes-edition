@@ -2,11 +2,15 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: toggle-mode.bat | Script version: 1.1.0 | Updated: 2026-09-05
+rem  File: toggle-mode.bat | Script version: 1.2.0 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal enabledelayedexpansion
-cd /d "%~dp0"
+rem This script lives in Advanced\ but operates on the drive root (one level
+rem up): .forge-mode, the credential dotfiles, .hermes\skills, and
+rem forge-events.log all live there. "%~dp0.." resolves to the drive root
+rem regardless of drive letter.
+cd /d "%~dp0.."
 
 rem --- admin gate (Phase 4): required before mode switches and RESET ---
 rem Failed-attempt count lives in ADMIN_ATTEMPTS only - session-scoped,

@@ -2,11 +2,16 @@
 rem =============================================================================
 rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 rem  Forge project.
-rem  File: machine-reset.bat | Script version: 1.1.0 | Updated: 2026-09-05
+rem  File: machine-reset.bat | Script version: 1.2.0 | Updated: 2026-09-05
 rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal DisableDelayedExpansion
-cd /d "%~dp0"
+rem This script lives in Advanced\ but writes forge-events.log at the drive
+rem root and calls scripts\ helpers there. "%~dp0.." is the drive root
+rem regardless of drive letter; the safety helper is invoked as
+rem "%~dp0..\scripts\machine-reset-safety.ps1" below so it resolves even if
+rem this cd is ever blocked.
+cd /d "%~dp0.."
 set "EXIT_CODE=0"
 
 rem --- admin gate (Phase 4): required before key rotation and full purge ---
@@ -36,7 +41,7 @@ rem PowerShell is the safety boundary: it validates the untrusted environment
 rem value before cmd.exe displays, compares, or passes it to deletion code.
 set "VALIDATION_FILE=%TEMP%\north-forge-reset-%RANDOM%-%RANDOM%.txt"
 set "HOST_HERMES_HOME=%LOCALAPPDATA%\hermes"
-powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0scripts\machine-reset-safety.ps1" -Action Validate -Candidate "%HOST_HERMES_HOME%" > "%VALIDATION_FILE%"
+powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0..\scripts\machine-reset-safety.ps1" -Action Validate -Candidate "%HOST_HERMES_HOME%" > "%VALIDATION_FILE%"
 if errorlevel 1 (
     >> "forge-events.log" echo [%DATE% %TIME%] [ERROR] [machine-reset]: Hermes home safety validation rejected the target
     echo.
@@ -96,7 +101,7 @@ if errorlevel 1 (
     set "EXIT_CODE=1"
     goto :end
 )
-powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0scripts\machine-reset-safety.ps1" -Action RemoveEnv
+powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0..\scripts\machine-reset-safety.ps1" -Action RemoveEnv
 if errorlevel 1 (
     echo.
     echo Could not safely remove .env. Close Hermes and try again.
@@ -152,7 +157,7 @@ if errorlevel 1 (
 
 echo.
 echo Deleting the validated Hermes folder...
-powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0scripts\machine-reset-safety.ps1" -Action Purge
+powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0..\scripts\machine-reset-safety.ps1" -Action Purge
 if errorlevel 1 (
     echo.
     echo Partly done - some files could not be deleted,

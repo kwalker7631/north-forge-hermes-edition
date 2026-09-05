@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Full drive purge: gateway first, then exactly this repo's .hermes-home.
 set -u
-cd "$(dirname "$0")" || exit 1
+# This script lives in Advanced/ but purges the drive root's .hermes-home.
+# "$(dirname "$0")/.." is the drive root; scripts/ and forge-events.log
+# below resolve against it.
+cd "$(dirname "$0")/.." || exit 1
 REPO="$(pwd -P)"
 CANDIDATE="$REPO/.hermes-home"
 if ! TARGET="$(python3 scripts/drive-reset-safety.py --action validate --repo "$REPO" --candidate "$CANDIDATE")"; then

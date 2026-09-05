@@ -2,10 +2,14 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: toggle-mode.sh | Script version: 1.1.0 | Updated: 2026-09-05
+# File: toggle-mode.sh | Script version: 1.2.0 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
-cd "$(dirname "$0")"
+# This script lives in Advanced/ but operates on the drive root (one level
+# up): .forge-mode, the credential dotfiles, .hermes/skills, and
+# forge-events.log all live there. Fail closed if that cd does not succeed -
+# RESET deletes files and must never run against the wrong directory.
+cd "$(dirname "$0")/.." || exit 1
 
 # --- admin gate (Phase 4): required before mode switches and RESET ---
 # Failed-attempt count lives in this variable only - session-scoped, never

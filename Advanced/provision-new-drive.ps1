@@ -1,7 +1,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: provision-new-drive.ps1 | Script version: 1.0.1 | Updated: 2026-09-05
+# File: provision-new-drive.ps1 | Script version: 1.1.0 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 #
@@ -122,6 +122,29 @@ if (-not (Test-Path -LiteralPath $launcherPath -PathType Leaf)) {
 }
 
 Set-Location -LiteralPath $repositoryPath
+
+# Put one clearly labelled, real-icon shortcut at the drive's own root, so the
+# first thing visible when the drive is opened in Explorer is "North Forge"
+# with the North Forge icon - not a row of identical .bat icons. A .bat cannot
+# carry a custom icon; only a .lnk can. Its target is drive-letter-specific, so
+# it is generated here (and re-created by the launcher if ever deleted), never
+# committed. Same principle as the launcher's existing Desktop shortcut.
+$rootShortcut = Join-Path $repositoryPath "North Forge.lnk"
+if (-not (Test-Path -LiteralPath $rootShortcut)) {
+    try {
+        $shell = New-Object -ComObject WScript.Shell
+        $lnk = $shell.CreateShortcut($rootShortcut)
+        $lnk.TargetPath = $launcherPath
+        $lnk.WorkingDirectory = $repositoryPath
+        $lnk.IconLocation = (Join-Path $repositoryPath "assets\north-forge.ico")
+        $lnk.Description = "North Forge - double-click to start"
+        $lnk.Save()
+        Write-Host "Placed a 'North Forge' shortcut (with icon) at the drive root." -ForegroundColor Green
+    } catch {
+        Write-Host "Note: could not create the drive-root 'North Forge' shortcut - $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "The launcher will retry this automatically on first run." -ForegroundColor Yellow
+    }
+}
 
 Write-Host ""
 Write-Host "Starting North Forge..." -ForegroundColor Cyan
