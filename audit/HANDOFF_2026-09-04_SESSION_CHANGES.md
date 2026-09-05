@@ -204,3 +204,20 @@ Executed per the GPT-side instruction relayed by Kenneth. All items done:
   CRLF line; definitive: check-ignore on the actual file = no match,
   git status lists kb-images/ as untracked ??). .env not staged, not
   tracked.
+
+## Addendum 5: logo parity patch placed (your-side handoff, executed)
+
+hermes-logo-parity-patch.zip extracted and placed byte-for-byte: lines 45
+(header, 64x64) and 256 (contact block, 128x64) of
+KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html swapped from placehold.co
+placeholders to the approved embedded-base64 <img> lines. Line-index
+asserted against the placeholder content before writing; CRLF endings
+preserved.
+
+Checks all PASS: git diff exactly +2/-2 on the one file; HTML tag-balance
+parse clean; 2 img tags both base64, 0 placehold.co remaining; v21.8
+header lines (2-3, 19) untouched; contact-block phone/email/marker
+intact; .env not staged. The staged assets/logo-kyocera-*.png files were
+NOT used, per instruction - they remain reference material. The earlier
+"wire the 128x64 into the template" open decision is now CLOSED by this
+patch.
