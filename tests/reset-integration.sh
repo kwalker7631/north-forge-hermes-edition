@@ -21,6 +21,9 @@ make_fixture() {
     done
     printf 'prior accountability event with Prior User name\n' > "$fixture/forge-events.log"
     printf 'keep me\n' > "$fixture/unrelated-file"
+    mkdir -p "$fixture/.hermes-home/cron"
+    printf 'secret and state\n' > "$fixture/.hermes-home/state.db"
+    printf 'scheduled job\n' > "$fixture/.hermes-home/cron/job"
 }
 
 SUCCESS="$SCRATCH_ROOT/success"
@@ -32,6 +35,9 @@ done
 [ -f "$SUCCESS/forge-events.log" ] || { echo 'FAIL: RESET removed forge-events.log' >&2; exit 1; }
 grep -q 'Prior User' "$SUCCESS/forge-events.log"
 [ -f "$SUCCESS/unrelated-file" ]
+grep -q 'secret and state' "$SUCCESS/.hermes-home/state.db"
+grep -q 'scheduled job' "$SUCCESS/.hermes-home/cron/job"
+grep -q 'credentials, memory, sessions, and cron state remain' "$SUCCESS/output.txt"
 grep -q 'intentionally RETAINED as an accountability record' "$SUCCESS/output.txt"
 grep -q 'can contain names entered by prior users' "$SUCCESS/output.txt"
 

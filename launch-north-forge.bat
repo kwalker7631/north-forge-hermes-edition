@@ -7,11 +7,30 @@ rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 rem =============================================================================
 setlocal DisableDelayedExpansion
 cd /d "%~dp0"
-rem Persist an absolute drive-local home into Hermes's generated Task Scheduler
-rem gateway; a clean unattended environment must never use shared AppData.
-set "HERMES_HOME=%~dp0.hermes-home"
-if not exist "%HERMES_HOME%" mkdir "%HERMES_HOME%"
-set "HERMES_CMD=powershell -NoProfile -ExecutionPolicy Bypass -File scripts\hermes-drive.ps1"
+set "HERMES_HOME=%CD%\.hermes-home"
+rem Keep the complete Hermes installation and runtime state on this drive.
+rem Deliberately overwrite any caller-supplied value so shared host state is
+rem never used by North Forge.
+if not exist "%HERMES_HOME%" mkdir "%HERMES_HOME%" >nul 2>nul
+if not exist "%HERMES_HOME%\." (
+    echo ERROR: North Forge could not create its drive-local Hermes home at "%HERMES_HOME%". Check that the drive is connected and allows new folders.
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [hermes-home]: could not create drive-local Hermes home at "%HERMES_HOME%"
+    exit /b 1
+)
+set "HERMES_HOME_PROBE=%HERMES_HOME%\.north-forge-write-probe-%RANDOM%-%RANDOM%.tmp"
+> "%HERMES_HOME_PROBE%" echo North Forge write test
+if errorlevel 1 (
+    echo ERROR: North Forge cannot write to its drive-local Hermes home at "%HERMES_HOME%". Check the drive's permissions or free space.
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [hermes-home]: drive-local Hermes home is not writable at "%HERMES_HOME%"
+    exit /b 1
+)
+del /q "%HERMES_HOME_PROBE%" >nul 2>nul
+set "HERMES_HOME_PROBE="
+
+rem Each drive owns its Hermes configuration, memory, and cron database.
+rem Deliberately replace any inherited machine-wide value so two drives cannot
+rem silently share state.
+set "HERMES_HOME=%CD%\.hermes-home"
 
 if /i "%~1"=="--configure-free-provider" (
     call :CONFIGURE_FREE_PROVIDER
@@ -138,16 +157,15 @@ if errorlevel 1 (
 echo North Forge running in %MODE% mode.
 echo Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it.
 
-rem --- install Hermes FIRST if missing - nothing below this works without it ---
-powershell -NoProfile -Command "$h=$env:HERMES_HOME; if (@('hermes-agent\venv\Scripts\hermes.exe','hermes-agent\.venv\Scripts\hermes.exe','venv\Scripts\hermes.exe','Scripts\hermes.exe') | ForEach-Object { Test-Path -LiteralPath (Join-Path $h $_) } | Where-Object { $_ } | Select-Object -First 1) { exit 0 } else { exit 1 }"
+rem --- require the drive's own validated engine; never fall back to host Hermes ---
+set "HERMES_HOME=%CD%\.hermes-home"
+powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "scripts\ensure-hermes.ps1" -RepoRoot "%CD%"
 if errorlevel 1 (
-    echo Hermes not found on this machine - installing now...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "iex (irm https://hermes-agent.nousresearch.com/install.ps1)"
-    echo.
-    echo Install finished. Close this window and double-click this launcher again.
+    set "INSTALL_EXIT=!ERRORLEVEL!"
     pause
-    exit /b
+    exit /b !INSTALL_EXIT!
 )
+set "PATH=%HERMES_HOME%\Scripts;%HERMES_HOME%\bin;%HERMES_HOME%;%PATH%"
 
 rem --- provider choice: default to zero-config OpenCode Free (no key, no
 rem     account, no block); using your own Anthropic API key is opt-in, not
@@ -213,11 +231,7 @@ if /i "%PROVIDERMODE%"=="ownkey" (
 )
 
 rem --- copy the skin into place and activate it - hermes is guaranteed installed by this point ---
-if defined HERMES_HOME (
-    set "SKIN_DIR=%HERMES_HOME%\skins"
-) else (
-    set "SKIN_DIR=%LOCALAPPDATA%\hermes\skins"
-)
+set "SKIN_DIR=%HERMES_HOME%\skins"
 if not exist "%SKIN_DIR%" mkdir "%SKIN_DIR%"
 copy /Y "skins\north-forge.yaml" "%SKIN_DIR%\north-forge.yaml" >nul
 

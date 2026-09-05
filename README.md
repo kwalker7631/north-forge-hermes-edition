@@ -20,7 +20,7 @@ This runs on top of [Hermes Agent](https://github.com/NousResearch/hermes-agent)
 - **Engine:** `kwalker7631/north-forge-agent` - an untouched fork/mirror of NousResearch/hermes-agent. Never edited directly. Kept current with `gh repo sync` when Nous ships updates. This is a reference/audit copy only - it is not what the installed `hermes` command actually runs from (see below).
 - **Content (this repo):** `kwalker7631/north-forge-hermes-edition` - North Forge's own material only: the always-loaded context file, the per-mode skills, and setup tooling. This is what gets built, versioned, and demoed.
 
-A thumb drive deployment = Hermes installed locally on the host machine (from Hermes's own official installer, which creates a real git checkout under that machine's `~/.hermes` / `%LOCALAPPDATA%\hermes` and stays current via `hermes update` - pull-only, no ties to this repo) + this repo's contents pointed to as the working directory. Don't keep a separate copy of the engine on the drive itself - a static download snapshot can't be updated and isn't referenced by anything here.
+A thumb drive deployment keeps its own Hermes engine and dependencies in `.hermes-home` beside this repository. The launchers deliberately set `HERMES_HOME` and `PATH` so a host-wide Hermes installation is neither used nor changed. A fresh install is built in `.hermes-install-staging`, validated, and only then promoted into place.
 
 ## Model choice matters - this is not Claude-only
 
@@ -59,8 +59,9 @@ skills-source/                <- the real, tracked skill content (one copy, neve
 .hermes/skills/                 <- GENERATED at each launch from skills-source/ - the exact folder name Hermes scans for project-local skills (see note below) - never edit directly, never committed
 .forge-mode                    <- GENERATED per physical drive by toggle-mode - never committed, defaults to sales if absent
 .agent-name                    <- OPTIONAL, one line of text, per physical drive - a custom nickname for the agent (e.g. "Kyle"). Never committed. Defaults to "North Forge" if absent. Create it by hand (a plain text file containing just the name) - no toggle script for this yet.
-toggle-mode.bat / .sh          <- Kenneth-only: sets a drive's mode to FULL or SALES, or RESET to wipe a drive's personal setup before handing it to someone else
-machine-reset.bat               <- Kenneth-only: manages THIS MACHINE's Hermes state (separate from the drive) - rotate just the API key, or fully purge everything
+toggle-mode.bat / .sh          <- Kenneth-only: mode switch or fast onboarding/content RESET; preserves .hermes-home
+full-drive-reset.bat / .sh     <- Kenneth-only: confirmed purge of this drive's engine and all Hermes state
+machine-reset.bat               <- Kenneth-only: host-PC Hermes maintenance; always targets %%LOCALAPPDATA%%\hermes
 skins/
   north-forge.yaml            <- Hermes skin: rebrands the CLI as "North Forge" using the KB visual palette
 .env.example                   <- copy to .env, fill in your own Anthropic API key, never commit the real .env
@@ -100,7 +101,9 @@ There is no separate "sales version" to maintain. Every skill is authored exactl
 
 `.forge-mode` is a one-word file (`full` or `sales`) that lives on each physical drive, is never committed to git, and is set once with `toggle-mode.bat`/`.sh` (Kenneth-only tooling, not something a rep needs). Missing the file at all defaults to `sales` - fails safe rather than fails open.
 
-`toggle-mode.bat`/`.sh` also has a third option: **RESET**, a credential/config reset that removes eight first-use state targets: `.env`, `.forge-mode`, `.hermes.md`, `.drive-record.txt`, `.provider-choice`, `.agent-name`, `.readme-shown`, and `.hermes/skills/`. The scripts verify their removal and return an error if any target remains. Any confirmation other than uppercase `YES` leaves all eight intact and returns an error. `forge-events.log` is intentionally retained as an accountability record and can contain names entered by prior users, so RESET is not a privacy or history wipe.
+`toggle-mode.bat`/`.sh` also has a third option: **RESET**, a fast **onboarding/content reset** that removes eight first-use markers or generated-content targets: `.env`, `.forge-mode`, `.hermes.md`, `.drive-record.txt`, `.provider-choice`, `.agent-name`, `.readme-shown`, and `.hermes/skills/`. It explicitly preserves `.hermes-home`; Hermes credentials, memory, sessions, cron state, and other engine data therefore remain. The scripts verify marker removal and return an error if any target remains. Any confirmation other than uppercase `YES` leaves all eight intact. `forge-events.log` also remains, so RESET is not a complete privacy wipe.
+
+For an unrecoverable drive cleanup, run **`full-drive-reset.bat`** on Windows or **`bash full-drive-reset.sh`** on macOS/Linux. This operation validates that its destination is exactly `<this repo>/.hermes-home`, refuses roots, parents, shared folders, and symbolic links, then displays the full path. You must type that complete path—not `YES`. It ties the gateway commands to the validated drive folder and removes the folder only if both commands succeed. Help: the displayed path is the only accepted answer. Tip: press **Ctrl+C** to cancel before deletion.
 
 On a Sales-mode drive, the TSC-only skill files are never copied into the live `.hermes/skills/` folder at all - not hidden, not disabled by a prompt instruction alone, physically absent from that session. The `.hermes.md` generated for that mode also tells the model plainly to redirect any support/repair/KB request to the normal TSC channel rather than attempt it from general knowledge.
 
@@ -134,7 +137,7 @@ No GitHub CLI (`gh`), no `gh auth login`, no browser sign-in step for whoever ru
 
 ## One-click launch (what happens after provisioning, and for repeat use)
 
-`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root - `provision-new-drive.ps1` calls the `.bat` automatically at the end of first-time setup, and either one is what a team member runs on every visit after that. Each one: rebuilds `.hermes/skills/` and `.hermes.md` for whatever mode this drive is set to, installs Hermes if it's missing on that machine, sets up `.env` on first run if needed, copies the current skin into place, and starts North Forge - so a team member just needs to double-click (Windows) or run the script (Mac/Linux) rather than type commands or think about mode at all.
+`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root. Each launcher distinguishes a missing, valid, or incomplete drive-local `.hermes-home`; installs and validates the drive's independent copy when absent; then configures the provider, applies the skin, and starts North Forge. A failed install leaves details in `install-logs` and requires the operator to remove or rename the clearly identified partial folders before retrying.
 
 **One real caveat on Mac/Linux:** exFAT (needed for a drive that works across Windows/Mac/Linux) can't store the Unix "executable" permission bit, and macOS doesn't auto-run anything on drive insert (Apple removed that years ago for security). So the very first time on any given Mac needs one manual step - after that, it's a real double-click icon every time.
 
@@ -167,7 +170,7 @@ Hermes skills normally refine themselves through use. North Forge's skills are t
 
 `hermes update` updates the Hermes engine on whatever machine you run it on - it has nothing to do with this repo and doesn't touch anything git-tracked. After any update, treat it as a trigger to re-verify, not just install and move on: run `hermes doctor`, `hermes skin list`, and `hermes skills list --source local`, then do one real launch in each mode before trusting it.
 
-**Where Hermes actually lives on a given machine:** `%LOCALAPPDATA%\hermes` on Windows (or `$HERMES_HOME` if that's set, which takes precedence). This folder holds the engine install itself, `config.yaml`, `.env` (the API key Hermes actually reads - separate from this drive's own `.env`), the skin, and all persistent state: `state.db` (memory/sessions), `cron/` (scheduled jobs), `logs/`. None of this is on the drive and none of it is git-tracked.
+**Where Hermes state lives:** each North Forge drive forces Hermes to use its own `.hermes-home` folder at the repository root. This keeps that drive's `config.yaml`, skin, memory/sessions, and `cron/` jobs separate from every other North Forge drive and from the computer's shared Hermes profile. The folder is on the drive but is ignored by Git; do not commit it.
 
 **To stop and remove the background gateway** (the scheduled-task process that keeps cron jobs running even when no session is open) before deleting anything in that folder:
 ```powershell
