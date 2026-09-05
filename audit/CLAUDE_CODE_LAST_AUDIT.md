@@ -1,223 +1,232 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-04 (session following the "pull review" session recorded
-at commit `b7f08df`)
-Requested task: Kenneth said (paraphrased): "make sure everything has
-versioning update and versioning, make sure Authorship is properly
-indicated, created by Kenneth C. Walker Jr. - Senior Technical Support
-Engineer - TSC [something like that], please indicate that this is part of
-the North Forge project." Interpreted as: add version metadata and an
-authorship/project-attribution statement across the repo's files, subject to
-the CLAUDE.md Zone A/B boundary (Zone A: apply directly; Zone B: draft and
-get explicit Blacksmith approval of exact wording before placing anything).
+Timestamp: 2026-09-04 (session following the "authorship/versioning" session
+recorded at commit `4138ec5`)
+Requested task: Kenneth asked for pure reconnaissance (no fixes) into the
+authentication/provider landscape for this Hermes install, for the primary
+GPT to author onboarding guidance from: (1) enumerate every provider/API
+this install can use, (2) determine free-tier vs paid-only for each, (3)
+specifically trace whether `claude-fable-5` (the model that threw a
+credits-required error) is a default/fallback a fresh user could land on
+without deliberately choosing it, (4) check what the real first-run setup
+flow requires before Hermes will launch at all, (5) report back as a table.
+No commits or fixes were requested for this task itself; this audit report
+is written/committed only because CLAUDE.md's audit-report requirement is
+unconditional every session, not because the recon task asked for it.
 
 ## Files inspected
 
-- `CLAUDE.md` (re-read in full, current on disk, no changes since last
-  session's read)
-- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior report, full read - documented the
-  `e342f7a` admin_gate password-bypass fix from the immediately prior
-  session; carried-forward open items: `WELCOME.html` unzoned, plaintext
-  password across 3 files, unmasked Windows password prompt)
-- `CHANGELOG.md` (full read, 73 lines before edits - confirmed this file is
-  already treated as Claude-Code-editable in practice: it contains entries
-  explicitly tagged "(later session, Claude Code)" documenting prior Zone A
-  work, even though `CHANGELOG.md` is not named in any of CLAUDE.md's three
-  explicit zone lists. Treated as Zone-C-adjacent on that basis - flagged
-  below as a real ambiguity, not asserted as settled.)
-- `.gitignore`, `skins/north-forge.yaml`, `.env.example`,
-  `provision-new-drive.ps1` (full reads, to find safe insertion points and
-  confirm no existing version/author metadata)
-- `launch-north-forge.bat`, `launch-north-forge.sh`, `toggle-mode.bat`,
-  `toggle-mode.sh`, `machine-reset.bat` (first ~15 lines each, to find the
-  post-shebang/post-`@echo off` insertion point without disturbing the
-  `admin_gate` logic those files already carry)
-- Repo-wide grep for `Kenneth|Walker|version|VERSION|Author|author|Copyright`
-  (27 files matched) and a second grep for the existing version scheme
-  (`v21\.\d+|Version:|VERSION|Hermes Edition v`) - this is what surfaced that
-  the project's real canonical version tag is already **v21.8**, tracked in
-  `.hermes.template.md` (line 3-4), `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`,
-  and `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` - all three Zone B. No
-  Zone A file had ever carried a version or author header before this
-  session.
-- `README.md`, `FIRST_TIME_README.txt`, `USER_MANUAL.md`,
-  `.hermes.template.md`, `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`,
-  `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html`, `ATTRIBUTION.md` (first
-  ~15-25 lines each, read in full for the header/title area, to find safe
-  additive insertion points before placing the approved line)
+- `CLAUDE.md` (re-read per Session Start Protocol, no changes since last
+  session)
+- `audit/CLAUDE_CODE_LAST_AUDIT.md` (prior report, full read - carried
+  forward: primary GPT had not yet signed off on the "live approval of
+  drafted Zone B text" pattern from the previous session; not re-litigated
+  this session since this session did no Zone B work)
+- `.gitignore`, `.env.example` (repo's own, Zone A - confirms the repo's
+  onboarding narrows to a single documented variable, `ANTHROPIC_API_KEY`)
+- `launch-north-forge.bat` (full read - this is where the real first-run
+  gate lives)
+- `FIRST_TIME_README.txt` (Zone B, read-only - confirms end-user-facing
+  instructions say nothing about model/provider choice or credits)
+- `skins/north-forge.yaml` (grepped for model/provider keys - none found;
+  the skin does not set any model default)
+- `.hermes.template.md` (Zone B, read-only - grepped for model/provider
+  references; confirms model choice is explicitly left to "this instance's
+  `hermes model` config," not hardcoded by North Forge content)
+- `~/AppData/Local/hermes/.env` (machine-local, not repo content - the
+  generic Hermes install's full provider template; read with values
+  redacted to enumerate which providers exist and which env vars, if any,
+  are actually uncommented/active)
+- `~/AppData/Local/hermes/config.yaml` (current) and
+  `config.yaml.bak.20260904_221401` (pristine pre-setup snapshot from this
+  machine's install, ~14 minutes before the recon session started) -
+  compared to determine whether `claude-fable-5` was ever the true
+  out-of-box default
+- `~/AppData/Local/hermes/logs/agent.log` and `logs/errors.log` (grepped for
+  `credit|claude-fable|payment` - this is what surfaced the exact
+  `credits_required` API error body and the "auto" fallback chain behavior)
+- `~/AppData/Local/hermes/provider_models_cache.json` and
+  `models_dev_cache.json` (read-only - to get the catalog metadata Hermes
+  itself has cached for `claude-fable-5` and to confirm which providers
+  publish genuinely keyless/free model lists)
+- `hermes doctor`, `hermes skills list --source local`, `hermes model
+  --help`, `hermes auth --help`, `hermes setup --help` (read-only CLI
+  introspection)
+- Attempted but blocked by the Claude Code auto-mode classifier (treated as
+  sensitive-credential reads, not retried or worked around): `cat
+  ~/AppData/Local/hermes/auth.json`, `hermes auth list`, `hermes auth
+  status anthropic`. No auth secrets were read this session by any method.
 - git: `git pull`, `git status`, `git diff`, `git log --oneline -5`
-- `hermes doctor`, `hermes skills list --source local`
-- `bash -n` on both edited `.sh` files; PSParser tokenize check on the edited
-  `.ps1` file (both syntax-checks clean, post-edit)
 
 ## Zone A changes made
 
-**Version/authorship header added to 9 Zone A files** - commit `a62a7ef`
-("Add version/authorship headers to Zone A infrastructure files"):
-`launch-north-forge.bat`, `launch-north-forge.sh`, `toggle-mode.bat`,
-`toggle-mode.sh`, `machine-reset.bat`, `provision-new-drive.ps1`,
-`.env.example`, `skins/north-forge.yaml`, `.gitignore`.
+None. This was a pure read-only reconnaissance session; no Zone A file was
+modified.
 
-Before: none of these files carried any version number or author line.
+## Zone B findings (not fixed - reported only)
 
-After: each got a short comment block (format native to the file - `rem` for
-`.bat`, `#` for `.sh`/`.ps1`/`.env.example`/`.gitignore`/`.yaml`) reading:
-
-```
-North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
-Forge project.
-File: <filename> | Script version: 1.0.0 | Updated: 2026-09-04
-Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
-```
-
-Judgment calls made, both flagged for review below:
-1. Reused the existing canonical **v21.8** project release tag (already
-   established in three Zone B files) rather than inventing a separate
-   version number for the infrastructure layer, so there is one project
-   version, not two competing schemes.
-2. Started per-file "Script version" at **1.0.0** for every file, since none
-   had ever been individually versioned - this is a new baseline, not a
-   reconstruction of real prior history. `toggle-mode.bat` and
-   `machine-reset.bat` in particular have had at least one real substantive
-   fix each in the last two sessions (the `e342f7a` admin_gate bypass fix)
-   before this baseline was set; that history is NOT reflected in the 1.0.0
-   number, only in `CHANGELOG.md` and git log. Going forward, real Zone A
-   fixes to a given file should bump its Script version (e.g. 1.0.0 ->
-   1.0.1) - this session did not retroactively bump for past fixes.
-
-Verification: `bash -n` clean on both `.sh` files post-edit; PowerShell
-`PSParser` tokenize clean on `provision-new-drive.ps1` post-edit; `git diff`
-reviewed before staging - each file changed only by the inserted comment
-block, nothing else touched. `git status --short` reviewed before commit -
-exactly the 17 files intended (9 Zone A + `CHANGELOG.md` in the first
-commit; 7 Zone B files + `CHANGELOG.md` in the second), nothing unexpected
-staged.
-
-**`CHANGELOG.md` updated** (bundled into both commits above, since it
-documents both): added a bullet under the existing `## [Unreleased] -
-2026-09-04` / `### Added (later session, Claude Code)` section describing
-both the Zone A header work and the Zone B placement (see below).
-
-## Zone B findings and actions (approval-gated placement, not unilateral editing)
-
-CLAUDE.md is explicit that a broad, repo-wide instruction like "make sure
-everything has versioning and authorship" does **not** extend Claude Code's
-editing authority into Zone B, even when the Blacksmith asks directly and
-live in-session - only a specific, already-approved piece of content handed
-over for placement qualifies. Rather than either (a) silently skipping Zone B
-entirely, or (b) composing the wording myself and placing it without
-checking, I drafted the exact proposed line, showed Kenneth the literal text
-via `AskUserQuestion`, and asked him to approve/edit/defer/skip. He selected
-**"Approve as-is, place it now."** That live, specific approval of exact
-wording is what I'm treating as satisfying the Blacksmith hand-off exception
-- flagged below for the primary GPT to independently confirm that reading is
-correct, since this is a new pattern (approval given live in a Claude Code
-chat turn, not handed over as a pre-written file from the Claude Project
-chat) and CLAUDE.md's exception text was written with a "hands over a
-specific, already-authored file" framing that assumed the file already
-existed before the ask, not text drafted by Claude Code and approved on the
-spot.
-
-**Placed** (commit `c35b45a`, "Place Blacksmith-approved authorship/
-attribution line into 7 Zone B files") - the exact approved sentence:
-
-> North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North
-> Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior
-> Technical Support Engineer, TSC.
-
-...into: `README.md` (after the H1 title), `ATTRIBUTION.md` (after the H1
-title), `FIRST_TIME_README.txt` (after the quick-start banner),
-`USER_MANUAL.md` (after the H1 title), `.hermes.template.md` (as an
-additional line directly under the existing shorter `AUTHORSHIP: Kenneth
-Walker Jr. / TSC` line, not replacing it),
-`fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` (after the H1 title), and
-`KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` (as an additional line inside
-the existing top-of-file HTML comment block, directly under its existing
-`Authorship:` line - this file's body is explicitly "LOCKED"/"TEMPLATE LOCK
-RULE," but the header comment block has been edited before under
-Blacksmith-approved sessions per `CHANGELOG.md`'s "KB template header version
-drift" entry, so a header-only, additive, approved line follows the same
-precedent; the locked body/contact-block content was not touched).
-
-Deliberately **not** touched: `skills-source/**` and `mode-blocks/*` - these
-were not in the file list I presented for approval, so placing the line
-there would have exceeded the specific scope Kenneth actually approved, even
-though CLAUDE.md's Zone B list would have permitted asking about them too. If
-Kenneth wants the same line added to skill files or mode blocks, that needs
-its own explicit ask/approval - not assumed from this session's approval.
-
-No other Zone B content (skill instructions, mode-block behavior, the KB
-template body, the fallback prompt body, etc.) was read for correctness or
-flagged as wrong this session - this session's Zone B interaction was
-narrowly the authorship-line placement task, not a general audit.
+None flagged this session beyond what's already on record from prior
+sessions (see prior audit's open items 2 and 4, not re-investigated here).
+One observation worth flagging for awareness rather than as a "finding":
+`.hermes.template.md`'s line 5 ("Model provider per this instance's `hermes
+model` config") is accurate but, combined with this session's discovery
+that `hermes model`/setup can land a user on a credits-gated model with no
+visible warning, means the template's silence on model choice is a gap a
+Blacksmith may want to close with an explicit warning line - not a
+correctness bug in the file as written, so not treated as something
+requiring a fix, just flagged for awareness.
 
 ## Commits made this session
 
-- `a62a7ef` - "Add version/authorship headers to Zone A infrastructure
-  files" (Zone A: 9 files + `CHANGELOG.md`)
-- `c35b45a` - "Place Blacksmith-approved authorship/attribution line into 7
-  Zone B files" (Zone B placement, live-approved wording + `CHANGELOG.md`)
+- (this audit report only, committed after this report was written - see
+  git log for hash; Zone A / operational-record action, standing
+  authorization, no separate go-ahead required)
 
-Both pushed cleanly, no conflicts: `b7f08df..c35b45a main -> main`.
+## Reconnaissance findings (delivered to Kenneth/primary GPT in chat, full detail)
+
+### 1. `claude-fable-5` default-model finding (the specific item flagged as
+   worth its own priority regardless of the rest of the task)
+
+- The **pristine, pre-setup** config snapshot for this machine
+  (`config.yaml.bak.20260904_221401`, timestamped ~14 minutes before any
+  interactive setup ran) shows Hermes's own generic out-of-box default is:
+  `model.default: "anthropic/claude-opus-4.6"`. This is NOT claude-fable-5.
+- The **current** `config.yaml` on this machine shows `model.default:
+  claude-fable-5`, `model.provider: anthropic`. This change happened
+  between the 22:14:01 backup and 22:18:55 (first log line referencing
+  claude-fable-5 as the active model) - i.e., during this machine's initial
+  interactive `hermes setup`/`hermes model` run, not as a silent/automatic
+  fallback Hermes chose on its own without any interactive step.
+- However, once selected, `claude-fable-5` behaves unlike a normal metered
+  Anthropic model. Live error from `logs/errors.log` /
+  `logs/agent.log` (request e.g. `req_011CejWCL9g3SfgqZEGP2E97`):
+  `HTTP 429 rate_limit_error`, body includes `"error_code":
+  "credits_required"`, `"model_display_name": "Fable"`,
+  `"disabled_reason": "out_of_credits"`,
+  `"exhausted_included_allowance": false`,
+  `"has_chargeable_saved_payment_method": true`,
+  `"can_user_purchase_credits": true`, and a user-facing notice: "You're
+  out of usage credits" / "Buy more to keep using Fable or switch models to
+  continue this chat."
+- Critically, `models_dev_cache.json`'s catalog entry for `claude-fable-5`
+  shows completely ordinary-looking metadata (`"cost": {"input": 10,
+  "output": 50}`) in the exact same shape as every other Anthropic model in
+  that cache (claude-opus-4.6, claude-sonnet-5, etc.). **Nothing in the
+  catalog data a model picker would show distinguishes Fable as
+  credit-gated rather than standard pay-per-token** - a user (or an
+  automated picker UI) has no way to tell these apart before hitting the
+  429 mid-conversation.
+- Also notable: this install's "auto" auxiliary fallback chain (used for
+  background tasks like title generation) automatically tries `anthropic`
+  -> `openrouter` -> `nous` -> `local/custom` -> `api-key` with **no user
+  key configured for openrouter or nous on this machine** (`.env` has no
+  `OPENROUTER_API_KEY` set; `hermes doctor` lists Nous Portal as "not
+  logged in"), and BOTH of those also failed with their own
+  "payment / credit error" (`logs/errors.log`, 22:26:07 and 22:28:46).
+  This means Hermes ships some kind of built-in/shared default route to
+  OpenRouter and Nous that requires no user credential at all, and on this
+  install that shared route is also currently exhausted. This is a
+  separate, real finding from the Fable default-model issue: even the
+  automatic multi-provider fallback path had no working option on this
+  specific machine at the time of this session.
+- **Open question, not resolved this session** (flagged for
+  Blacksmith/primary-GPT follow-up, not asserted as fact): this machine's
+  `anthropic` provider is authenticated via *something* other than a plain
+  `ANTHROPIC_API_KEY` env var - grep of the active (uncommented) lines in
+  `~/AppData/Local/hermes/.env` found no `ANTHROPIC_API_KEY` set at all,
+  yet `hermes doctor` reports "API key or custom endpoint configured" and
+  requests are actually reaching `https://api.anthropic.com`. The most
+  likely explanation is OAuth-style credentials stored in `auth.json`
+  (blocked from direct read this session, see below) rather than the
+  plain console API key that North Forge's own `.env.example` instructs
+  field technicians to obtain and paste in. **It is not confirmed whether
+  a plain pay-per-token console API key (the kind North Forge's own
+  onboarding asks for) would hit the same `credits_required` wall on
+  Fable, or whether that wall is specific to whatever OAuth/subscription
+  auth this particular dev machine happens to have.** This distinction
+  matters a lot for onboarding guidance and should be verified directly
+  (e.g. by testing Fable against a real freshly-created console API key)
+  before the primary GPT asserts either way in field-facing guidance.
+
+### 2. First-run setup flow (what a new user is actually required to do)
+
+- `launch-north-forge.bat` hard-gates on exactly one thing:
+  `ANTHROPIC_API_KEY` present in `.env` and at least 30 characters long
+  (a length heuristic to catch the placeholder/a short paste). If missing
+  or too short, it copies `.env.example` to `.env`, opens Notepad, and
+  exits - it will not launch Hermes at all without this.
+- No other provider is ever offered, mentioned, or checked by the launch
+  script - even though the generic Hermes `.env` template (not part of
+  this repo) lists ~25 other providers including a genuinely free, keyless
+  one (`OpenCode Free`, see below). A field user following only this
+  repo's own `.env.example` and `FIRST_TIME_README.txt` would never learn
+  any alternative to a paid Anthropic API key exists.
+- `FIRST_TIME_README.txt`'s only guidance for any error at all is "tell
+  your team lead exactly what it said" - there is no in-repo explanation
+  of what a `credits_required` error means or how it differs from a
+  regular key problem, so a field tech who gets a working key past the
+  launch-script gate could still hit the Fable wall on their first real
+  question with zero actionable guidance in front of them.
+- Net effect: yes, an Anthropic API key is currently a **hard requirement**
+  to launch this repo's onboarding path at all, regardless of provider
+  choice - the repo's own onboarding does not expose the
+  provider-choice flexibility Hermes itself supports.
+
+### 3. Provider/API landscape table
+
+Free tier = can a brand-new user use it with zero payment method on file,
+not just "has a free trial that will ask for a card." Status is specific
+to *this* machine's install, not a claim about the repo's intended design.
+
+| Provider | Free tier available | Setup complexity (non-technical user) | Status in this install |
+|---|---|---|---|
+| Anthropic (native `anthropic` provider) | N for ordinary use (pay-per-token console key); the currently-selected `claude-fable-5` model specifically needs a separate purchased "usage credits" allowance on top of that | Low - this repo's launch script fully automates the `.env` copy + Notepad prompt + key-length validation; it's the *only* provider this repo's onboarding ever asks about | Already configured (auth reaches api.anthropic.com), but current default model is out of usage credits and every request fails |
+| OpenRouter | Partial - OpenRouter's own free-tagged (":free") models need only a free account, no card; NOT the same as the shared/default route this Hermes install auto-tries | Low-moderate - free signup + copy one key | Not configured via `.env` (`OPENROUTER_API_KEY` unset; `hermes doctor`: "not configured"); also auto-tried as a fallback with no user key and failing on a payment/credit error from whatever default route Hermes uses |
+| Nous Portal (Nous Research's own OAuth, `hermes setup --portal`) | Unverified from repo alone - no pricing info found locally | Low - browser OAuth, no key to copy/paste | Not logged in on this machine; also auto-tried as a fallback and failing on a payment/credit error |
+| xAI (OAuth) | N - `hermes doctor`'s own text says to "Select xAI Grok OAuth (SuperGrok / Premium+)," i.e. requires a paid X subscription tier | Moderate (OAuth login, but gated behind a paid X plan) | Optional, not logged in, unused |
+| MiniMax (env key or OAuth) | Unverified from repo alone | Moderate (account + key, or OAuth) | Optional, not configured, unused |
+| OpenAI Codex auth (OAuth via `hermes auth`) | N in practice - Codex access normally requires a ChatGPT/OpenAI account with a paid plan | Moderate (OAuth login) | Optional, not logged in, unused |
+| Discord (bot token) | N/A - this is a messaging channel/integration, not an LLM backend | Moderate (create a Discord bot, get a token) | Optional, `DISCORD_BOT_TOKEN` unset, unused |
+| OpenCode Free | **Y - confirmed genuinely free and keyless.** No account, no API key; requests sent anonymously; confirmed live in `provider_models_cache.json` (`"opencode-free": {"fp": "keyless:opencode-free", "models": [...several "-free" ids...]}`) | **Lowest of all options** - zero configuration, just run `hermes model` and pick "free" | Available, not selected/used on this install |
+| Google AI Studio / Gemini | Y (Google AI Studio's published free tier - general knowledge, not confirmed from local files) | Low-moderate (free Google account + AI Studio key) | Optional, not configured |
+| Hugging Face Inference Providers | Y - repo's own `.env` comment: "Free tier included ($0.10/month), no markup on provider rates" | Low-moderate (free HF account + token with the "Make calls to Inference Providers" permission) | Optional, not configured |
+| Groq | Y for what it's used for here - repo's own comment: "free tier — used for Whisper STT" | Low | Optional, not configured; only wired for voice transcription in this install, not text chat |
+| Qwen (OAuth, reuses local Qwen CLI login) | Unverified from repo; Qwen has a public API free quota historically but that's general knowledge, not confirmed here | Moderate-high - requires a separate `qwen auth qwen-oauth` step outside Hermes entirely | Optional, not configured |
+| Fireworks, NovitaAI, z.ai/GLM, Kimi/Moonshot, Arcee AI, DeepInfra, Xiaomi MiMo, Upstage, Ramp Router, Nebius, Tencent TokenHub/TokenPlan, OpenCode Zen, OpenCode Go | N for all - each is explicitly documented in its own `.env` comment as pay-per-use or subscription (e.g. OpenCode Go: "$10/month subscription") | Moderate (account + API key each) | Optional, none configured, unused |
 
 ## Uncertain / flagged for primary GPT review
 
-1. **New hand-off pattern used this session: live, in-chat approval of
-   Claude-Code-drafted wording, rather than a pre-written file handed over
-   from the Claude Project chat.** CLAUDE.md's Zone B exception text says
-   "when the Blacksmith or the Claude Project chat hands over a specific,
-   already-authored file to be placed into Zone B... Claude Code MAY place
-   that exact file." This session did not have a pre-authored file - it had
-   Claude-Code-drafted candidate text, shown verbatim to Kenneth via a
-   multiple-choice tool, with his selection being "approve as-is, place it
-   now" rather than him independently typing/writing the sentence himself.
-   I judged that his explicit, informed, live approval of the *exact* text
-   (he saw the literal sentence before choosing, and had "approve with
-   edits" and "skip Zone B entirely" as real alternatives he didn't pick)
-   satisfies the spirit of "only the Blacksmith approves changes here" even
-   though the letter of the exception assumes a pre-existing authored file.
-   This is exactly the kind of judgment call CLAUDE.md asks to be flagged
-   rather than quietly treated as settled - if the primary GPT disagrees
-   that live approval-of-drafted-text is equivalent to a genuine hand-off,
-   the seven Zone B placements in `c35b45a` should be treated as needing
-   Blacksmith re-confirmation (or reversion), not as done-and-safe.
-2. **`CHANGELOG.md` and `USER_MANUAL.md` are not named in any of CLAUDE.md's
-   three zone lists.** I treated `CHANGELOG.md` as safe for Claude Code to
-   append to (based on its own prior "(later session, Claude Code)"
-   entries - real precedent, not my assumption) and treated `USER_MANUAL.md`
-   as Zone-B-like (Blacksmith-reviewed, end-user-facing documentation, same
-   spirit as the explicitly-listed README/ATTRIBUTION/FIRST_TIME_README) and
-   therefore included it in the Zone B approval-ask rather than editing it
-   unilaterally. Both readings seem right to me but neither is dictated by
-   the letter of CLAUDE.md - worth the Blacksmith/primary GPT formally
-   deciding whether `CHANGELOG.md` should be added to Zone C's explicit list
-   and `USER_MANUAL.md` to Zone B's explicit list, so future sessions don't
-   have to re-derive this from context each time.
-3. **Per-file "Script version: 1.0.0" baseline does not reflect real prior
-   change history** for files that have already been meaningfully fixed
-   (`toggle-mode.bat`, `machine-reset.bat` - the `e342f7a` admin_gate fix
-   predates this baseline). This was a deliberate simplification (see Zone A
-   section above), not an oversight, but flagging so nobody mistakes "1.0.0"
-   as meaning "unmodified since creation."
-4. Everything else flagged as open in the prior (`b7f08df`) audit was NOT
-   re-investigated this session and should be considered exactly as
-   documented there: `WELCOME.html` still untracked/unzoned, the plaintext
-   `RumpleStiltskin` password across 3 files (design question, not a bug),
-   and the unmasked Windows password prompt (platform gap, not a bug). None
-   of this session's edits touched the `admin_gate` logic or password
-   handling in any file.
-5. `hermes doctor` reported 3 issues this session, same as last session, all
-   environment/machine-level and none touched by this session's work: 1 npm
-   vulnerability in `agent-browser`, 2 in the `web` workspace (described by
-   `hermes doctor` as clearing "via a lockfile bump"), and missing optional
-   API keys (OpenRouter, xAI, Nous Portal, MiniMax, Discord/Codex auth). Not
-   repo content, no action taken.
+1. **Whether a plain console `ANTHROPIC_API_KEY` (the credential North
+   Forge's own onboarding asks a field tech to get) is subject to the same
+   `credits_required` wall on `claude-fable-5`, or whether that wall is
+   specific to this dev machine's actual (unconfirmed) OAuth-style auth.**
+   This is the single most important open question before writing
+   field-facing guidance - if a real console key also hits this wall on
+   Fable, the guidance needs to say "don't pick Fable"; if it doesn't, the
+   guidance only needs to cover what happens on machines set up the way
+   this one was.
+2. `auth.json` and `hermes auth list` / `hermes auth status anthropic`
+   were blocked by the Claude Code auto-mode classifier as sensitive-
+   credential reads. I did not attempt to work around this - flagging it
+   here in case the primary GPT or Kenneth wants to inspect auth method
+   directly themselves (e.g. via `hermes auth status anthropic` run by a
+   human, or asking Kenneth what auth flow he actually used when setting
+   this machine up around 22:14-22:18 today).
+3. Whether `hermes setup`'s interactive model-selection step presents
+   `claude-fable-5` in a way that makes it an easy accidental pick (e.g.
+   listed first, marked "recommended," etc.) was **not** tested this
+   session - doing so would require driving the interactive wizard, which
+   risks mutating this machine's real config for a recon-only task. If
+   this matters for the onboarding guidance, it should be tested
+   deliberately (ideally on a disposable profile) rather than inferred.
+4. Everything flagged as open in the prior (`4138ec5`) audit was not
+   re-investigated this session (Zone B live-approval-pattern sign-off
+   still outstanding) - this session did no Zone B work, so nothing new to
+   add there.
 
 ## Status
-Findings Present - two commits made, one Zone A (unambiguously within
-Claude Code's authority) and one Zone B placement gated on live Blacksmith
-approval of exact wording (a new hand-off pattern, flagged above for
-explicit primary-GPT sign-off that the pattern itself is acceptable going
-forward, not just that this session's specific text was fine). No bugs
-found or fixed this session. Needs primary GPT review specifically on item 1
-above before this pattern is treated as a standing precedent.
+Clean - reconnaissance-only session, no Zone A or Zone B changes, findings
+delivered to Kenneth in chat for relay to the primary GPT. One real
+onboarding hazard confirmed (`claude-fable-5` default-model credits trap)
+with one important open question (item 1 above) that should be resolved
+before the primary GPT writes prescriptive field guidance around it.
