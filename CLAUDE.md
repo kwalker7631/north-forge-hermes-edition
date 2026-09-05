@@ -223,6 +223,33 @@ B content it authored, edited, or "improved" itself - that content should
 never exist in the first place, since Zone B is read-only for Claude Code
 regardless of git permissions.
 
+## Standing rule - no PATH-shadowing for verification (added 2026-09-05)
+
+When verifying a fix's behavior under a simulated command failure (e.g.
+"what does the launcher do if `hermes` returns nonzero"), never shadow the
+real system command by prepending a scratch directory to `PATH` so a fake
+script of the same name intercepts calls to it. This failed unsafely in a
+prior session here: a `PATH`-shadow attempt to fake a failing `hermes`
+command was defeated twice by the shell's command-hash cache (an earlier
+real `hermes` invocation in that session had already cached its real path,
+so the `PATH` prepend never took effect), and the real `hermes` binary ran
+instead - twice mutating Kenneth's actual `hermes` config
+(`model.provider`/`model.default`) before being caught and reverted (see
+audit history for the incident this rule is based on).
+
+Use one of these two safe alternatives instead, depending on what actually
+needs verifying:
+
+1. **The real binary genuinely needs to run:** isolate it via its own
+   env-var home override (e.g. `HERMES_HOME=<scratch dir>`) for that
+   specific process, so it reads/writes scratch state only - never by
+   trying to intercept the command itself.
+2. **Only in-process logic needs verifying:** use a same-name shell
+   function (bash) or a local label (batch) as the stand-in - these always
+   take priority over `PATH` lookup within a process, so there is zero
+   ambiguity about which one runs, unlike a `PATH` prepend against an
+   already-hash-cached command.
+
 ## Required first response
 
 When Claude Code starts a session in this repo, before doing anything else,
