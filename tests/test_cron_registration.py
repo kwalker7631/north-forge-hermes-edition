@@ -40,6 +40,7 @@ exit 0
             script.write_text(
                 "#!/usr/bin/env bash\nset -e\n"
                 "log_event() { printf '[INFO] [%s]: %s\\n' \"$1\" \"$2\" >> forge-events.log; }\n"
+                + f'HERMES_EXE="{fake_hermes}"\n'
                 + block,
                 encoding="utf-8",
             )

@@ -266,7 +266,7 @@ configure_free_provider() {
     # nonzero exit doesn't trip `set -e` before it can be handled.
     rm -f ".provider-choice"
     local set_out set_status unset_out unset_status unset_absent
-    if set_out="$(hermes config set model.provider opencode-free 2>&1)"; then
+    if set_out="$("$HERMES_EXE" config set model.provider opencode-free 2>&1)"; then
         set_status=0
     else
         set_status=$?
@@ -280,7 +280,7 @@ configure_free_provider() {
         return "$set_status"
     fi
 
-    if unset_out="$(hermes config unset model.default 2>&1)"; then
+    if unset_out="$("$HERMES_EXE" config unset model.default 2>&1)"; then
         unset_status=0
     else
         unset_status=$?
@@ -301,6 +301,11 @@ configure_free_provider() {
     echo "free" > ".provider-choice"
     return 0
 }
+
+if [ "${1:-}" = "--configure-free-provider" ]; then
+    configure_free_provider
+    exit $?
+fi
 
 if [ ! -f ".provider-choice" ]; then
     echo ""
@@ -361,15 +366,15 @@ mkdir -p "$HERMES_SKIN_DIR"
 cp -f "skins/north-forge.yaml" "$HERMES_SKIN_DIR/north-forge.yaml"
 
 echo "Activating North Forge skin..."
-hermes skin use north-forge
+"$HERMES_EXE" skin use north-forge
 echo "Skin list after activation (look for * next to north-forge):"
-hermes skin list
+"$HERMES_EXE" skin list
 
 # Project-local skills require an explicit trust decision before Hermes will
 # load them (security gate against a git pull silently injecting a skill).
 # Auto-approved here since this repo is Blacksmith-reviewed before it ever
 # reaches a drive - see README for the tradeoff this makes.
-hermes skills trust .
+"$HERMES_EXE" skills trust .
 
 # Self-healing scheduled jobs - re-adds the research and daily-brief cron
 # entries if either is missing (e.g. after an AppData flush wiped them).
@@ -412,7 +417,7 @@ fi
 # session ends (exec would replace this process and nothing could run after).
 # The || guard keeps set -e from aborting before the log line is written.
 HERMES_EXIT=0
-hermes || HERMES_EXIT=$?
+"$HERMES_EXE" || HERMES_EXIT=$?
 if [ "$HERMES_EXIT" -eq 0 ]; then
     log_event "hermes" "session ended normally (exit 0)"
 else

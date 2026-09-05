@@ -2,15 +2,14 @@
 setlocal enabledelayedexpansion
 set "ROOT=%~dp0.."
 set "TESTROOT=%TEMP%\north-forge-provider-tests-%RANDOM%-%RANDOM%"
-mkdir "%TESTROOT%\bin" || exit /b 1
-> "%TESTROOT%\bin\hermes.bat" echo @echo off
->> "%TESTROOT%\bin\hermes.bat" echo if "%%1 %%2 %%3"=="config set model.provider" exit /b %%FAKE_SET_STATUS%%
->> "%TESTROOT%\bin\hermes.bat" echo if "%%1 %%2 %%3"=="config unset model.default" ^(
->> "%TESTROOT%\bin\hermes.bat" echo   if defined FAKE_UNSET_MESSAGE echo %%FAKE_UNSET_MESSAGE%% 1^>^&2
->> "%TESTROOT%\bin\hermes.bat" echo   exit /b %%FAKE_UNSET_STATUS%%
->> "%TESTROOT%\bin\hermes.bat" echo ^)
->> "%TESTROOT%\bin\hermes.bat" echo exit /b 99
-set "PATH=%TESTROOT%\bin;%PATH%"
+mkdir "%TESTROOT%" || exit /b 1
+> "%TESTROOT%\hermes-template.bat" echo @echo off
+>> "%TESTROOT%\hermes-template.bat" echo if "%%1 %%2 %%3"=="config set model.provider" exit /b %%FAKE_SET_STATUS%%
+>> "%TESTROOT%\hermes-template.bat" echo if "%%1 %%2 %%3"=="config unset model.default" ^(
+>> "%TESTROOT%\hermes-template.bat" echo   if defined FAKE_UNSET_MESSAGE echo %%FAKE_UNSET_MESSAGE%% 1^>^&2
+>> "%TESTROOT%\hermes-template.bat" echo   exit /b %%FAKE_UNSET_STATUS%%
+>> "%TESTROOT%\hermes-template.bat" echo ^)
+>> "%TESTROOT%\hermes-template.bat" echo exit /b 99
 
 call :CASE success 0 0 "default removed" 0 free || goto :FAIL
 call :CASE failed-set 23 0 "" 23 absent || goto :FAIL
@@ -24,6 +23,8 @@ exit /b 0
 set "WORK=%TESTROOT%\%~1"
 mkdir "!WORK!"
 copy /y "%ROOT%\launch-north-forge.bat" "!WORK!\" >nul
+mkdir "!WORK!\.hermes-home\bin"
+copy /y "%TESTROOT%\hermes-template.bat" "!WORK!\.hermes-home\bin\hermes.bat" >nul
 set "FAKE_SET_STATUS=%~2"
 set "FAKE_UNSET_STATUS=%~3"
 set "FAKE_UNSET_MESSAGE=%~4"

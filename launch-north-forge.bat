@@ -257,7 +257,7 @@ if errorlevel 1 (
     powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\hermes-drive.ps1" cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research >"!CRON_DIAG!" 2>&1
     set "CRON_EXIT=!ERRORLEVEL!"
     if not "!CRON_EXIT!"=="0" (
-        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule nightly-kyocera-research (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated nightly research will not run. Check Hermes with ''hermes cron list'', then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
+        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule nightly-kyocera-research (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated nightly research will not run. Check the drive-local Hermes cron list, then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
         set "CRON_DEGRADED=nightly-kyocera-research"
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered nightly-kyocera-research ^(0 6 * * *^)
@@ -271,7 +271,7 @@ if errorlevel 1 (
     powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\hermes-drive.ps1" cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief >"!CRON_DIAG!" 2>&1
     set "CRON_EXIT=!ERRORLEVEL!"
     if not "!CRON_EXIT!"=="0" (
-        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule daily-kyocera-brief (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated daily brief will not run. Check Hermes with ''hermes cron list'', then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
+        powershell -NoProfile -Command "$d=(Get-Content -Raw -LiteralPath $env:CRON_DIAG -ErrorAction SilentlyContinue) -replace '[\x00-\x1f\x7f]',' '; if (-not $d) {$d='no diagnostic output'}; if ($d.Length -gt 500) {$d=$d.Substring(0,500)}; $w='WARNING: Could not schedule daily-kyocera-brief (exit '+$env:CRON_EXIT+'; diagnostic: '+$d+'). Interactive North Forge can continue, but the automated daily brief will not run. Check the drive-local Hermes cron list, then relaunch North Forge to try again.'; Write-Host $w; Add-Content -LiteralPath 'forge-events.log' ('['+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+'] [WARNING] [cron]: '+$w)"
         if defined CRON_DEGRADED (set "CRON_DEGRADED=!CRON_DEGRADED!; daily-kyocera-brief") else set "CRON_DEGRADED=daily-kyocera-brief"
     ) else (
         >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [cron]: re-registered daily-kyocera-brief ^(0 8 * * *^)
@@ -279,7 +279,7 @@ if errorlevel 1 (
     del /q "!CRON_DIAG!" 2>nul
 )
 
-if defined CRON_DEGRADED echo WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job^(s^): !CRON_DEGRADED!. Interactive North Forge is still available; run 'hermes cron list' to check Hermes, then relaunch to retry.
+if defined CRON_DEGRADED echo WARNING SUMMARY: North Forge is starting in degraded mode. Unscheduled job^(s^): !CRON_DEGRADED!. Interactive North Forge is still available; check the drive-local Hermes cron list, then relaunch to retry.
 
 rem Plain call (was already not exec'd on Windows) - log how the session ended.
 %HERMES_CMD%
@@ -292,6 +292,7 @@ if "%HERMES_EXIT%"=="0" (
 exit /b %HERMES_EXIT%
 
 :CONFIGURE_FREE_PROVIDER
+setlocal EnableDelayedExpansion
 del /q ".provider-choice" >nul 2>nul
 set "CONFIG_TMP=%TEMP%\north-forge-provider-!RANDOM!-!RANDOM!"
 mkdir "!CONFIG_TMP!" >nul 2>nul
@@ -331,4 +332,10 @@ exit /b 0
 
 :LOG_PROVIDER_DETAIL
 powershell -NoProfile -Command "$text=((Get-Content -Raw -LiteralPath '%~1')+(Get-Content -Raw -LiteralPath '%~2')); $safe=$text -replace '(?i)(api[_-]?key|token|secret|password)(\s*[:=]\s*)\S+','$1$2[REDACTED]'; Add-Content -LiteralPath 'forge-events.log' -Value ('[provider-config detail] '+$safe.Trim())"
+exit /b 0
+
+:HERMES_READY
+if not exist "%HERMES_HOME%\hermes-agent\" exit /b 1
+if not exist "%HERMES_HOME%\venv\" exit /b 1
+if not exist "%HERMES_EXE%" exit /b 1
 exit /b 0
