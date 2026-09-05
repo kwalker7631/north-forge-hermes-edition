@@ -29,8 +29,10 @@ AGENTS.override.md
 /.hermes-home/
 .hermes.md
 
-# Drive-local Hermes runtime/state is intentionally untracked. The launcher keeps
-# its engine, configuration, memory, sessions, and logs under .hermes-home/
+# Hermes runtime/state - this repo holds the content layer only,
+# not per-machine state, memory, sessions, or logs
+# Complete per-drive engine installation and runtime state (root-anchored).
+/.hermes-home/
 config.yaml
 state.db
 state.db-*
