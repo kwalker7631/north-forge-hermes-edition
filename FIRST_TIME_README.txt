@@ -2,6 +2,10 @@
  NORTH FORGE - QUICK START
 ========================================
 
+North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North
+Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior
+Technical Support Engineer, TSC.
+
 What this is:
 An AI assistant set up specifically for Kyocera field service and sales
 work. You describe what you're dealing with, in plain English, and it

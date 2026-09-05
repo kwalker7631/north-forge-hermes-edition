@@ -1,5 +1,7 @@
 # North Forge - Kyocera Edition v21.8 - Paste-In Fallback Version
 
+North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC.
+
 ## What this is
 
 This is the complete, original North Forge v21.8 master prompt, unmodified and

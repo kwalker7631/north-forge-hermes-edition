@@ -1,5 +1,7 @@
 # North Forge - User Manual (Plain English)
 
+North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC.
+
 This is the "what do I type" manual for the North Forge drive. It assumes
 nothing. If you can read this file, you can use this system.
 

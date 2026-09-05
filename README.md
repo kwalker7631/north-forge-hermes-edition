@@ -1,5 +1,7 @@
 # North Forge - Hermes Edition
 
+North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the North Forge project. Created and maintained by Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC.
+
 A field-support AI built specifically for Kyocera Document Solutions technicians and sales reps - carries KB authoring, hotline ticket handling, escalation packets, and pre-sales product guidance, runs from your own PC or a portable drive, and never asks you to remember a slash command you don't already know.
 
 Why this exists: a technician on a call shouldn't have to open a manual, hunt through ServiceNow, or wait on hold to find out what a code means. This tool collects the minimum evidence needed, gives a direct next step, and tells you plainly when it isn't sure - it doesn't replace judgment, it clears the fog around routine calls so judgment gets spent on the calls that actually need it.
