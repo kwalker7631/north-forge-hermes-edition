@@ -10,13 +10,17 @@ cd /d "%~dp0"
 
 rem --- first run on this drive: pop open the styled quickstart once ---
 if not exist ".readme-shown" (
-    start "" "WELCOME.html"
-    if errorlevel 1 (
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED
+    if not exist "WELCOME.html" (
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED - file is missing
     ) else (
-        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [welcome]: first-run WELCOME.html auto-open: ok
+        start "" "WELCOME.html"
+        if errorlevel 1 (
+            >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [welcome]: first-run WELCOME.html auto-open FAILED
+        ) else (
+            echo. > .readme-shown
+            >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [welcome]: first-run WELCOME.html auto-open: ok
+        )
     )
-    echo. > .readme-shown
 )
 
 rem --- user tier: who-has-this-drive record (accountability only, never blocks) ---
