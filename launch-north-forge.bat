@@ -27,6 +27,11 @@ if errorlevel 1 (
 del /q "%HERMES_HOME_PROBE%" >nul 2>nul
 set "HERMES_HOME_PROBE="
 
+rem Each drive owns its Hermes configuration, memory, and cron database.
+rem Deliberately replace any inherited machine-wide value so two drives cannot
+rem silently share state.
+set "HERMES_HOME=%CD%\.hermes-home"
+
 if /i "%~1"=="--configure-free-provider" (
     call :CONFIGURE_FREE_PROVIDER
     exit /b !ERRORLEVEL!
