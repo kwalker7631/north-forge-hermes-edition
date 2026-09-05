@@ -159,8 +159,17 @@ you which one you have.
                 repair issues, use the normal TSC channel.
 
 To change a drive's mode: exit the session, run `toggle-mode.bat` (or
-`.sh`), pick FULL or SALES, then relaunch. (The third option, RESET, wipes
-the drive's setup back to first-use - it asks you to type YES first.)
+`.sh`), pick FULL or SALES, then relaunch. The third option, RESET, is a
+credential/config reset: after you type `YES`, it removes the API-key file,
+mode and provider choices, drive and assistant names, welcome marker, and
+generated Hermes context/skills so that first-use setup runs again. It checks
+that all eight targets were removed and reports an error if the reset is
+incomplete. Any response other than `YES` cancels without deleting them.
+
+RESET is **not** a privacy or history wipe. `forge-events.log` is intentionally
+retained as an accountability record and can contain names entered by prior
+users. If that record needs separate handling, follow your organization's
+record-retention policy rather than relying on RESET.
 
 ---
 
