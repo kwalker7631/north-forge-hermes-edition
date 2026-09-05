@@ -238,6 +238,11 @@ echo "Want a different AI model or provider? Run 'hermes model' any time - it re
 . scripts/ensure-hermes.sh
 ensure_drive_hermes "$PWD" || exit $?
 
+# Every interactive command uses the same explicit drive-local entry point as
+# cron/gateway registration; PATH can no longer redirect one operation to a
+# machine-wide Hermes installation.
+hermes() { scripts/hermes-drive.sh "$@"; }
+
 # --- provider choice: default to zero-config OpenCode Free (no key, no
 # account, no block); using your own Anthropic API key is opt-in, not the
 # hard gate this used to be. Asked once, remembered in .provider-choice,
@@ -382,17 +387,17 @@ report_cron_failure() {
     printf '[%s] [WARNING] [cron]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$warning" >> "forge-events.log"
     CRON_DEGRADED="${CRON_DEGRADED}${CRON_DEGRADED:+; }$job_name"
 }
-if ! hermes cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
+if ! scripts/hermes-drive.sh cron list 2>/dev/null | grep -q "nightly-kyocera-research"; then
     echo "Scheduling the nightly Kyocera research job..."
-    if CRON_DIAGNOSTIC="$(hermes cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
+    if CRON_DIAGNOSTIC="$(scripts/hermes-drive.sh cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research 2>&1)"; then
         log_event "cron" "re-registered nightly-kyocera-research (0 6 * * *)"
     else
         report_cron_failure "nightly-kyocera-research" "automated nightly research" "$?" "$CRON_DIAGNOSTIC"
     fi
 fi
-if ! hermes cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
+if ! scripts/hermes-drive.sh cron list 2>/dev/null | grep -q "daily-kyocera-brief"; then
     echo "Scheduling the daily Kyocera brief job..."
-    if CRON_DIAGNOSTIC="$(hermes cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
+    if CRON_DIAGNOSTIC="$(scripts/hermes-drive.sh cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief 2>&1)"; then
         log_event "cron" "re-registered daily-kyocera-brief (0 8 * * *)"
     else
         report_cron_failure "daily-kyocera-brief" "automated daily brief" "$?" "$CRON_DIAGNOSTIC"
