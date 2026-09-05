@@ -126,39 +126,7 @@ Set-Location -LiteralPath $repositoryPath
 Write-Host ""
 Write-Host "Starting North Forge..." -ForegroundColor Cyan
 
-# --- Check for a Hermes configuration already on THIS machine ---
-# HERMES_HOME is per-machine, not per-drive - a laptop that ran North Forge
-# (or any Hermes-based tool) before will already have a model/provider
-# selection saved, and Hermes silently reuses it instead of asking again.
-# That's not a bug, but it can look like "I lost the setup screen" if you
-# expected a fresh prompt. Ask rather than assume, since this machine might
-# have someone's own unrelated Hermes setup worth leaving alone.
-$hermesConfigDir = if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:LOCALAPPDATA\hermes" }
-$hermesConfigFile = Join-Path $hermesConfigDir "config.yaml"
-$hermesEnvFile = Join-Path $hermesConfigDir ".env"
-
-if (Test-Path $hermesConfigFile) {
-    Write-Host ""
-    Write-Host "This machine already has a Hermes configuration:" -ForegroundColor Yellow
-    Write-Host "  $hermesConfigFile" -ForegroundColor Yellow
-    $modelLine = Get-Content $hermesConfigFile -ErrorAction SilentlyContinue | Select-String '^\s*(model|default|provider)\s*:\s*\S' | Select-Object -First 1
-    if ($modelLine) {
-        Write-Host "  Current model setting: $($modelLine.Line.Trim())" -ForegroundColor Yellow
-    }
-    Write-Host ""
-    Write-Host "Is this:" -ForegroundColor Cyan
-    Write-Host "  1. Your own existing Hermes setup on this machine, unrelated to North Forge - leave it alone"
-    Write-Host "  2. Leftover from earlier North Forge testing on this machine - clear it for a clean model/key setup"
-    $hermesChoice = Read-Host "Type 1 or 2"
-    if ($hermesChoice -eq "2") {
-        if (Test-Path $hermesConfigFile) { Remove-Item $hermesConfigFile -Force }
-        if (Test-Path $hermesEnvFile) { Remove-Item $hermesEnvFile -Force }
-        Write-Host "Cleared config.yaml and .env for this machine's Hermes install." -ForegroundColor Green
-        Write-Host "Nothing else in that folder was touched (skills, memory, sessions all left alone)." -ForegroundColor Green
-        Write-Host "Hermes will rebuild a fresh config the next time it runs - use 'hermes model' or 'hermes setup' to pick a provider." -ForegroundColor Green
-    } else {
-        Write-Host "Leaving this machine's existing Hermes configuration untouched." -ForegroundColor Green
-    }
-}
+# The launcher uses a drive-local .hermes-home. It intentionally does not read,
+# prompt about, or alter an unrelated Hermes configuration on this computer.
 
 & $launcherPath

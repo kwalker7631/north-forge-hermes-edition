@@ -157,16 +157,15 @@ if errorlevel 1 (
 echo North Forge running in %MODE% mode.
 echo Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it.
 
-rem --- install Hermes FIRST if missing - nothing below this works without it ---
-where hermes >nul 2>nul
+rem --- require the drive's own validated engine; never fall back to host Hermes ---
+set "HERMES_HOME=%CD%\.hermes-home"
+powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "scripts\ensure-hermes.ps1" -RepoRoot "%CD%"
 if errorlevel 1 (
-    echo Hermes not found on this machine - installing now...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "iex (irm https://hermes-agent.nousresearch.com/install.ps1)"
-    echo.
-    echo Install finished. Close this window and double-click this launcher again.
+    set "INSTALL_EXIT=!ERRORLEVEL!"
     pause
-    exit /b
+    exit /b !INSTALL_EXIT!
 )
+set "PATH=%HERMES_HOME%\Scripts;%HERMES_HOME%\bin;%HERMES_HOME%;%PATH%"
 
 rem --- provider choice: default to zero-config OpenCode Free (no key, no
 rem     account, no block); using your own Anthropic API key is opt-in, not
