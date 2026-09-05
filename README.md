@@ -178,6 +178,16 @@ Skipping this step first is why a manual folder deletion sometimes fails partway
 
 **To fully wipe a machine's Hermes state** (rotate to a new API key, or start genuinely fresh on that machine) - use `machine-reset.bat` in this repo rather than doing the above by hand. It has two options: rotate just the API key (keeps memory/sessions/config intact), or a full purge (stops and uninstalls the gateway, then deletes the entire folder above).
 
+Before either option can delete anything, the reset checks the folder with PowerShell. The folder must be an absolute local path, must not pass through a shortcut/link, and must contain **both** `config.yaml` and the `hermes-agent\` directory. It then shows the cleaned-up, full path. Type that exact path at the confirmation prompt; `YES` is deliberately not enough. If a check or gateway command fails, the safe response is to stop without deleting.
+
+Developers can run the safety regression harness from Windows PowerShell:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\machine-reset-safety.Tests.ps1
+```
+
+The harness creates a randomly named folder under Windows `%TEMP%` only. It does **not** use `%HERMES_HOME%`, the user profile, or the system-drive root. Help: a `PASS` line means an unsafe target survived or the isolated valid fixture was intentionally removed. Tip: press **Ctrl+C** to stop the harness if you launched it by mistake.
+
 ## Kenneth's own GitHub CLI setup (repo administration - NOT needed to provision a drive)
 
 Nothing below this point is needed by a team member setting up a drive - `provision-new-drive.ps1` handles that with no `gh` dependency at all. This section is for Kenneth's own administrative tasks: creating the read-only access token that gets embedded in `provision-new-drive.ps1`, managing repo settings, syncing the engine fork, and similar `gh`-driven tasks.
