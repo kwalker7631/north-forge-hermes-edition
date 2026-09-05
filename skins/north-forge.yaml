@@ -1,3 +1,9 @@
+# =============================================================================
+# North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
+# Forge project.
+# File: skins/north-forge.yaml | Version: 1.0.0 | Updated: 2026-09-04
+# Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
+# =============================================================================
 name: north-forge
 description: North Forge - Kyocera Edition. Reuses the same palette as the KB visual standard for consistency.
 

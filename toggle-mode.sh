@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# =============================================================================
+# North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
+# Forge project.
+# File: toggle-mode.sh | Script version: 1.0.0 | Updated: 2026-09-04
+# Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
+# =============================================================================
 cd "$(dirname "$0")"
 
 # --- admin gate (Phase 4): required before mode switches and RESET ---

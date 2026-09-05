@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# =============================================================================
+# North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
+# Forge project.
+# File: launch-north-forge.sh | Script version: 1.0.0 | Updated: 2026-09-04
+# Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
+# =============================================================================
 set -e
 cd "$(dirname "$0")"
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"

@@ -1,3 +1,10 @@
+# =============================================================================
+# North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
+# Forge project.
+# File: provision-new-drive.ps1 | Script version: 1.0.0 | Updated: 2026-09-04
+# Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
+# =============================================================================
+#
 # North Forge - safe drive provisioning
 #
 # Run this from PowerShell on any Windows machine. It finds the right drive,

@@ -1,4 +1,10 @@
 @echo off
+rem =============================================================================
+rem  North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
+rem  Forge project.
+rem  File: launch-north-forge.bat | Script version: 1.0.0 | Updated: 2026-09-04
+rem  Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
+rem =============================================================================
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
