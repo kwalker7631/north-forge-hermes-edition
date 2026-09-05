@@ -42,7 +42,7 @@ Files:
 - `provision-new-drive.ps1`
 - `.env.example`
 - `skins/north-forge.yaml`
-- `audit/CLAUDE_CODE_LAST_AUDIT.md`
+- `logs/CLAUDE_CODE_LAST_AUDIT.md`
 - `.gitignore`
 - `scripts/*.sh`
 - `scripts/*.ps1`
@@ -197,7 +197,7 @@ This runs at the start of every Claude Code session in this repo, unprompted
 definitely won't know to.
 
 1. `git pull` - get whatever's changed since last session.
-2. Read `audit/CLAUDE_CODE_LAST_AUDIT.md` if present - the only continuity
+2. Read `logs/CLAUDE_CODE_LAST_AUDIT.md` if present - the only continuity
    between sessions.
 3. `git status` and `git diff` - check for anything uncommitted sitting in
    the working tree (Zone A/C changes get committed per standing
@@ -321,7 +321,7 @@ says exactly that - never silently end a session without writing one.
 At the end of every session, write (overwriting any previous one) to:
 
 ```
-audit/CLAUDE_CODE_LAST_AUDIT.md
+logs/CLAUDE_CODE_LAST_AUDIT.md
 ```
 
 DEPTH: the primary GPT (Claude, in the Claude Project chat) is the actual
