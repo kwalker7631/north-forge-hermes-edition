@@ -17,6 +17,18 @@ present) before `AGENTS.md` before `CLAUDE.md`, first match wins. Since
 `.hermes.md` is generated fresh at every launch, Hermes itself will never
 actually load this file - it's for Claude Code only.
 
+Note on AGENTS.md: this repo also has an `AGENTS.md` at its root, which
+plays the equivalent role for Codex sessions that this file plays for
+Claude Code sessions. It is not a separate, hidden rule set - it points
+back to this file's zone definitions as the single source of truth rather
+than duplicating them, and adds one Codex-specific hard requirement (every
+Codex session must write and commit an audit report, added 2026-09-06
+after a session that skipped this left no record of a real fix it made).
+If AGENTS.md's own audit-report requirement needs to change, that's a
+Codex-process change and doesn't need to route through this file; if the
+zone definitions themselves change, update them here only - AGENTS.md
+refers to this file rather than keeping its own copy.
+
 ---
 
 ## Zone A - Infrastructure / plumbing (Claude Code MAY fix directly)
