@@ -1,7 +1,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: .gitignore | Version: 1.0.0 | Updated: 2026-09-04
+# File: .gitignore | Version: 1.0.1 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 
@@ -16,6 +16,7 @@ AGENTS.override.md
 # would be exactly the failure this whole system exists to prevent)
 .forge-mode
 .agent-name
+.provider-choice
 .readme-shown
 .drive-record.txt
 
