@@ -69,7 +69,14 @@ exit 0
         launcher = (ROOT / "launch-north-forge.bat").read_text(encoding="utf-8")
         for job in ("nightly-kyocera-research", "daily-kyocera-brief"):
             self.assertIn(f"WARNING: Could not schedule {job} (exit ", launcher)
-        self.assertEqual(launcher.count("Add-Content -LiteralPath 'forge-events.log'"), 2)
+        # Other guarded workflows (for example provider setup) also log with
+        # Add-Content, so scope this assertion to the two cron warning lines.
+        cron_log_lines = [
+            line for line in launcher.splitlines()
+            if "Add-Content -LiteralPath 'forge-events.log'" in line
+            and "[WARNING] [cron]" in line
+        ]
+        self.assertEqual(len(cron_log_lines), 2)
         self.assertEqual(launcher.count("automated nightly research will not run"), 1)
         self.assertEqual(launcher.count("automated daily brief will not run"), 1)
         self.assertIn("WARNING SUMMARY: North Forge is starting in degraded mode", launcher)

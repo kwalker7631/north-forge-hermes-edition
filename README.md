@@ -20,7 +20,7 @@ This runs on top of [Hermes Agent](https://github.com/NousResearch/hermes-agent)
 - **Engine:** `kwalker7631/north-forge-agent` - an untouched fork/mirror of NousResearch/hermes-agent. Never edited directly. Kept current with `gh repo sync` when Nous ships updates. This is a reference/audit copy only - it is not what the installed `hermes` command actually runs from (see below).
 - **Content (this repo):** `kwalker7631/north-forge-hermes-edition` - North Forge's own material only: the always-loaded context file, the per-mode skills, and setup tooling. This is what gets built, versioned, and demoed.
 
-A thumb drive deployment = Hermes installed locally on the host machine (from Hermes's own official installer, which creates a real git checkout under that machine's `~/.hermes` / `%LOCALAPPDATA%\hermes` and stays current via `hermes update` - pull-only, no ties to this repo) + this repo's contents pointed to as the working directory. Don't keep a separate copy of the engine on the drive itself - a static download snapshot can't be updated and isn't referenced by anything here.
+A thumb drive deployment keeps its own Hermes engine and dependencies in `.hermes-home` beside this repository. The launchers deliberately set `HERMES_HOME` and `PATH` so a host-wide Hermes installation is neither used nor changed. A fresh install is built in `.hermes-install-staging`, validated, and only then promoted into place.
 
 ## Model choice matters - this is not Claude-only
 
@@ -134,7 +134,7 @@ No GitHub CLI (`gh`), no `gh auth login`, no browser sign-in step for whoever ru
 
 ## One-click launch (what happens after provisioning, and for repeat use)
 
-`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root - `provision-new-drive.ps1` calls the `.bat` automatically at the end of first-time setup, and either one is what a team member runs on every visit after that. Each one: rebuilds `.hermes/skills/` and `.hermes.md` for whatever mode this drive is set to, installs Hermes if it's missing on that machine, sets up `.env` on first run if needed, copies the current skin into place, and starts North Forge - so a team member just needs to double-click (Windows) or run the script (Mac/Linux) rather than type commands or think about mode at all.
+`launch-north-forge.bat` (Windows) and `launch-north-forge.sh` (Mac/Linux) live in the repo root. Each launcher distinguishes a missing, valid, or incomplete drive-local `.hermes-home`; installs and validates the drive's independent copy when absent; then configures the provider, applies the skin, and starts North Forge. A failed install leaves details in `install-logs` and requires the operator to remove or rename the clearly identified partial folders before retrying.
 
 **One real caveat on Mac/Linux:** exFAT (needed for a drive that works across Windows/Mac/Linux) can't store the Unix "executable" permission bit, and macOS doesn't auto-run anything on drive insert (Apple removed that years ago for security). So the very first time on any given Mac needs one manual step - after that, it's a real double-click icon every time.
 
@@ -167,7 +167,7 @@ Hermes skills normally refine themselves through use. North Forge's skills are t
 
 `hermes update` updates the Hermes engine on whatever machine you run it on - it has nothing to do with this repo and doesn't touch anything git-tracked. After any update, treat it as a trigger to re-verify, not just install and move on: run `hermes doctor`, `hermes skin list`, and `hermes skills list --source local`, then do one real launch in each mode before trusting it.
 
-**Where Hermes actually lives on a given machine:** `%LOCALAPPDATA%\hermes` on Windows (or `$HERMES_HOME` if that's set, which takes precedence). This folder holds the engine install itself, `config.yaml`, `.env` (the API key Hermes actually reads - separate from this drive's own `.env`), the skin, and all persistent state: `state.db` (memory/sessions), `cron/` (scheduled jobs), `logs/`. None of this is on the drive and none of it is git-tracked.
+**Where Hermes lives for North Forge:** `.hermes-home` on this drive. It contains the engine, configuration, skin, and persistent state. If installation is interrupted, do not copy files into it: keep `install-logs`, rename or remove `.hermes-home` and `.hermes-install-staging`, remove `.hermes-install-incomplete`, and relaunch. This recovery only affects the portable copy; shared host setup is untouched.
 
 **To stop and remove the background gateway** (the scheduled-task process that keeps cron jobs running even when no session is open) before deleting anything in that folder:
 ```powershell

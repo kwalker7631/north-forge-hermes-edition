@@ -210,15 +210,9 @@ fi
 echo "North Forge running in $MODE mode."
 echo "Want a different AI model or provider? Run 'hermes model' any time - it remembers your choice, doesn't ask again until you change it."
 
-# --- install Hermes FIRST if missing - nothing below this works without it ---
-if ! command -v hermes >/dev/null 2>&1; then
-    echo "Hermes not found on this machine - installing now..."
-    curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-    echo ""
-    echo "Install finished. Open a new terminal and run this script again:"
-    echo "  bash launch-north-forge.sh"
-    exit 0
-fi
+# --- require the drive's own validated engine; never fall back to host Hermes ---
+. scripts/ensure-hermes.sh
+ensure_drive_hermes "$PWD" || exit $?
 
 # --- provider choice: default to zero-config OpenCode Free (no key, no
 # account, no block); using your own Anthropic API key is opt-in, not the
