@@ -1,7 +1,7 @@
 # =============================================================================
 # North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
 # Forge project.
-# File: provision-new-drive.ps1 | Script version: 1.0.0 | Updated: 2026-09-04
+# File: provision-new-drive.ps1 | Script version: 1.0.1 | Updated: 2026-09-05
 # Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
 # =============================================================================
 #
@@ -88,17 +88,40 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     exit 0
 }
 
-Set-Location "${target}:\"
+$repositoryPath = Join-Path "${target}:\" "north-forge-hermes-edition"
 
-if (Test-Path "north-forge-hermes-edition") {
+if (Test-Path -LiteralPath $repositoryPath -PathType Container) {
     Write-Host "north-forge-hermes-edition already exists on ${target}: - pulling the latest instead of cloning."
-    Set-Location "north-forge-hermes-edition"
-    git pull
+    git -C $repositoryPath pull
+    $gitExitCode = $LASTEXITCODE
+    if ($gitExitCode -ne 0) {
+        Write-Host "ERROR: Provisioning stopped because the existing North Forge copy could not be updated." -ForegroundColor Red
+        Write-Host "Review Git's error above, then check network access and repository permissions before trying again." -ForegroundColor Red
+        exit $gitExitCode
+    }
 } else {
     Write-Host "Cloning North Forge onto ${target}:..."
-    git clone $cloneUrl
-    Set-Location "north-forge-hermes-edition"
+    git clone $cloneUrl $repositoryPath
+    $gitExitCode = $LASTEXITCODE
+    if ($gitExitCode -ne 0) {
+        Write-Host "ERROR: Provisioning stopped because North Forge could not be cloned." -ForegroundColor Red
+        Write-Host "Review Git's error above, then check network access and repository permissions before trying again." -ForegroundColor Red
+        exit $gitExitCode
+    }
 }
+
+$launcherPath = Join-Path $repositoryPath "launch-north-forge.bat"
+if (-not (Test-Path -LiteralPath $repositoryPath -PathType Container)) {
+    Write-Host "ERROR: Provisioning stopped because the expected repository folder was not found: $repositoryPath" -ForegroundColor Red
+    exit 1
+}
+if (-not (Test-Path -LiteralPath $launcherPath -PathType Leaf)) {
+    Write-Host "ERROR: Provisioning stopped because the North Forge launcher was not found: $launcherPath" -ForegroundColor Red
+    Write-Host "The download may be incomplete. Check network access and repository permissions, then try again." -ForegroundColor Red
+    exit 1
+}
+
+Set-Location -LiteralPath $repositoryPath
 
 Write-Host ""
 Write-Host "Starting North Forge..." -ForegroundColor Cyan
@@ -138,4 +161,4 @@ if (Test-Path $hermesConfigFile) {
     }
 }
 
-.\launch-north-forge.bat
+& $launcherPath

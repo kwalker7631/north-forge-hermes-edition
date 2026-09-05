@@ -17,14 +17,18 @@ fi
 
 # --- first run on this drive: pop open the styled quickstart once ---
 if [ ! -f ".readme-shown" ]; then
-    if command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
-    elif command -v open >/dev/null 2>&1; then
-        open "WELCOME.html" && WELOPEN=ok || WELOPEN=failed
+    if [ ! -f "WELCOME.html" ]; then
+        WELOPEN="failed: WELCOME.html is missing"
+    elif command -v xdg-open >/dev/null 2>&1 && xdg-open "WELCOME.html"; then
+        WELOPEN=ok
+    elif command -v open >/dev/null 2>&1 && open "WELCOME.html"; then
+        WELOPEN=ok
     else
-        WELOPEN="no opener available"
+        WELOPEN="failed: no working opener available"
     fi
-    touch .readme-shown
+    if [ "$WELOPEN" = "ok" ]; then
+        touch .readme-shown
+    fi
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$([ "$WELOPEN" = "ok" ] && echo INFO || echo WARNING)] [welcome]: first-run WELCOME.html auto-open: $WELOPEN" >> "forge-events.log"
 fi
 
