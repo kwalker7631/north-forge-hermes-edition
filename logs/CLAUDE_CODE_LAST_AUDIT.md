@@ -1,212 +1,422 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-06 00:20 EDT (America/New_York, UTC-04:00), on the `E:`
-drive clone (`E:\north-forge-hermes-edition`).
+Timestamp: 2026-09-06 00:52 EDT (America/New_York, UTC-04:00), on the `E:`
+drive clone (`E:\north-forge-hermes-edition`). Continuation of the same
+session as the preceding audit (commit `5fc9817`, clean session-start
+check); this is the first real work order of the session.
 
-Requested task: **None given.** The session was opened against this repo
-with no prompt text and no handoff file. Per `CLAUDE.md` ("Session Start
-Protocol", final paragraph): *"If none was given, a clean session-start
-check IS the whole task - write the audit report and stop rather than
-inventing work to do."* This report is that artifact. No code, content, or
-doc change was made or is proposed.
+Requested task (from the North Forge GPT, pasted by Kenneth): add a
+dependency-check + guided-install step at the very top of BOTH launchers so
+a fresh drive on a machine without Python 3 no longer dead-ends. Specifics
+asked for: (1) check every dependency North Forge/Hermes actually needs at
+launch - "at minimum Python 3 and Node.js", but investigate whether Node is
+really a launch dependency; (2) on a missing dep, prompt
+`Install it now? [Y/n] (recommended: Y)` with plain-Enter = Yes, don't just
+fail; (3) on Yes, download + run the official installer unattended (Windows
+Python: python.org `.exe` with `/quiet InstallAllUsers=0 PrependPath=1`;
+investigate the right silent invocation per OS), show progress, then
+**re-check** the dep is actually satisfied; (4) on No, print exactly what's
+missing + a manual link and exit cleanly; (5) log every step to
+`forge-events.log` in the existing format; (6) fast/no-delay when the dep is
+already present. Also: investigate real call sites, correct unattended
+flags per OS, and whether Windows needs elevation. Verify in an isolated
+scratch env with the dep artificially absent (mocked install), not on the
+real machine. Separately (flag back, do NOT implement): the "bundle a
+portable Python on the drive" idea.
 
 ## Files inspected
 
-Read in full this session:
-- `CLAUDE.md` (repo root, 386 lines) - the governing zone/authority model.
-- `AGENTS.md` (repo root, 98 lines) - Codex-equivalent rules; points back
-  to `CLAUDE.md` for zone definitions, adds the mandatory-audit-report and
-  `logs/CODEX_PUSH_LOG.md` requirements for Codex.
-- `.gitignore` (repo root, 1.0.1, "Updated: 2026-09-05") - full body.
-- `logs/CLAUDE_CODE_LAST_AUDIT.md` (previous audit, 24170 bytes,
-  commit `ecd54e3`) - the only Claude Code -> Claude Code continuity.
-- `logs/CODEX_README_FORMATTING_AUDIT_2026-09-06.md` (2072 bytes, new this
-  pull) - Codex session that reviewed README formatting and correctly
-  blocked on Zone B.
-- `logs/CODEX_PUSH_LOG.md` (329 bytes) - tail two entries.
+Read in full:
+- `launch-north-forge.sh` (428 lines pre-change) and `launch-north-forge.bat`
+  (361 lines pre-change) - the two files being changed.
+- `scripts/ensure-hermes.sh` (107 L), `scripts/ensure-hermes.ps1` (83 L),
+  `scripts/hermes-drive.sh` (36 L), `scripts/hermes-drive.ps1` (46 L),
+  `scripts/assemble-skills.ps1` (62 L), `scripts/name_validation.py`
+  (145 L) - to trace what the launch path genuinely invokes.
+- `scratchpad/install.sh` (3890 L) and `scratchpad/install.ps1` (5063 L) -
+  the live upstream Hermes installers, re-downloaded this session
+  (`curl -fsSL https://hermes-agent.nousresearch.com/install.{sh,ps1}` ->
+  HTTP 200, 170273 / 245718 bytes) - to determine whether the ENGINE
+  install needs system Python/Node/git.
+- `tests/test-launcher-hermes-home.sh`, `tests/test-drive-hermes-install.sh`,
+  `tests/test-free-provider.sh`, `tests/test-skill-assembly.sh`,
+  `tests/two-drive-hermes-isolation.sh`, `tests/test_launcher_hermes_home.py`,
+  `tests/test_drive_hermes_contract.py`, `tests/test_cron_registration.py`,
+  `tests/test-free-provider.bat`, `tests/provision-new-drive.Tests.ps1` -
+  to find every constraint a change to the launchers must not break.
+- `CHANGELOG.md` (top section), `.gitattributes`, `.gitignore` (from the
+  prior audit).
 
-Listed / stat-checked (not opened):
-- Repo root directory listing (30 tracked top-level entries + `.git`).
-- `logs/` directory (9 files; sizes and mtimes recorded below).
-- Presence check for `.env`, `.forge-mode`, `.hermes.md`, `.hermes/` at
-  repo root - **none present** (expected: all are gitignored per-drive /
-  per-launch artifacts, and `hermes` has never been installed on this box).
+Changed:
+- `launch-north-forge.sh` - Zone A. `+176 / -4`.
+- `launch-north-forge.bat` - Zone A. `+107 / -3`.
+- `CHANGELOG.md` - Zone C. `+6 / -0`.
+- `tests/test-dependency-check.sh` - Zone A (new, 100 lines, `chmod +x`).
+- `logs/CLAUDE_CODE_LAST_AUDIT.md` - Zone A (this file).
 
-Not re-inspected this session (covered by prior audits, nothing changed
-them): `scripts/*`, `tests/*`, `launch-north-forge.*`, `mode-blocks/*`,
-`skills-source/**`, `skins/north-forge.yaml`. `git status` is clean and the
-only inbound commits since last session are two `logs/` files (see below),
-so there was no working-tree delta to inspect.
+Created then deleted this session: `tests/test-dependency-check.bat` (a
+batch test harness; its plumbing - `call`ing the launcher from a `:label`
+subroutine with input redirection - proved flaky and I removed it rather
+than commit a half-working test; see "Verification" for how the `.bat` path
+was checked instead).
 
-## Session Start Protocol results
+## Investigation findings (the "investigate before implementing" asks)
 
-```text
-SESSION START CHECK
-Pulled: Yes. git pull -> Fast-forward ecd54e3..bf07efa on main.
-        2 files changed, 35 insertions(+), 1 deletion(-):
-          logs/CODEX_PUSH_LOG.md                            (+1 / -1 line)
-          logs/CODEX_README_FORMATTING_AUDIT_2026-09-06.md  (new, 34 lines)
-        HEAD is now bf07efa "Merge pull request #19 from
-        kwalker7631/copilot/improve-readme-formatting - Document README
-        formatting review and Zone B handoff requirement" (2026-09-05
-        23:54:19 -0400, author Kenneth C. Walker Jr.).
-        Net effect of that merge on tracked content: logs/ only. README.md
-        itself was NOT modified by PR #19 - the PR documents a review and a
-        handoff requirement, it does not change the README. Confirmed via
-        `git show --stat bf07efa` (Merge: ecd54e3 1d6d21c) - only the two
-        logs/ files differ across the merge.
-Last audit read: Yes - the ecd54e3 audit (Timestamp 2026-09-05 20:23 EDT).
-        Status line was "Needs primary GPT review." It resolved F2 (Hermes
-        executable-resolver divergence) by investigation against the live
-        upstream install.sh/install.ps1, fixed F1 (launch-north-forge.sh
-        heredoc under set -e) and F3 (dead :HERMES_READY label in the .bat),
-        and RAISED F4 (exFAT strips the exec bit, so the `[ -x ]` guards in
-        ensure-hermes.sh / hermes-drive.sh can reject a valid POSIX install
-        off the stick) as flagged-for-direction, not fixed. Its five
-        "Uncertain / flagged" items (F4 scope decision, Windows
-        relocatable-venv `bin\hermes.cmd` form unverified, `hermes-agent/hermes`
-        as the weakest POSIX candidate, carried-over non-Hermes items from
-        f97e52f incl. the Advanced/ path gap in README + USER_MANUAL, and
-        "no end-to-end launch run") all still stand - nothing in this
-        session's inbound commits addresses any of them.
-Uncommitted at start: None. `git status` -> "nothing to commit, working
-        tree clean". `git status -sb` -> "## main...origin/main" (no ahead/
-        behind after the pull).
-.gitignore: OK. Present, version 1.0.1. Verified it excludes all four
-        protocol-required patterns:
-          .env         -> matched by line `.env` (and `*.env`)
-          .forge-mode  -> matched by line `.forge-mode`
-          .hermes.md   -> matched by line `.hermes.md`
-          .hermes/     -> matched by line `/.hermes/`
-        Also still present: `/.hermes-home/`, `/skills/` (legacy wrong
-        folder-name guard), `/North Forge.lnk`, the anchored
-        `/.hermes-home/logs/` (NOT a bare `logs/`, so the tracked repo-root
-        logs/ audit folder is not shadowed), `*.log`, `.claude/`. No change
-        needed; not touched.
-hermes doctor: NOT RUN - hermes is not installed on this machine.
-        `command -v hermes` -> exit 1; `where hermes` -> "Could not find
-        files for the given pattern(s)." Unchanged from every prior session
-        on this drive.
-Project skills: Cannot list - `hermes skills list --source local` requires
-        the hermes binary, which is absent. Skill *source* under
-        skills-source/ is Zone B and was reviewed sound by earlier audits;
-        not re-inspected this session (no task, no change).
-Network: Not exercised this session (no task required it). The ecd54e3
-        session recorded HTTP 200 to hermes-agent.nousresearch.com from
-        this drive; no reason to believe that changed, but not re-tested.
-```
+### 1. What the launch path actually invokes - real call sites
+
+`grep` of `launch-north-forge.sh`, `launch-north-forge.bat`, and every
+`scripts/*.{sh,ps1,py}` for `node|npm|npx|nodejs`, plus a read of each
+external-command call site:
+
+| dependency | needed at launch? | where |
+|---|---|---|
+| **Python 3** | **YES - hard** | `.sh`: `scripts/name_validation.py` (L63, L195 post-change numbering shifts) + the `.hermes.md` assembly heredoc `python3 - "$MODE" <<PYEOF` (~L202). `.bat`: `%PYTHON_CMD% scripts\name_validation.py drive`/`agent` (L68/L151) + `& %PYTHON_CMD% ...name_validation.py get` inside the `.hermes.md` PowerShell block (L160). All run BEFORE `scripts/ensure-hermes.*` (the engine installer) is reached. |
+| Node.js / npm / npx | **NO** | Zero occurrences anywhere on the launch path. Only refs in the whole repo: `CHANGELOG.md` L67 and `logs/HANDOFF_2026-09-04...` - both the manual `npx agent-browser install --with-deps` browser-fallback step for research passes, run by hand, long after launch. |
+| git | no (optional) | `.sh` L67-71 / `.bat` L116-126 log a WARNING if `git` is absent and continue. Not gated. |
+| curl (POSIX) | only for the ENGINE download | `scripts/ensure-hermes.sh` L82 `curl -fsSL https://hermes-agent.nousresearch.com/install.sh`. Near-universal on macOS/Linux; `NORTH_FORGE_INSTALLER_SH` bypasses it. Windows uses `Invoke-WebRequest` (built in). Left unchecked - out of the task's Python/Node scope and low-risk. |
+| PowerShell (Windows) | YES but always present | Windows 7+ ships it; not a realistic "missing" case. |
+
+### 2. Does the Hermes ENGINE installer need system Python/Node/git? No.
+
+From `scratchpad/install.sh`:
+- L691 `check_python`: "Python not found - use uv to install it (no sudo
+  needed!)". The installer installs its own Python via `uv` when absent.
+- L705 `ensure_git` / L775+: bootstraps git ("downloads PortableGit on
+  Windows"; `brew`/`apt-get`/`dnf`/`pkg` on POSIX).
+- `NODE_VERSION="26"`, L933 "replaced with the Hermes-managed Node
+  $NODE_VERSION" - the installer installs its own Node; L832-919 also
+  checks for a C++ compiler for `node-pty`.
+- L331 stage manifest confirms `prerequisites`, `venv`, `python-deps`,
+  `node-deps` are all installer-internal stages.
+
+So the engine is self-sufficient. The field failure is purely the
+**launcher's own earlier Python need** (`name_validation.py` + `.hermes.md`
+assembly), which is exactly what `launch-north-forge.sh` L32-36 /
+`launch-north-forge.bat` L45-49 hard-failed on before this change.
+
+**Conclusion on the dependency list:** implement the guided install for
+**Python 3 only**. Do **not** prompt for Node.js - installing system Node
+would add unused state (the engine ignores it) and confuse the operator.
+This is a deliberate, documented deviation from the task's "at minimum
+Python 3 and Node.js" wording, justified by the investigation the task
+itself asked for.
+
+### 3. Correct unattended-install invocation per OS, and elevation
+
+Verified against python.org this session (`curl -fsSI`):
+- Python **3.12.x has no binary installers** after 3.12.10 (source-only
+  now). Latest line with Windows `.exe` + macOS `.pkg` is **3.13**; latest
+  is `3.13.15` (`.../3.13.15/python-3.13.15-amd64.exe` -> 200, 28775744 B;
+  `.../python-3.13.15-macos11.pkg` -> 200, 70286381 B). 3.13 is inside
+  Hermes's `requires-python >=3.11,<3.14`. **Pinned `3.13.15`** in both
+  launchers (one editable line each). python.org keeps every historical
+  release forever, so a pinned URL is stable indefinitely.
+- **Windows** (`.exe`): `/quiet InstallAllUsers=0 PrependPath=1
+  Include_launcher=1 Include_test=0`. `InstallAllUsers=0` = per-user =
+  **NO administrator rights required** (this is the key finding for the
+  task's elevation question - the prompt says so plainly and does not ask
+  for admin). Run via `start "" /wait` because the installer is a
+  GUI-subsystem exe (cmd would not block on a bare invocation). Return
+  codes: 0 = ok, 3010 = ok-but-reboot (treated as success), else failure.
+  Download via `Invoke-WebRequest -UseBasicParsing` (TLS 1.2 forced).
+- **macOS** (`.pkg`): `sudo installer -pkg <file> -target /`. The
+  python.org pkg has **no per-user mode - it requires admin**. The prompt
+  states "macOS will ask for your administrator password" before running.
+- **Linux**: no official python.org installer. Detect
+  `apt-get`/`dnf`/`pacman`/`zypper`/`apk` and run the matching
+  `sudo ... install ... python3`. Requires sudo; the prompt says
+  "will ask for your password (sudo)" first. No known manager -> straight
+  to the manual message.
 
 ## Zone A changes made
 
-None. `.gitignore`, `AGENTS.md`, `logs/FORGE_EVENT_LOG.md`, the launch
-scripts, `scripts/*`, `tests/*` were all left exactly as pulled. The only
-Zone A file written this session is this audit report itself, which is
-Zone A by explicit listing in `CLAUDE.md` and is committed under the
-standing authorization for the operational record.
+### `launch-north-forge.sh` (`+176 / -4`)
+
+Replaced the 5-line bare-fail block (old L32-36:
+`if ! command -v python3 ...; then echo "python3 is required..."; exit 1;
+fi`) with a self-contained dependency gate, placed at the same spot -
+after the drive-writable probe (L23-29), before the welcome-page /
+name-entry steps, and (critically for `tests/test_launcher_hermes_home.py`)
+**after** the `export HERMES_HOME=...` line and containing no line that
+matches that test's `^\s*(?:hermes\b|curl\b.*hermes-agent\.nousresearch\.com)`
+regex. Structure:
+
+- `NF_PY_VERSION="3.13.15"` - the one pinned-version line.
+- `nf_dep_log LEVEL msg` - appends `[<ts>] [LEVEL] [deps]: msg` to
+  `forge-events.log` (same format as the file's other pre-`log_event()`
+  writes at L25/L53/L70).
+- `nf_detect_python` - **detection only, never executes the interpreter**
+  (comment says why: `tests/test-launcher-hermes-home.sh` stubs `python3`
+  with a sentinel that `exit 42`s when RUN; executing it in the gate would
+  break that test and misread a working stub as broken). Checks `command -v
+  python3`/`python`, then the absolute paths `/usr/local/bin/python3`,
+  `/usr/bin/python3`,
+  `/Library/Frameworks/Python.framework/Versions/Current/bin/python3`, and
+  a test-only extra dir `${NORTH_FORGE_DEP_PY_EXTRA_DIR}`. No PATH
+  prepend of a scratch dir (CLAUDE.md's 2026-09-05 PATH-shadow rule).
+- `nf_python_ok` - wraps `nf_detect_python` with the test flag:
+  `NORTH_FORGE_DEP_FORCE_PY_MISSING=1` makes only the initial gate see
+  "missing" (post-install re-check still finds real Python -> exercises the
+  success path); `=always` makes both see missing (exercises "installer
+  succeeded but Python still absent").
+- `nf_python_manual_help` - per-OS manual instructions + download URL.
+- `nf_run_python_installer` - the mockable seam. If
+  `NORTH_FORGE_DEP_INSTALLER` is set, runs that and returns its code.
+  Otherwise per-OS: Darwin downloads `python-3.13.15-macos11.pkg` and
+  `sudo installer`; Linux dispatches to the detected package manager;
+  unknown OS returns 94. Distinct non-zero return codes (90-94) for each
+  failure mode.
+- Gate logic: `if NF_PYCMD="$(nf_python_ok)"; then` log INFO "present" and
+  fall through (fast path). `else` -> log WARNING; if `! [ -t 0 ]` **and**
+  no `NORTH_FORGE_DEP_INSTALLER` -> log FAILURE "no interactive terminal",
+  print manual help, `exit 1` (don't auto-download unattended on an
+  unwatched machine); else `printf "Install it now? [Y/n] (recommended:
+  Y): "`, `read NF_ANS || NF_ANS=""`, lower/strip, `n|no` -> log +manual
+  +`exit 1`; anything else (incl. empty = plain Enter) -> log "approved",
+  run installer, on non-zero code -> log FAILURE +manual +`exit 1`, on
+  zero -> **re-detect with `nf_detect_python`** (ignores the force flag's
+  `1` value); if found, prepend its dir to PATH when it's absolute, log
+  "installed and verified", continue; if still not found -> log FAILURE
+  +manual +`exit 1`.
+- `set -e` safety: every failable command is inside an `if`/`case`
+  condition or an explicit `|| NF_ANS=""` / `; rc=$?` capture, matching the
+  idioms already in this file (e.g. the `configure_free_provider` block's
+  `if VAR=$(...); then`).
+
+`bash -n launch-north-forge.sh` -> clean.
+
+### `launch-north-forge.bat` (`+107 / -3`)
+
+Three hunks:
+1. After the existing `where py`/`where python` detection (L42-44), added
+   one test-seam line: `if defined NORTH_FORGE_DEP_FORCE_PY_MISSING set
+   "PYTHON_CMD="` (comment: test-only, never set in normal use).
+2. Replaced the 5-line bare-fail block (old L45-49:
+   `if not defined PYTHON_CMD ( echo Python 3 is required... & pause &
+   exit /b 1 )`) with `if not defined PYTHON_CMD ( ...comment...
+   call :ENSURE_PYTHON_DEP & if errorlevel 1 exit /b 1 ) else ( >>
+   forge-events.log echo [ts] [INFO] [deps]: Python 3 present as
+   "%PYTHON_CMD%" ... )`. (The `else` value is quoted, not wrapped in
+   literal parens - an empty `(%PYTHON_CMD%)` at parse time broke the
+   enclosing `if()else()` block with `- was unexpected at this time`; found
+   and fixed during verification.)
+3. Appended four subroutines after `:LOG_PROVIDER_DETAIL` (all reached only
+   via `call`; the main script's normal end at `exit /b %HERMES_EXIT%`
+   never falls into them):
+   - `:ENSURE_PYTHON_DEP` - `setlocal EnableDelayedExpansion`; log WARNING;
+     `set /p "NF_ANS=Install it now? [Y/n] (recommended: Y): "`; `n`/`no`
+     -> `:ENSURE_PYTHON_DEP_DECLINE`. Else log "approved"; if
+     `NORTH_FORGE_DEP_INSTALLER` defined, `call` it (test seam); else
+     `Invoke-WebRequest` the pinned `python-3.13.15-amd64.exe` to `%TEMP%`
+     (download fail -> `:..._MANUAL`), then `start "" /wait "<exe>" /quiet
+     InstallAllUsers=0 PrependPath=1 Include_launcher=1 Include_test=0`,
+     capture `%ERRORLEVEL%`, `del` the exe. Non-zero and not 3010 -> log
+     FAILURE +`:..._MANUAL`. Re-detect: `where py`/`where python`, then
+     `dir /b /s "%LOCALAPPDATA%\Programs\Python\python.exe"` (PATH in the
+     running window is stale), then test-only `%NORTH_FORGE_DEP_PY_EXTRA%`;
+     `NORTH_FORGE_DEP_FORCE_PY_MISSING=always` also blanks the result
+     (test seam for the "still missing" path). Not found -> log FAILURE
+     +`:..._MANUAL`. Found -> log INFO "installed and verified", then
+     `endlocal & set "PYTHON_CMD=%NF_PY_FOUND%" & exit /b 0` (canonical
+     value-past-endlocal idiom).
+   - `:ENSURE_PYTHON_DEP_DECLINE` - log INFO "declined", call manual help,
+     `endlocal & exit /b 1`.
+   - `:ENSURE_PYTHON_DEP_MANUAL` - call manual help, `endlocal & exit /b 1`.
+   - `:PYTHON_DEP_MANUAL_HELP` - 3-step manual instructions +
+     `https://www.python.org/downloads/windows/` + `pause`.
+
+Static checks that constrain the `.bat`, all still pass (see Verification):
+no new `set "HERMES_HOME=`; no literal `%LOCALAPPDATA%\hermes` (used
+`%LOCALAPPDATA%\Programs\Python`); no `where hermes`; no `powershell` line
+referencing `hermes-agent.nousresearch.com` (the new one hits `python.org`);
+`"scripts\hermes-drive.ps1" cron add` count unchanged at 2; both
+cron-warning `Add-Content ... [WARNING] [cron]` lines intact.
+
+### `tests/test-dependency-check.sh` (new, Zone A, 100 lines)
+
+6 scratch scenarios, all via `mktemp -d` + a copied launcher, `set -eu`,
+`trap` cleanup, final `PASS: N ...` line - matching the style of
+`tests/test-drive-hermes-install.sh` etc. Uses only the env-var seams
+(`NORTH_FORGE_DEP_FORCE_PY_MISSING`, `NORTH_FORGE_DEP_INSTALLER`) and
+`NORTH_FORGE_ASSEMBLE_ONLY=1` - **never removes or shadows the machine's
+real Python**. Cases: (1) fast path - real Python, no prompt, `[INFO]
+[deps]: Python 3 present` logged, runs past the gate; (2) `n` -> rc 1,
+manual help, "operator declined" logged, installer never called; (3) Enter
+(default Yes) + mock installer exit 0 + re-check finds real Python -> runs
+past the gate, "approved" + "installed and verified" logged; (4) Yes +
+mock installer exit 7 -> rc 1, "Python 3 installer exited 7" logged,
+"(exit 7)" on screen; (5) Yes + mock installer exit 0 but `=always` keeps
+re-check empty -> rc 1, "reported success but Python 3 is still not
+detectable" logged; (6) non-interactive stdin + no seam -> rc 1, "no
+interactive terminal" logged, no download attempted.
 
 ## Zone B findings (not fixed - reported only)
 
-None newly found this session. No Zone B file was opened for review beyond
-`CLAUDE.md` and the two user-facing docs already flagged by prior audits.
+None newly found. My changes touch only Zone A / Zone C files.
 
-Carried forward from the ecd54e3 audit, still open, still Zone B, still
-needs a byte-for-byte handoff rather than a Claude Code edit:
-- **`README.md` + `USER_MANUAL.md` - `Advanced/` path gap.** Prior audits
-  note the docs don't account for the `Advanced/` directory that exists at
-  repo root. Unchanged. PR #19 (merged this pull) did NOT address it - it
-  only added `logs/CODEX_README_FORMATTING_AUDIT_2026-09-06.md`, which
-  itself independently reaches the same conclusion Claude Code has: the
-  README's fixed-width ASCII header block (`README.md:1-27`), raw centering
-  HTML, and the Mermaid diagram (`README.md:94-115`) are the fragile spots,
-  but README is Zone B so no edit was made. That Codex report's status is
-  "Blocked - requires a named, pre-authored Zone B handoff or an
-  authority-model change from the repository owner."
-- **`README.md` `img.shields.io` external dependency** and the dropped
-  "Why this exists" paragraph - carried from f97e52f, untouched.
+Carried forward, still open, still needs a Blacksmith / Claude Project
+handoff (unchanged this session):
+- `README.md` + `USER_MANUAL.md` `Advanced/` path drift, and the README's
+  fragile ASCII-art header / raw HTML / Mermaid diagram (both prior Claude
+  Code and Codex audits flagged these; both are Zone B).
+- **`CLAUDE.md` Zone A file list is stale w.r.t. the `Advanced/` move.**
+  It lists `toggle-mode.bat`/`.sh`, `machine-reset.bat`,
+  `provision-new-drive.ps1`, `full-drive-reset.*` at repo root, but
+  CHANGELOG records they were `git mv`d into `Advanced/`. Cosmetic - the
+  zone *intent* is unambiguous (they're infrastructure) and this task
+  didn't touch them - but the path list should be refreshed by whoever
+  maintains CLAUDE.md. Flagged, not touched (CLAUDE.md is Zone B / edited
+  only via handoff).
 
-## Observations outside the zone-finding buckets (informational, no action)
+## Verification performed
 
-- **`.gitignore` cosmetic redundancy (NOT a bug, NOT fixed).** The pattern
-  `/.hermes-home/` appears three times (once in the "generated at each
-  launch" block, twice in the interleaved "Hermes runtime/state" /
-  "Complete per-drive engine installation" comment stack), and
-  `/.hermes-home/` + its more specific children (`config.yaml`, `state.db`,
-  `sessions/`, `memories/`, `cron/`, `/.hermes-home/logs/`) are listed
-  after the parent dir is already fully ignored, so the children are
-  inert. This is purely untidy - every pattern that matters still matches,
-  nothing is wrongly ignored or wrongly tracked, and there is no behaviour
-  to reproduce as a defect. Per `CLAUDE.md` Zone A rules ("actually
-  reproduce it first" - not "this looks off"), and per the Session Start
-  Protocol's "don't invent work" clause, this was left alone. Flagging it
-  only so the primary GPT can decide whether a one-time tidy-up handoff is
-  worth it. If desired, the minimal safe change is: collapse to a single
-  `/.hermes-home/` line with the explanatory comments consolidated above
-  it, keeping `/.hermes-home/logs/` **out** (it's redundant but its comment
-  documents the audit-folder-rename history, which has value). No urgency.
-- **`logs/` inventory as of this session** (for the primary GPT's
-  cross-referencing):
-  | file | bytes | note |
-  |---|---|---|
-  | `CLAUDE_CODE_LAST_AUDIT.md` | 24170 -> (rewritten this session) | Claude Code continuity |
-  | `CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` | 19711 | Codex |
-  | `CODEX_PUSH_LOG.md` | 329 | Codex push ledger, 2 entries |
-  | `CODEX_README_FORMATTING_AUDIT_2026-09-06.md` | 2072 | Codex, NEW this pull |
-  | `CODEX_SECOND_AUDIT_2026-09-05.md` | 20574 | Codex |
-  | `FORGE_EVENT_LOG.md` | 1713 | Zone A, Claude-Code-maintained |
-  | `HANDOFF_2026-09-04_SESSION_CHANGES.md` | 15510 | handoff record |
-  | `HANDOFF_2026-09-05_SESSION_CHANGES.md` | 16832 | handoff record |
-  | `HERMES_CRON_GATEWAY_HOME_AUDIT.md` | 1789 | Codex |
-- **`CODEX_PUSH_LOG.md` tail** (last two entries, for continuity):
-  `[2026-09-05 19:12] 6dd58ab - Improve interrupted Hermes install
-  diagnostics` and `[2026-09-06 03:51] e7550e7 - Record README formatting
-  audit`. (The `03:51` there is UTC per that report's own header; the
-  commit's local time is 2026-09-05 evening EDT.)
+Environment: this Windows box. `python3` -> `Python 3.13.14` (real, via the
+WindowsApps entry); `py` -> `C:\WINDOWS\py`; `python` ->
+`C:\Program Files\Python311\python`. bash 5.2.37 (msys). No `pytest`, no
+Pester.
+
+| check | result |
+|---|---|
+| `bash -n launch-north-forge.sh` | clean |
+| `bash -n tests/test-dependency-check.sh` | clean |
+| line endings | `.sh` all-LF (600/600, 0 CR bytes), `.bat` all-CRLF (465/465), new test all-LF - match `.gitattributes` |
+| `git diff --check` | no whitespace/CRLF errors |
+| **`tests/test-dependency-check.sh`** | **PASS - 6/6 scenarios** |
+| `tests/test-skill-assembly.sh` | PASS (6 scenarios) - runs the full `.sh` gate on the fast path |
+| `tests/test-free-provider.sh` | PASS (4 cases) - full `.sh` run incl. gate; needs `</dev/null` (pre-existing: `name_validation.py`'s re-register `input()` blocks on a live non-EOF stdin - not introduced here) |
+| `tests/test-launcher-hermes-home.sh` | PASS - the `python3`-sentinel test; confirms the gate's detect-only `command -v` does NOT trip the `exit 42` stub early |
+| `tests/test-drive-hermes-install.sh` | PASS (6 scenarios) |
+| `tests/test-drive-local-hermes.sh` | PASS |
+| `tests/two-drive-hermes-isolation.sh` | PASS - full `.sh` launch x2 |
+| `tests/repository-hygiene.sh` | PASS |
+| `tests/reset-integration.sh` | PASS |
+| `python -m unittest tests.test_launcher_hermes_home` | 4/4 OK (both regex ordering tests, POSIX + Windows) |
+| `tests.test_cron_registration.CronRegistrationWarningsTest` | 2/2 OK (incl. the `.bat` static failure-handling test) |
+| `tests.test_drive_hermes_contract` (both funcs) | OK |
+| `.bat` gate - 5 scenarios run directly via `cmd //c` in scratch dirs | ALL CORRECT (see below) |
+
+`.bat` scenarios exercised directly (scratch dirs,
+`NORTH_FORGE_DEP_FORCE_PY_MISSING` + a mock `NORTH_FORGE_DEP_INSTALLER`
+`.bat`, stdin piped):
+- fast path: `forge-events.log` gets
+  `[INFO] [deps]: Python 3 present as "py -3" - launch dependency check
+  passed`; no prompt on screen.
+- decline (`n`): screen shows the prompt + the 3-step manual help + `pause`;
+  `rc 1`; log has `[WARNING] [deps]: Python 3 not found` and
+  `[INFO] [deps]: operator declined the Python 3 install - exiting cleanly`.
+- approve + mock installer exit 0 (`FORCE=1`, real `py` re-found): log has
+  `operator approved...`, `[INFO] [deps]: Python 3 installed and verified
+  (py -3)`; `PYTHON_CMD` published back past `endlocal`.
+- approve + mock installer exit 7: log has
+  `[FAILURE] [deps]: Python installer exited 7`; screen shows
+  `The Python installer did not finish successfully (exit 7).`; `rc 1`.
+- approve + mock installer exit 0 but `FORCE=always`: log has
+  `[FAILURE] [deps]: installer reported success but Python 3 is still not
+  detectable`; `rc 1`.
+
+No real Python installer was ever downloaded or run. No change to this
+machine's Python, PATH, or Hermes config. `.env` not present, not staged.
+
+## What was NOT done / limitations
+
+1. **No committed `.bat` test.** `tests/test-dependency-check.bat` was
+   written then removed - `call`ing the launcher from inside a `:label`
+   subroutine with `< inputfile` redirection produced
+   `'launch-north-forge.bat' is not recognized` intermittently and I chose
+   not to commit a flaky harness. The five `.bat` scenarios above were run
+   by hand and are reproducible; a robust `.bat` harness is a reasonable
+   follow-up but the launcher logic is verified.
+2. **`.bat` has no non-interactive guard**, unlike the `.sh` (`[ -t 0 ]`).
+   Batch cannot portably tell "user pressed Enter" from "stdin is EOF" -
+   `set /p` leaves the var unchanged in both cases. So a non-interactive
+   `.bat` invocation with Python missing and no `NORTH_FORGE_DEP_INSTALLER`
+   would attempt the real download (and, on failure, exit 1 cleanly with
+   the manual message). Mitigations: a double-clicked launcher is always
+   interactive; the test seam covers CI; a failed unattended download
+   still exits cleanly. Flagged for a second opinion.
+3. **macOS/Linux auto-install needs sudo** (official `.pkg` / package
+   managers have no per-user mode). The prompt says so before running.
+   Only Windows is fully elevation-free. If that's not acceptable for the
+   field, the "portable Python on the drive" option (below) is the way to
+   remove sudo entirely on POSIX too.
+4. **Real end-to-end install not run** on any OS (task said not to, and
+   this box already has Python). Verified at syntax + scratch-scenario +
+   mock-install level. The python.org URLs and silent flags are confirmed
+   against python.org / documented behaviour, not against an actual
+   install on a Python-less machine.
+5. **macOS `python3` stub caveat (pre-existing, not touched):** on macOS
+   12.3+ `command -v python3` finds `/usr/bin/python3` even with no real
+   Python (it's a Command Line Tools shim). The gate would treat that as
+   "present" - same as the old `command -v python3` check did. Detecting
+   the stub would mean executing it, which conflicts with the
+   detect-only rule the `test-launcher-hermes-home.sh` sentinel needs.
+   Left as-is.
+6. **Windows Microsoft Store `python.exe` alias (pre-existing, not
+   touched):** if `where python` resolves only the 0-byte
+   `WindowsApps\python.exe` alias, `PYTHON_CMD=python` is set and the gate
+   is skipped; `name_validation.py` would then pop the Store. The
+   detection block (`where py` first, then `where python`) is unchanged
+   from before - out of scope for this task.
+
+## Flagged for the North Forge GPT - the "bundle portable Python" question (NOT implemented)
+
+Per the task, flagging back rather than starting: bundling a portable /
+embeddable Python (Windows embeddable zip; a relocatable framework or a
+`uv`-managed Python on macOS/Linux) directly on the 128 GB drive would
+remove the system-install step entirely, on any machine, regardless of
+what's already there - and would also remove the macOS/Linux **sudo**
+requirement that the current guided-install path cannot avoid. It is a
+larger architecture change (the launchers, `name_validation.py`'s
+invocation, the `.hermes.md` assembly step, and `.gitignore` would all
+need to learn about a drive-local interpreter; exFAT has no symlinks and no
+exec bit, which the embeddable zip sidesteps but a framework build does
+not). Recommend an explicit go-ahead before it's begun. The
+check-and-prompt flow shipped here is the smaller fix and stands on its
+own; the two are compatible (the prompt becomes a rare fallback if the
+bundled interpreter is ever missing).
 
 ## Commits made this session
 
-To be created and pushed as exactly one commit:
-- `logs/CLAUDE_CODE_LAST_AUDIT.md` (Zone A) - this report, replacing the
-  ecd54e3 version. Commit message:
-  `Audit report: clean session-start check (no task given, working tree clean)`.
-
-Nothing else is staged. No Zone A code change, no Zone C change, no Zone B
-placement. `.env` is not present and was never staged.
+To be created and pushed as one commit:
+- `launch-north-forge.sh`, `launch-north-forge.bat` (Zone A - the
+  dependency gate), `tests/test-dependency-check.sh` (Zone A - new test),
+  `CHANGELOG.md` (Zone C - `### Added` entry), and this report
+  (`logs/CLAUDE_CODE_LAST_AUDIT.md`, Zone A).
 
 ## Uncertain / flagged for primary GPT review
 
-1. **This was a no-prompt session.** If the North Forge GPT intended a task
-   and it didn't make it into the Claude Code prompt, nothing was done on
-   it - re-issue the prompt. The repo is at a clean, known-good state
-   (`bf07efa`, working tree clean) so nothing is half-finished.
-2. **All five "Uncertain / flagged" items from the ecd54e3 audit are still
-   open** and unaddressed by anything in this pull. Most load-bearing:
-   **F4** (exFAT strips the exec bit -> the `[ -x ]` gate in
-   `ensure-hermes.sh` L7 and `hermes-drive.sh` can reject a *valid* POSIX
-   install run straight off the stick, and there's an upstream question of
-   whether a venv even builds on exFAT without symlinks). That still needs
-   a scope decision from the Blacksmith / North Forge GPT: **is
-   POSIX-first-run-off-exFAT a supported path, or does POSIX use mean "copy
-   the repo onto a real filesystem first"?** No code should be written
-   against F4 until that's answered.
-3. **`README.md` improvement is now blocked from two directions** - the
-   ecd54e3 Claude Code audit and the new Codex audit both independently
-   conclude the opening ASCII-art header + raw HTML + Mermaid diagram are
-   the fragile parts, both decline to touch it because README is Zone B,
-   and both ask for a named pre-authored handoff. If the intent is to swap
-   the fixed-width ASCII block for the supplied image, the Blacksmith needs
-   to hand over the exact revised `README.md` for byte-for-byte placement.
-4. **`.gitignore` redundancy** (see "Observations" above) - cosmetic only,
-   flagged for a yes/no on whether a tidy-up handoff is wanted. Not a bug.
-5. **`hermes` is still not installed on this machine**, so every audit from
-   this drive verifies the Hermes surface at parse / static-analysis /
-   fixture-test level only, never against a real `hermes doctor` or a real
-   `hermes skin use` run. Unchanged limitation, restated so it isn't
-   mistaken for "verified end to end."
+1. **Deliberate deviation: Node.js is not prompted for.** The task said
+   "at minimum Python 3 and Node.js"; the investigation it asked for shows
+   Node is never a launch-time dependency (engine bundles its own).
+   Confirm this call is right, or say if a Node prompt is wanted anyway.
+2. **`.bat` non-interactive guard gap** (limitation #2 above) - is the
+   asymmetry with `.sh` acceptable, or should the `.bat` refuse to
+   auto-install when it can't confirm interactivity (e.g. gate on
+   `%CMDCMDLINE%` containing `/c`, which is imperfect)?
+3. **Pinned Python `3.13.15`.** Newest 3.13 with binary installers, inside
+   Hermes's `<3.14`. If Hermes later widens to 3.14 or you'd rather track
+   "latest 3.x" dynamically, that's a one-line change per launcher - say
+   which you want.
+4. **No committed `.bat` test** (limitation #1). If a committed `.bat`
+   harness matters, I can take another pass - the plumbing issue is
+   `call`ing the launcher from a subroutine with input redirection.
+5. **macOS/Linux sudo** in the guided path (limitation #3). Unavoidable
+   with official installers; the "portable Python" option removes it.
+6. **Carried over, untouched:** README/USER_MANUAL `Advanced/` drift and
+   README header fragility (Zone B, need a handoff); `CLAUDE.md` Zone A
+   path list stale after the `Advanced/` move; the exFAT `[-x]` /
+   POSIX-off-exFAT question (F4 from the `ecd54e3` audit) still open.
 
 ## Status
 
-Clean. Session-start check only - repo pulled to `bf07efa`, working tree
-clean, `.gitignore` correct, no task given, no changes made or proposed
-beyond committing this report. Prior audit's open items (F4 scope decision,
-README Zone B handoff, the three other carried flags) remain the
-outstanding work and are unchanged by this pull.
+Needs primary GPT review.
+- Guided Python 3 install added to both launchers; investigation confirmed
+  Python is the only real launch dependency and Node is not; Windows path
+  needs no admin, macOS/Linux state the sudo requirement up front; fast
+  path unchanged in cost; every step logged; clean exit on decline/failure.
+- `tests/test-dependency-check.sh` (6/6) added; full existing suite (9
+  shell + launcher `.py` static) green; `.bat` gate verified via 5 direct
+  scratch runs.
+- Open decisions for the GPT: the Node omission, the `.bat` non-interactive
+  gap, the pinned version, and whether to green-light the drive-bundled
+  portable Python as the follow-on.

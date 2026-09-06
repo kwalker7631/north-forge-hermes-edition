@@ -42,10 +42,21 @@ rem without it, %PYTHON_CMD% below is empty and name_validation.py never runs.)
 set "PYTHON_CMD="
 where py >nul 2>nul && set "PYTHON_CMD=py -3"
 if not defined PYTHON_CMD where python >nul 2>nul && set "PYTHON_CMD=python"
+rem Test seam only (see tests\test-dependency-check.sh): forces the "missing"
+rem branch so the guided-install flow can be exercised without removing the
+rem machine's real Python. Never set in normal use.
+if defined NORTH_FORGE_DEP_FORCE_PY_MISSING set "PYTHON_CMD="
 if not defined PYTHON_CMD (
-    echo Python 3 is required. Install it, then double-click this launcher again.
-    pause
-    exit /b 1
+    rem Python 3 is the only genuine launch-time hard dependency: this launcher
+    rem needs it for scripts\name_validation.py and the .hermes.md assembly step
+    rem below, before the Hermes engine (which bootstraps its own Python/Node/
+    rem git) is ever reached. Node.js is deliberately NOT checked - nothing on
+    rem the launch path runs node/npm/npx. See :ENSURE_PYTHON_DEP at the end of
+    rem this file and the matching logic in launch-north-forge.sh.
+    call :ENSURE_PYTHON_DEP
+    if errorlevel 1 exit /b 1
+) else (
+    >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [deps]: Python 3 present as "%PYTHON_CMD%" - launch dependency check passed
 )
 
 rem --- first run on this drive: pop open the styled quickstart once ---
@@ -358,4 +369,97 @@ exit /b 0
 
 :LOG_PROVIDER_DETAIL
 powershell -NoProfile -Command "$text=((Get-Content -Raw -LiteralPath '%~1')+(Get-Content -Raw -LiteralPath '%~2')); $safe=$text -replace '(?i)(api[_-]?key|token|secret|password)(\s*[:=]\s*)\S+','$1$2[REDACTED]'; Add-Content -LiteralPath 'forge-events.log' -Value ('[provider-config detail] '+$safe.Trim())"
+exit /b 0
+
+:ENSURE_PYTHON_DEP
+rem Offer to install Python 3 unattended when it is missing, then re-check.
+rem On success: publishes PYTHON_CMD back to the caller via `endlocal & set`
+rem and returns 0. On decline or failure: prints manual instructions and
+rem returns 1 (the caller then exits). Mirrors launch-north-forge.sh.
+setlocal EnableDelayedExpansion
+set "NF_PY_VERSION=3.13.15"
+>> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [deps]: Python 3 not found - launch-time dependency missing
+echo.
+echo North Forge needs Python 3 to run, and it's not installed on this computer.
+set "NF_ANS="
+set /p "NF_ANS=Install it now? [Y/n] (recommended: Y): "
+if /i "!NF_ANS!"=="n" goto :ENSURE_PYTHON_DEP_DECLINE
+if /i "!NF_ANS!"=="no" goto :ENSURE_PYTHON_DEP_DECLINE
+>> "forge-events.log" echo [%DATE% %TIME%] [INFO] [deps]: operator approved the Python 3 install - starting
+echo.
+echo Installing Python !NF_PY_VERSION! ... this may take a minute.
+echo This is a per-user install - Windows will NOT prompt for administrator rights.
+
+set "NF_INSTALL_RC=0"
+if defined NORTH_FORGE_DEP_INSTALLER (
+    rem Test seam: run a stand-in for the whole download-and-install step.
+    call "!NORTH_FORGE_DEP_INSTALLER!"
+    set "NF_INSTALL_RC=!ERRORLEVEL!"
+) else (
+    set "NF_PY_EXE=%TEMP%\north-forge-python-!RANDOM!!RANDOM!.exe"
+    set "NF_PY_URL=https://www.python.org/ftp/python/!NF_PY_VERSION!/python-!NF_PY_VERSION!-amd64.exe"
+    echo Downloading the official installer from python.org ...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri $env:NF_PY_URL -OutFile $env:NF_PY_EXE } catch { Write-Host $_.Exception.Message; exit 1 }"
+    if errorlevel 1 (
+        >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [deps]: Python installer download failed
+        echo Download failed.
+        goto :ENSURE_PYTHON_DEP_MANUAL
+    )
+    rem /quiet no UI; InstallAllUsers=0 per-user (no elevation); PrependPath=1
+    rem puts it on PATH for future shells; Include_launcher=1 installs `py`;
+    rem Include_test=0 skips the bundled test suite. `start "" /wait` because
+    rem the installer is a GUI-subsystem exe - cmd would not block otherwise.
+    start "" /wait "!NF_PY_EXE!" /quiet InstallAllUsers=0 PrependPath=1 Include_launcher=1 Include_test=0
+    set "NF_INSTALL_RC=!ERRORLEVEL!"
+    del /q "!NF_PY_EXE!" >nul 2>nul
+)
+rem 3010 = "success, reboot required" - treat as success here.
+if not "!NF_INSTALL_RC!"=="0" if not "!NF_INSTALL_RC!"=="3010" (
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [deps]: Python installer exited !NF_INSTALL_RC!
+    echo The Python installer did not finish successfully ^(exit !NF_INSTALL_RC!^).
+    goto :ENSURE_PYTHON_DEP_MANUAL
+)
+
+rem Re-detect. PATH in THIS window was read before the install, so also look
+rem in the fixed per-user location the python.org installer uses.
+set "NF_PY_FOUND="
+where py >nul 2>nul && set "NF_PY_FOUND=py -3"
+if not defined NF_PY_FOUND where python >nul 2>nul && set "NF_PY_FOUND=python"
+if not defined NF_PY_FOUND if exist "%LOCALAPPDATA%\Programs\Python\" (
+    for /f "delims=" %%P in ('dir /b /s "%LOCALAPPDATA%\Programs\Python\python.exe" 2^>nul') do (
+        if not defined NF_PY_FOUND set "NF_PY_FOUND=%%P"
+    )
+)
+if not defined NF_PY_FOUND if defined NORTH_FORGE_DEP_PY_EXTRA if exist "!NORTH_FORGE_DEP_PY_EXTRA!" set "NF_PY_FOUND=!NORTH_FORGE_DEP_PY_EXTRA!"
+rem Test seam only: "always" also suppresses this post-install re-check so the
+rem "installed but still not visible" path can be exercised.
+if /i "!NORTH_FORGE_DEP_FORCE_PY_MISSING!"=="always" set "NF_PY_FOUND="
+if not defined NF_PY_FOUND (
+    >> "forge-events.log" echo [%DATE% %TIME%] [FAILURE] [deps]: installer reported success but Python 3 is still not detectable
+    echo Python 3 was installed but this launcher still can't see it.
+    echo Close this window and start the launcher again - a fresh window picks it up.
+    goto :ENSURE_PYTHON_DEP_MANUAL
+)
+>> "forge-events.log" echo [%DATE% %TIME%] [INFO] [deps]: Python 3 installed and verified (!NF_PY_FOUND!)
+echo Python 3 is installed. Continuing ...
+endlocal & set "PYTHON_CMD=%NF_PY_FOUND%" & exit /b 0
+
+:ENSURE_PYTHON_DEP_DECLINE
+>> "forge-events.log" echo [%DATE% %TIME%] [INFO] [deps]: operator declined the Python 3 install - exiting cleanly
+call :PYTHON_DEP_MANUAL_HELP
+endlocal & exit /b 1
+
+:ENSURE_PYTHON_DEP_MANUAL
+call :PYTHON_DEP_MANUAL_HELP
+endlocal & exit /b 1
+
+:PYTHON_DEP_MANUAL_HELP
+echo.
+echo North Forge can't start without Python 3. Install it by hand, then run
+echo this launcher again:
+echo   1. Open  https://www.python.org/downloads/windows/
+echo   2. Download the latest "Windows installer (64-bit)".
+echo   3. Run it and TICK "Add python.exe to PATH" on the first screen.
+echo.
+pause
 exit /b 0

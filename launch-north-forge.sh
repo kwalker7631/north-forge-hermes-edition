@@ -29,11 +29,183 @@ rm -f "$WRITE_PROBE"
 unset WRITE_PROBE
 SCRIPT_PATH="$(pwd)/launch-north-forge.sh"
 
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "python3 is required for this launcher and wasn't found on this machine."
-    echo "Install it, then run this script again."
-    exit 1
+# --- launch-time dependency check: Python 3 -------------------------------
+# The Hermes ENGINE installer (scripts/ensure-hermes.sh, run much later)
+# bootstraps its own Python, Node and git via `uv`, so those are NOT launch
+# prerequisites. But THIS launcher needs Python 3 before the engine is ever
+# touched: scripts/name_validation.py and the .hermes.md assembly heredoc
+# below both run under it. A machine with no Python 3 used to dead-end here
+# with a bare "install it yourself." Now it offers to install it unattended
+# and only stops if that fails or the operator declines.
+# Node.js is deliberately NOT checked: nothing on the launch path invokes
+# node/npm/npx (verified by grep of both launchers and scripts/); the engine
+# ships its own managed Node, and `npx agent-browser install` is a manual
+# post-install browser-research step, not a launch dependency.
+# Fast path (Python already present): one `command -v`, one log line, no
+# prompt - no measurable delay on a normal launch.
+NF_PY_VERSION="3.13.15"   # pinned python.org release for the auto-install
+                          # path; bump by editing this one line. Stays inside
+                          # Hermes's own requires-python (>=3.11,<3.14).
+
+nf_dep_log() {
+    printf '[%s] [%s] [deps]: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" "$2" >> "forge-events.log"
+}
+
+nf_detect_python() {
+    # Detection ONLY - never executes the interpreter. A test harness stubs
+    # python3 with a sentinel that exits non-zero when RUN; executing it here
+    # would break that test and misread a working install as broken.
+    [ "${NORTH_FORGE_DEP_FORCE_PY_MISSING:-0}" = always ] && return 1
+    local c
+    for c in python3 python; do
+        command -v "$c" >/dev/null 2>&1 && { printf '%s\n' "$c"; return 0; }
+    done
+    # An official install can land outside this already-started shell's PATH;
+    # check the usual absolute spots directly (never by prepending a scratch
+    # dir to PATH - see CLAUDE.md's PATH-shadowing rule).
+    for c in /usr/local/bin/python3 /usr/bin/python3 \
+             /Library/Frameworks/Python.framework/Versions/Current/bin/python3 \
+             ${NORTH_FORGE_DEP_PY_EXTRA_DIR:+"${NORTH_FORGE_DEP_PY_EXTRA_DIR}/python3"}; do
+        [ -x "$c" ] && { printf '%s\n' "$c"; return 0; }
+    done
+    return 1
+}
+
+nf_python_ok() {
+    # As nf_detect_python, but the test flag value "1" forces only the INITIAL
+    # gate to see "missing" while the post-install re-check still finds a real
+    # interpreter; "always" forces both.
+    case "${NORTH_FORGE_DEP_FORCE_PY_MISSING:-0}" in 1|always) return 1;; esac
+    nf_detect_python
+}
+
+nf_python_manual_help() {
+    echo ""
+    echo "North Forge can't start without Python 3. Install it by hand, then run"
+    echo "this launcher again:"
+    case "$(uname -s 2>/dev/null || echo unknown)" in
+        Darwin) echo "  Get the latest macOS 64-bit universal2 installer from"
+                echo "  https://www.python.org/downloads/macos/ and run it." ;;
+        Linux)  echo "  Debian/Ubuntu:  sudo apt-get install -y python3"
+                echo "  Fedora/RHEL:    sudo dnf install -y python3"
+                echo "  Arch:           sudo pacman -S python" ;;
+        *)      echo "  https://www.python.org/downloads/" ;;
+    esac
+    echo ""
+}
+
+nf_run_python_installer() {
+    # Mockable seam: a test points NORTH_FORGE_DEP_INSTALLER at a script that
+    # stands in for the whole download-and-install; its exit code is the
+    # result. Real runs go per-OS below.
+    if [ -n "${NORTH_FORGE_DEP_INSTALLER:-}" ]; then
+        "$NORTH_FORGE_DEP_INSTALLER"
+        return $?
+    fi
+    local sys dl pkg rc
+    sys="$(uname -s 2>/dev/null || echo unknown)"
+    case "$sys" in
+        Darwin)
+            command -v curl >/dev/null 2>&1 || {
+                echo "curl is needed to download the Python installer and isn't available."
+                return 90
+            }
+            dl="$(mktemp -d "${TMPDIR:-/tmp}/nf-python.XXXXXX")" || return 91
+            pkg="$dl/python-${NF_PY_VERSION}-macos11.pkg"
+            echo "Downloading the official Python ${NF_PY_VERSION} installer from python.org ..."
+            if ! curl -fsSL -o "$pkg" \
+                 "https://www.python.org/ftp/python/${NF_PY_VERSION}/python-${NF_PY_VERSION}-macos11.pkg"; then
+                echo "Download failed."
+                rm -rf "$dl"
+                return 92
+            fi
+            echo "Installing Python ${NF_PY_VERSION} ... this may take a minute."
+            echo "macOS will ask for your administrator password - the .pkg installer"
+            echo "needs admin rights (it has no per-user mode)."
+            sudo installer -pkg "$pkg" -target /
+            rc=$?
+            rm -rf "$dl"
+            return $rc
+            ;;
+        Linux)
+            echo "Installing Python 3 ... this may take a minute."
+            echo "This uses your system package manager and will ask for your password (sudo)."
+            if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3
+                return $?
+            elif command -v dnf >/dev/null 2>&1; then
+                sudo dnf install -y python3
+                return $?
+            elif command -v pacman >/dev/null 2>&1; then
+                sudo pacman -Sy --noconfirm python
+                return $?
+            elif command -v zypper >/dev/null 2>&1; then
+                sudo zypper --non-interactive install python3
+                return $?
+            elif command -v apk >/dev/null 2>&1; then
+                sudo apk add python3
+                return $?
+            fi
+            echo "No supported package manager (apt-get / dnf / pacman / zypper / apk) found."
+            return 93
+            ;;
+        *)
+            echo "Automatic Python install isn't supported on this system ($sys)."
+            return 94
+            ;;
+    esac
+}
+
+if NF_PYCMD="$(nf_python_ok)"; then
+    nf_dep_log INFO "Python 3 present ($NF_PYCMD) - launch dependency check passed"
+else
+    nf_dep_log WARNING "Python 3 not found - launch-time dependency missing"
+    echo ""
+    echo "North Forge needs Python 3 to run, and it's not installed on this computer."
+    if [ ! -t 0 ] && [ -z "${NORTH_FORGE_DEP_INSTALLER:-}" ]; then
+        nf_dep_log FAILURE "no interactive terminal to confirm the install - stopping"
+        echo "(No interactive terminal here, so nothing was installed automatically.)"
+        nf_python_manual_help
+        exit 1
+    fi
+    printf "Install it now? [Y/n] (recommended: Y): "
+    NF_ANS=""
+    read NF_ANS || NF_ANS=""
+    case "$(printf '%s' "$NF_ANS" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')" in
+        n|no)
+            nf_dep_log INFO "operator declined the Python 3 install - exiting cleanly"
+            nf_python_manual_help
+            exit 1
+            ;;
+    esac
+    nf_dep_log INFO "operator approved the Python 3 install - starting"
+    if nf_run_python_installer; then
+        NF_IRC=0
+    else
+        NF_IRC=$?
+    fi
+    if [ "$NF_IRC" -ne 0 ]; then
+        nf_dep_log FAILURE "Python 3 installer exited $NF_IRC - not continuing"
+        echo "The Python installer did not finish successfully (exit $NF_IRC)."
+        nf_python_manual_help
+        exit 1
+    fi
+    # Never assume success from the installer's exit code alone - re-detect.
+    if NF_PYCMD="$(nf_detect_python)"; then
+        case "$NF_PYCMD" in
+            /*) PATH="$(dirname "$NF_PYCMD"):$PATH"; export PATH ;;
+        esac
+        nf_dep_log INFO "Python 3 installed and verified ($NF_PYCMD) - continuing"
+        echo "Python 3 is installed. Continuing ..."
+    else
+        nf_dep_log FAILURE "installer reported success but Python 3 is still not detectable"
+        echo "Python 3 was installed but this launcher still can't see it."
+        echo "Close this window and run the launcher again - a fresh shell usually picks it up."
+        nf_python_manual_help
+        exit 1
+    fi
 fi
+# --- end launch-time dependency check -----------------------------------
 
 # --- first run on this drive: pop open the styled quickstart once ---
 if [ ! -f ".readme-shown" ]; then
