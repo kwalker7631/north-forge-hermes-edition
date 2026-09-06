@@ -1,27 +1,38 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-05 18:36 EDT (America/New_York), on the `E:` drive clone
-(`E:\north-forge-hermes-edition`)
+Timestamp: 2026-09-05 20:04 EDT (America/New_York), on the `E:` drive clone
+(`E:\north-forge-hermes-edition`). Session start 2026-09-05 ~19:53 EDT.
 
-Requested tasks (two, in one session):
-1. Kenneth's prompt, verbatim - "Check this pull fix any erros wil execute
-   first run. May have an isue with cheap usb flash". Read as: check the
-   pulled repo, fix anything that would break the **first run** off this
-   drive, drive/USB-flash related. No handoff file, no named Zone B target.
-2. Follow-up in the same session: Kenneth pasted a complete revised
-   `README.md` ("bling navigation Wingding and Github elements ... Just for
-   me ... when I'm working and someone is watching they see bling") and,
-   after being shown a diff-flag summary, answered the place/revise question
-   with **"Place as-is + push"**. Treated as an in-session Blacksmith Zone B
-   placement handoff.
+Requested task: Kenneth's prompt, verbatim - "Hermes update". No content
+pasted with it, no named Zone B target, no handoff file. Read as ambiguous
+and clarified via a multiple-choice question. Kenneth answered "All three
+1 2 3", i.e. all of:
+1. A Zone B handoff is incoming (revised `.hermes.template.md` and/or a
+   `skills-source/**` file) - place it byte-for-byte after the
+   diff-before-placement check.
+2. Status review - full read-only audit of the current Hermes surface
+   (template, 16 skills, install/launch path, open flags).
+3. Zone A plumbing fix - reproduce + fix + commit a specific bug in the
+   Hermes install/launch path, given a symptom.
 
 ## Outcome
-- Task 1: FIXED (Zone A). Every shell script on this drive was CRLF and the
-  macOS/Linux first run was broken. Added `.gitattributes`, renormalized the
-  working tree. Commit `b768e29`.
-- Task 2: PLACED (Zone B placement). Wrote the pasted `README.md`
-  byte-for-byte, committed `4fd9fa6`, pushed. See "Task 2" section near the
-  end of this report.
+
+- Part 1 (Zone B handoff): NOTHING PLACED. No content was pasted this
+  session. Standing ready; nothing to diff or commit. No Zone B file was
+  edited.
+- Part 2 (status review): DONE. Full read of the Hermes surface. Three
+  Zone A observations (F1, F2, F3 below), none of which is a reproducible
+  first-run break on its own; the rest of the surface verified sound.
+- Part 3 (Zone A plumbing fix): NO FIX MADE. Kenneth supplied no symptom,
+  and nothing found this session is a confirmed, reproducible first-run
+  break that CLAUDE.md's Zone A bar ("actually reproduce it first", "don't
+  invent work") authorises fixing unprompted. F2 is a genuine internal
+  inconsistency but its impact is conditional on an upstream fact that
+  cannot be checked in this environment. F1 and F3 do not break first run.
+  All three are flagged below for primary GPT / Blacksmith direction.
+
+No commits this session except this audit report itself (Zone A standing
+authorisation).
 
 ---
 
@@ -29,461 +40,437 @@ Requested tasks (two, in one session):
 
 ```text
 SESSION START CHECK
-Pulled: Already up to date (git pull -> "Already up to date."; HEAD = origin/main = b85d649 "Audit report: README/USER_MANUAL Advanced/ handoff BLOCKED - Zone B needs byte-for-byte content"). git fetch --all --prune brought nothing new. No open PRs (gh pr list / gh pr status both empty), no incoming branch - "this pull" = the working copy already on the drive, not a pending merge.
-Last audit read: Yes - prior session (b85d649) was BLOCKED: a prose-described README.md/USER_MANUAL.md Advanced/ path update could not be placed because Zone B needs byte-for-byte content. Still open, untouched this session - different area.
-Uncommitted at start: None (git status clean, nothing staged, git diff / git diff --cached both empty).
-.gitignore: OK - .env (L9) + *.env (L10), .forge-mode (L17), .agent-name (L18), .provider-choice (L19), .readme-shown (L20), .drive-record.txt (L21), /.hermes/ (L32), /.hermes-home/ (L33), .hermes.md (L34), *.log (L52 - covers forge-events.log) all present and correct.
-hermes doctor: Not run - hermes not installed on this machine (command -v hermes -> not found), consistent with every prior session on this drive.
-Project skills: hermes not installed - cannot list.
+Pulled: Already up to date (git pull -> "Already up to date."; HEAD = origin/main = c7cc3b03f210675770dfe80e7831f8f83088fe9b, short c7cc3b0, "Audit report: rewrite to cover both session tasks (CRLF fix b768e29 + README placement 4fd9fa6)", committed 2026-09-05 19:08:26 -0400). git branch -a: only main + origin/main + origin/HEAD. No open PRs checked this session (offline; gh not exercised), but git log origin/main == local main, so no pending merge.
+Last audit read: Yes - prior session ran two tasks: Zone A add of .gitattributes (b768e29, fixes CRLF-broken macOS/Linux first run) and a Zone B placement of a "blinged" README.md (4fd9fa6, byte-for-byte per an explicit in-session "Place as-is + push"). Prior Status: "Needs primary GPT review". Still-open flags from that report, none touched this session: (1) ratify .gitattributes as a Zone A addition or revert; (2) confirm the renormalized launch-north-forge.sh actually runs on real macOS/Linux hardware (this box is Git-for-Windows bash, which tolerates CRLF, so the `bash script.sh` parse-failure path was asserted not reproduced there); (3) README.md now pulls 5 img.shields.io badges on render, breaking the repo's otherwise self-contained stance; (4) the "Why this exists" rationale paragraph was dropped from README with no replacement; (5) the b744b10 Advanced/ path gap in README.md's file tree + the BLOCKED USER_MANUAL.md Advanced/ run-instructions still need a byte-for-byte Zone B handoff and now sit on top of the decorative README commit.
+Uncommitted at start: None. git status -> "nothing to commit, working tree clean". git diff and git diff --staged both empty.
+.gitignore: OK. Confirmed present and correct: .env (L9), *.env (L10), .forge-mode (L17), /North Forge.lnk (L25), /.hermes/ (L32), /.hermes-home/ (L33), .hermes.md (L34), /.hermes-home/logs/ (L51). .hermes/ and .hermes-home/ (the launch-generated runtime dirs) both ignored; .hermes.md (the assembled context file) ignored.
+hermes doctor: Not run - hermes not installed on this machine (command -v hermes -> "hermes: not found"), consistent with every prior session on this drive and with logs/HERMES_CRON_GATEWAY_HOME_AUDIT.md.
+Project skills: hermes not installed - cannot list. Static inspection of skills-source/ done instead (see below).
 ```
 
-## What "the pull" is
-
-`git status` clean, `main` even with `origin/main`, `git fetch --all --prune`
-pulled nothing, `gh pr list --state open` and `gh pr status` both empty. There
-is no pending merge or PR. "Check this pull" = validate the repo state that is
-already checked out on this drive. The drive is a cheap USB flash stick
-(Kenneth's own words), and:
-
-```
-PS> Get-Volume -DriveLetter E
-FileSystem      : exFAT
-FileSystemLabel : North-Forge
-Size            : 248134893568       (~231 GiB)
-SizeRemaining   : 248111431680       (essentially empty apart from the repo)
-```
-
-exFAT is deliberate - `launch-north-forge.sh` lines 73-77 say so: "exFAT
-(needed for a drive that works on Windows/Mac/Linux) can't store the
-executable permission bit". So the drive is meant to be carried between a
-Windows PC and a Mac/Linux box, and both launchers are first-run entry points.
-
-## The bug (reproduced)
-
-### Symptom
-Every tracked `*.sh` file in the working tree on this drive has **CRLF** line
-endings. The committed blobs are all **LF**. `git ls-files --eol`:
-
-```
-i/lf    w/crlf  attr/                 	Advanced/full-drive-reset.sh
-i/lf    w/crlf  attr/                 	Advanced/toggle-mode.sh
-i/lf    w/crlf  attr/                 	launch-north-forge.sh
-i/lf    w/crlf  attr/                 	scripts/ensure-hermes.sh
-i/lf    w/crlf  attr/                 	scripts/hermes-drive.sh
-i/lf    w/crlf  attr/                 	tests/repository-hygiene.sh
-i/lf    w/crlf  attr/                 	tests/reset-integration.sh
-i/lf    w/crlf  attr/                 	tests/test-drive-hermes-install.sh
-i/lf    w/crlf  attr/                 	tests/test-drive-local-hermes.sh
-i/lf    w/crlf  attr/                 	tests/test-free-provider.sh
-i/lf    w/crlf  attr/                 	tests/test-launcher-hermes-home.sh
-i/lf    w/crlf  attr/                 	tests/test-skill-assembly.sh
-i/lf    w/crlf  attr/                 	tests/two-drive-hermes-isolation.sh
-```
-
-`file launch-north-forge.sh` before the fix:
-`Bourne-Again shell script, ASCII text executable, with CRLF line terminators`.
-`od -c` of the first line:
-`# ! / u s r / b i n / e n v   b a s h \r \n`.
-
-### Cause
-Two facts combine:
-1. The repo shipped with **no `.gitattributes`** at any path
-   (`git ls-files '*.gitattributes' '.gitattributes'` -> empty; nothing on
-   disk).
-2. This drive was checked out on a Windows machine whose git has
-   `core.autocrlf=true` (verified: `git config --get core.autocrlf` -> `true`;
-   `core.eol` unset; `core.filemode` unset). With `autocrlf=true` and no
-   attribute override, git converts LF -> CRLF in the working tree on every
-   checkout, for every file it considers text - shell scripts included.
-
-`Advanced/provision-new-drive.ps1` (the "canonical" new-drive setup) runs
-`git clone $cloneUrl $repositoryPath` with whatever git config the
-provisioning PC happens to have. So the CRLF conversion is not a one-off on
-this drive - any Windows-side clone/pull produces the same broken `*.sh`
-set. The fix has to live in the repo.
-
-### Impact on first run
-- **Windows first run (`launch-north-forge.bat`, double-click):** unaffected.
-  CRLF is correct for batch files. `git ls-files --eol` shows `.bat`/`.cmd`/
-  `.ps1` at `w/crlf`, which is what Windows wants.
-- **macOS/Linux first run:** `FIRST_TIME_README.txt` lines 20-22 tell the
-  operator to drag `launch-north-forge.sh` into a Terminal and press Enter.
-  That path is broken by the CRLF:
-  - Executed via the shebang (`./launch-north-forge.sh`, or the
-    `North Forge.command` wrapper the script writes to the Desktop, which
-    runs `bash "$SCRIPT_PATH"`): the kernel parses `#!/usr/bin/env bash\r`
-    and hands `/usr/bin/env` the interpreter name `bash\r`.
-    **Reproduced this session:**
-    ```
-    $ env "bash"$'\r' -c 'echo should-not-print'
-    env: 'bash\r': No such file or directory
-    $ echo $?
-    127
-    ```
-    The script never starts.
-  - Executed as `bash launch-north-forge.sh` (shebang bypassed): stock bash
-    on macOS (3.2.57) and Linux treats a lone trailing `\r` as part of the
-    preceding word, so reserved words become `then\r`, `fi\r`, `do\r` and
-    bash raises `syntax error near unexpected token`, or runs `$'\r'` as a
-    command (`command not found`). `set -e` on line 8 then aborts on the
-    first such error. **This specific failure could NOT be reproduced on
-    this machine** - Git-for-Windows' bash (5.2.37, MSYS2 build) is patched
-    to strip a lone trailing CR, so a CRLF script runs fine here. Confirmed
-    the tolerance is real: a hand-made CRLF script with `set -e`, a
-    `$(dirname "$0")` cd, and an `if [ ... ]; then ... fi` ran clean under
-    this box's `bash` and `sh`. That patch does not exist in Apple's bash
-    or in distro bash, where CRLF `.sh` files are a well-known hard failure.
-    The shebang failure above is interpreter-resolution, not shell parsing,
-    so it fails identically everywhere regardless of that patch.
-
-So: a drive provisioned on a `core.autocrlf=true` Windows PC and then taken
-to a Mac fails on the first `launch-north-forge.sh` run. That is the
-"issue with cheap usb flash" - the stick is exFAT so it can cross platforms,
-and crossing platforms is exactly what trips the CRLF.
+git config core.autocrlf on this machine: `true` (unchanged from prior
+session; this is the setting the b768e29 `.gitattributes` fix exists to
+neutralise for `*.sh`). `bash -n launch-north-forge.sh` this session ->
+parse OK, so the CRLF renormalisation from b768e29 is still holding in this
+working tree.
 
 ## Files inspected
 
-- `launch-north-forge.bat` (full read, 368 lines, 21 091 bytes) - Zone A. Traced
-  the entire first-run path. No blocking bug found in it (many prior bugs
-  already fixed in-file per its own comments). CRLF is correct for `.bat`.
-- `launch-north-forge.sh` (full read, 424 lines, 21 787 bytes CRLF /
-  matches HEAD blob at LF) - Zone A. The CRLF break is here.
-- `.env.example` (full read, 36 lines) - Zone A. `ANTHROPIC_API_KEY=your-key-here`
-  (11 chars); both launchers' `< 30`-char placeholder guard catches it
-  correctly. No bug.
-- `.gitignore` (full read, 74 lines) - Zone A. All first-run generated
-  markers and `.hermes*` paths are ignored; `*.log` covers `forge-events.log`.
-  No bug.
-- `Advanced/provision-new-drive.ps1` (full read, 156 lines) - Zone A. Windows
-  provisioning script; rejects FAT32/FAT and requires exFAT (L71-78);
-  `git clone` inherits the host's line-ending config (relevant to the cause
-  above). No bug in the script itself.
-- `FIRST_TIME_README.txt` (full read, 60 lines) - Zone B. Documents the
-  Mac/Linux "drag the .sh into Terminal" first-run path that the CRLF breaks.
-  Read only, not modified.
-- `CLAUDE.md` (full, via system context, 19 425 bytes) - Zone B. Zone
-  definitions + standing rules.
-- `README.md` (full read, 212 lines / 24 413 bytes) - Zone B. Read for
-  Task 2 to diff against Kenneth's pasted revision before placement.
-- `logs/CLAUDE_CODE_LAST_AUDIT.md` (prior session's report) - Zone A.
-- `NEXT_STEPS.md` (targeted reads: header, lines 200-340, 425-460, tail) -
-  Zone C. Found the pre-existing 2026-08-29 carry-over flag naming the
-  `.bat` vs `.sh` `.hermes.md` CRLF divergence on `core.autocrlf=true`
-  machines (L229-234) - same root cause as this bug.
-- `tests/repository-hygiene.sh` (full read) - Zone A. Checks `.provider-choice`
-  / `.env` stay ignored and `.env` unstaged. Does not check line endings.
-- `scripts/` and `tests/` directory listings; confirmed all six launcher-
-  referenced scripts exist (`name_validation.py`, `assemble-skills.ps1`,
-  `ensure-hermes.ps1`, `ensure-hermes.sh`, `hermes-drive.ps1`,
-  `hermes-drive.sh`).
-- `assets/` listing - `north-forge.ico` present (both launchers reference it
-  for the shortcut icon).
-- Git plumbing: `git config --get core.autocrlf` / `core.eol` /
-  `core.filemode`; `git ls-files --eol`; `git show HEAD:<file> | file -`;
-  `git fetch --all --prune`; `gh pr list` / `gh pr status`; `git log`,
-  `git status`, `git diff`, `git diff --cached`, `git branch -a`,
-  `git remote -v`.
-- Reproduction scratch scripts under the session scratchpad (CRLF shebang ->
-  `env` 127; CRLF heredoc under `sh`/`dash`; CRLF `set -e` + `cd` + `if`).
+Zone A (infrastructure - read + analysed, none modified):
+- `launch-north-forge.sh` - full read, 424 lines / 21364 bytes. Traced the
+  entire Hermes path: HERMES_HOME pin (L10), write probe (L23-29), skill
+  assembly `assemble_skills()` (L110-190), template substitution Python
+  heredoc (L197-225), `. scripts/ensure-hermes.sh` + `ensure_drive_hermes
+  "$PWD"` (L235-236), `hermes()` wrapper function (L241), provider-choice
+  block (L243-323), skin copy + `hermes skin use`/`skin list` (L360-368),
+  `hermes skills trust .` (L374), cron self-heal (L376-411), final
+  `hermes` launch + exit logging (L413-423).
+- `launch-north-forge.bat` - full read, 368 lines / 21091 bytes. Same
+  trace on the Windows side: HERMES_HOME pin (L10), write probe (L22-30),
+  PYTHON_CMD detection (L42-49), `assemble-skills.ps1` call (L141-145),
+  template substitution inline PowerShell (L155-169), `ensure-hermes.ps1`
+  call (L175-180), PATH prepend (L181), `HERMES_CMD` definition (L194),
+  provider-choice block + `:CONFIGURE_FREE_PROVIDER` / `:LOG_PROVIDER_DETAIL`
+  subroutines (L196-361), skin + `skills trust` (L259-273), cron self-heal
+  (L275-308), final `%HERMES_CMD%` launch (L310-318), and the trailing
+  `:HERMES_READY` label (L363-367).
+- `scripts/ensure-hermes.sh` - full read, 96 lines / 5382 bytes.
+- `scripts/ensure-hermes.ps1` - full read, 73 lines / 5391 bytes.
+- `scripts/hermes-drive.sh` - full read, 29 lines / 1215 bytes.
+- `scripts/hermes-drive.ps1` - full read, 42 lines / 1904 bytes.
+- `scripts/assemble-skills.ps1` - full read, 62 lines / 3507 bytes.
+- `scripts/name_validation.py` - full read, 146 lines / 5399 bytes.
+- `skins/north-forge.yaml` - full read, 78 lines / 6421 bytes.
+- `AGENTS.md` - full read, 98 lines / 5556 bytes.
+- `.gitignore` - grep of the key entries.
+- `logs/CLAUDE_CODE_LAST_AUDIT.md` (prior report), `logs/FORGE_EVENT_LOG.md`,
+  `logs/HERMES_CRON_GATEWAY_HOME_AUDIT.md` - full reads.
+- `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md` - partial (lines 1-75 +
+  grep) to check whether the F2 resolver divergence was already recorded
+  (it was not - see F2).
+- `tests/test_drive_hermes_contract.py` - full read, 36 lines.
+- `tests/test-drive-local-hermes.sh` - full read, 82 lines.
+- Directory listings: `mode-blocks/`, `skills-source/` (16 SKILL.md),
+  `scripts/` (8), `tests/` (18), `skins/`, `Advanced/`, `research-log/`,
+  `logs/`.
+
+Zone B (authored content - read + reported only, NONE modified):
+- `.hermes.template.md` - full read, ~360 lines / 17291 bytes. Checked the
+  substitution markers, the skill inventory line (L35 area), the router
+  rules, the Hermes-specific addendum.
+- `skills-source/tsc-only/forge-audit/SKILL.md` - full read, 48 lines.
+- `skills-source/shared/manual/SKILL.md` - full read, 20 lines.
+- `skills-source/shared/daily-brief/SKILL.md` - full read, 43 lines.
+- `mode-blocks/full-banner.md` (4 lines), `mode-blocks/full-menu.md`
+  (20 lines), `mode-blocks/sales-banner.md` (6 lines),
+  `mode-blocks/sales-menu.md` (10 lines) - full reads.
+- All 16 `skills-source/**/SKILL.md` - first 6 lines each (frontmatter).
+- `CLAUDE.md` - full read, 386 lines / 19425 bytes (via file, not just the
+  system-context copy).
+
+Zone C:
+- `NEXT_STEPS.md` - header + lines ~1-60 + targeted greps (skill-count
+  currency, forge-audit CLAUDE.md-token history).
+- `CHANGELOG.md` - head (first ~40 lines / the `[Unreleased] - 2026-09-05`
+  block).
 
 ## Zone A changes made
 
-### 1. New file: `.gitattributes` (repo root)
+None.
 
-Before: did not exist. After (37 lines, full content):
-
-```
-# =============================================================================
-# North Forge - Hermes Edition (Kyocera Edition v21.8) - part of the North
-# Forge project.
-# File: .gitattributes | Version: 1.0.0 | Updated: 2026-09-05
-# Author: Kenneth C. Walker Jr. - Senior Technical Support Engineer, TSC
-# =============================================================================
-#
-# Line-ending policy for scripts.
-#
-# The drive is exFAT on purpose: one cheap USB stick has to run on Windows,
-# macOS, and Linux. exFAT cannot store the executable bit, so the macOS/Linux
-# first run is `bash launch-north-forge.sh` executed straight off the stick,
-# reading these exact bytes (see the comment block near the top of
-# launch-north-forge.sh).
-#
-# Without a rule here, a checkout on a Windows machine whose git has
-# core.autocrlf=true rewrites every *.sh to CRLF. That drive then fails on the
-# very first Mac/Linux launch:
-#   - run via the shebang -> `env: 'bash\r': No such file or directory` (127)
-#   - run as `bash launch-north-forge.sh` -> bash `syntax error near
-#     unexpected token` on a `then` / `fi` / `do` that now ends in \r
-# provision-new-drive.ps1 clones with whatever git config the provisioning PC
-# has, so the fix has to live in the repo, not in a machine's global config.
-#
-# Pin shell scripts to LF in the working tree on every platform; keep the
-# Windows-only scripts CRLF.
-
-*.sh        text eol=lf
-*.command   text eol=lf
-
-*.bat       text eol=crlf
-*.cmd       text eol=crlf
-*.ps1       text eol=crlf
-
-# Binary assets - never run line-ending or diff filters on these.
-*.png       binary
-*.ico       binary
-```
-
-Deliberately NOT a blanket `* text=auto eol=lf`: that would force a
-line-ending renormalization of every text file, including the Zone B
-authored content (`README.md`, `.hermes.template.md`, `mode-blocks/*`,
-`skills-source/**`, `KYO_KB_TITAN...html`, `USER_MANUAL.md`,
-`FIRST_TIME_README.txt`). Their committed blobs are already LF and their
-working-tree bytes were left untouched. The rule set here only pins the
-script file types, which are all Zone A.
-
-Note: `git add` printed `warning: in the working copy of '.gitattributes',
-LF will be replaced by CRLF the next time Git touches it` - `.gitattributes`
-has no self-rule and `core.autocrlf=true` will store the working copy as
-CRLF. Harmless (git parses `.gitattributes` regardless of its own line
-endings); left as-is rather than add `* text=auto` just to silence it.
-
-### 2. Working-tree renormalization of `*.sh` on this drive
-
-The committed blobs were already LF, so nothing to re-commit for the scripts
-themselves - only this drive's working copies were wrong. Sequence:
-
-```
-git add .gitattributes
-git ls-files -z '*.sh' '*.command' | xargs -0 rm -f
-git checkout -f -- .
-```
-
-With `.gitattributes` (`*.sh text eol=lf`) in place, `git checkout`
-re-materialized the 13 `.sh` files with LF regardless of `core.autocrlf`.
-
-Before -> after, per file (CR-line count -> 0; sha256 now equals the HEAD
-blob):
-
-| file | before: CR-lines / bytes / sha256 | after |
-|---|---|---|
-| Advanced/full-drive-reset.sh | 25 / 1900 / df01054c... | 0 CR, matches HEAD blob |
-| Advanced/toggle-mode.sh | 111 / 5496 / 913569d1... | 0 CR, matches HEAD blob |
-| launch-north-forge.sh | 423 / 21787 / 184b50ea... | 0 CR / sha256 628c13a1117dda4dd94c375d8218a50626c2eee1b5debd71b2dbc0bdb1e6d4c0 == HEAD blob |
-| scripts/ensure-hermes.sh | 95 / 5477 / 1f7ff42c... | 0 CR / sha256 3d7bd1f6...== HEAD blob |
-| scripts/hermes-drive.sh | 28 / 1243 / b73e42c0... | 0 CR, matches HEAD blob |
-| tests/repository-hygiene.sh | 23 / 690 / c5c36fe7... | 0 CR, matches HEAD blob |
-| tests/reset-integration.sh | 71 / 3243 / f3cd195c... | 0 CR, matches HEAD blob |
-| tests/test-drive-hermes-install.sh | 74 / 4055 / 18d10c69... | 0 CR, matches HEAD blob |
-| tests/test-drive-local-hermes.sh | 81 / 3397 / 57cbce95... | 0 CR, matches HEAD blob |
-| tests/test-free-provider.sh | 55 / 2420 / 26273467... | 0 CR, matches HEAD blob |
-| tests/test-launcher-hermes-home.sh | 61 / 3401 / 55fd906e... | 0 CR, matches HEAD blob |
-| tests/test-skill-assembly.sh | 62 / 2052 / 37cea13c... | 0 CR, matches HEAD blob |
-| tests/two-drive-hermes-isolation.sh | 140 / 6614 / d7338c8a... | 0 CR / sha256 5b8469cd...== HEAD blob |
-
-Post-fix verification:
-- `git ls-files --eol '*.sh'` -> all 13 now `i/lf  w/lf  attr/text eol=lf`.
-- `file` on all 13 -> `... ASCII text executable` with **no** "CRLF line
-  terminators".
-- `head -1 launch-north-forge.sh | od -c` -> `#!/usr/bin/env bash\n` (no `\r`).
-- `bash -n` (parse-only) on all 13 -> **13 PASS / 0 FAIL**.
-- `.bat`/`.cmd`/`.ps1` (13 files) -> still `w/crlf`, now with
-  `attr/text eol=crlf`; working-tree bytes unchanged.
-- `git status` -> clean except the staged new `.gitattributes` and the
-  Zone C `NEXT_STEPS.md` edit below. No `.sh` shows as modified (worktree
-  LF == blob LF).
-
-## Zone C changes made
-
-- `NEXT_STEPS.md` - appended a dated section "Session 2026-09-05 (CRLF
-  first-run break, Claude Code) - .gitattributes added" recording the
-  finding, the reproduction, the fix, and that it closes the script side of
-  the 2026-08-29 carry-over CRLF flag. No existing lines changed; append
-  only.
+Rationale for making no change despite Part 3 of the request: CLAUDE.md's
+Zone A permission is "read, run, test, and directly patch these files once
+it has confirmed a real bug (not 'this looks off' - actually reproduce it
+first)", and the Session Start Protocol closes with "If none was given, a
+clean session-start check IS the whole task - write the audit report and
+stop rather than inventing work to do." Kenneth supplied no symptom for
+Part 3. Of the three things found:
+- F1 (`launch-north-forge.sh` L226-229 dead error branch) is reproducible
+  but does not break first run - the Python block prints its own FATAL
+  line and `set -e` still aborts before `.hermes.md` is written. Fixing it
+  means restructuring an `errexit` + heredoc control flow in the launcher,
+  which is exactly the kind of change the primary-GPT-ratifies pattern in
+  this repo's history exists for.
+- F2 (executable-resolver divergence) is a real internal inconsistency but
+  whether it breaks first run depends on the upstream Hermes installer's
+  on-disk layout, which cannot be observed here (no binary, no network).
+  A blind "union the two candidate lists" fix could mask a genuinely bad
+  install; choosing a single canonical path without knowing the real one
+  is guessing. Neither is a confirmed-bug fix.
+- F3 (`launch-north-forge.bat` `:HERMES_READY` dead label) changes no
+  behaviour at all - not a "bug" under the Zone A bar.
 
 ## Zone B findings (not fixed - reported only)
 
-- **Task 2 placed a new `README.md` (see the "Task 2" section below).** That
-  was a Blacksmith placement, not a Claude-Code edit - byte-for-byte as
-  pasted. The one carry-over it does NOT resolve: the still-open `b744b10` /
-  prior-session `Advanced/` path update. The pasted README keeps the old
-  flat-root paths (`toggle-mode.bat / .sh`, `full-drive-reset.bat / .sh`,
-  `machine-reset.bat`, `provision-new-drive.ps1` in the file tree;
-  `.\provision-new-drive.ps1` in the powershell example). Nothing was
-  reverted - those paths were never fixed in README - but that Zone B gap is
-  still open and now sits under a large decorative commit. Still needs its
-  own byte-for-byte handoff (Option A / Option B from the b85d649 report).
-- The prior session's BLOCKED `USER_MANUAL.md` `Advanced/` path update still
-  needs byte-for-byte content (unchanged, not touched).
-- An earlier audit flagged an unstaged `README.md` `<img>` title-icon edit.
-  It was NOT present in this checkout - `git status` / `git diff` were clean
-  at session start. The new pasted README does not carry an `<img>` title
-  tag either (it uses an ASCII wordmark). Noted, no action.
-- `WELCOME.html` at repo root is still untracked and still not in any
-  CLAUDE.md zone list (prior audit's finding). `launch-north-forge.bat`
-  L52-63 depends on it; a fresh clone hits the "WELCOME.html is missing"
-  warning branch. Unchanged - needs Kenneth / Claude Project chat to place
-  or confirm committing it.
+None new. The `.hermes.template.md`, `mode-blocks/*`, and all 16
+`skills-source/**/SKILL.md` files were read and are internally consistent
+and consistent with the launchers (details under "Verified sound" below).
+
+Carried-over Zone B items from the prior report, still open, not touched
+this session: README.md `img.shields.io` dependency; the dropped "Why this
+exists" README paragraph; the b744b10 `Advanced/` path gap in README.md's
+file tree; the BLOCKED `USER_MANUAL.md` `Advanced/` run-instruction
+update. None of these is in the Hermes surface this session was asked to
+review; listing them only so the thread is not lost.
+
+## Findings this session (Zone A code; flagged, not fixed)
+
+### F1 - `launch-north-forge.sh` L226-229: the friendly size-guard abort message is unreachable
+
+Lines 197-229:
+
+```sh
+python3 - "$MODE" << 'PYEOF'
+...
+if size >= 20000:
+    print(f"FATAL: assembled .hermes.md is {size} chars ...")
+    ...
+    sys.exit(1)
+...
+with open(".hermes.md", "w", encoding="utf-8") as f:
+    f.write(tmpl)
+PYEOF
+if [ $? -ne 0 ]; then
+    echo "Launch aborted: .hermes.md was not written."
+    exit 1
+fi
+```
+
+`set -e` is in force (L8, never unset). `python3 - << 'PYEOF' ... PYEOF`
+is a simple command with a heredoc redirect - it is not the condition of
+an `if`/`while`/`until`, not part of a `&&`/`||` list, and not negated
+with `!`. So on a non-zero exit, `errexit` terminates the script at that
+command and the `if [ $? -ne 0 ]` on L226 never runs. Lines 227-228 (the
+"Launch aborted: .hermes.md was not written." message) are dead on the
+failure path.
+
+Reproduced this session (scratchpad, `bash` = Git-for-Windows 5.2.37):
+
+```sh
+$ cat seti.sh
+#!/usr/bin/env bash
+set -e
+python3 - <<'PY'
+import sys
+print("FATAL: simulated size-guard failure")
+sys.exit(1)
+PY
+if [ $? -ne 0 ]; then
+    echo "Launch aborted: .hermes.md was not written."
+    exit 1
+fi
+echo "REACHED NORMAL CONTINUATION (should not print on failure)"
+
+$ bash seti.sh
+FATAL: simulated size-guard failure
+--- script exit code: 1 ---
+```
+
+Neither "Launch aborted..." nor the normal-continuation line printed; the
+script exited 1 with only Python's own message.
+
+Practical impact: LOW. On a real size-guard trip the operator still sees
+the Python block's `FATAL: assembled .hermes.md is N chars ...` line
+(printed before `sys.exit(1)`), and `.hermes.md` is genuinely not written
+because the write (L223-224) is after the guard. Only the extra
+confirmation line is lost, and only in a scenario that needs the assembled
+template to reach 20,000 chars. Current assembled size per NEXT_STEPS.md
+is ~19,101 (FULL) / ~19,096 (SALES), so the guard is not currently firing.
+
+The `.bat` equivalent (L155-169) handles this correctly - cmd.exe has no
+`errexit`, so its `if errorlevel 1 ( echo Launch aborted... & pause &
+exit /b 1 )` runs as intended. So this is a `.sh`-only asymmetry.
+
+Suggested fix if primary GPT wants it (NOT applied): make the heredoc the
+condition of the `if`, e.g.
+
+```sh
+if ! python3 - "$MODE" << 'PYEOF'
+...
+PYEOF
+then
+    echo "Launch aborted: .hermes.md was not written."
+    exit 1
+fi
+```
+
+which both suppresses `errexit` for that command and reaches the message.
+
+### F2 - the install guard and the runtime wrapper disagree on where the Hermes executable lives
+
+Two different files resolve the drive-local Hermes executable, with only
+partially overlapping candidate lists.
+
+POSIX:
+
+```
+scripts/ensure-hermes.sh:6   for candidate in "$root/bin/hermes" "$root/hermes" "$root/hermes-agent/hermes"; do
+scripts/hermes-drive.sh:22   for candidate in "$HERMES_HOME/hermes-agent/venv/bin/hermes" "$HERMES_HOME/hermes-agent/.venv/bin/hermes" "$HERMES_HOME/venv/bin/hermes" "$HERMES_HOME/bin/hermes"; do
+```
+
+Common to both: `bin/hermes` only.
+
+Windows:
+
+```
+scripts/ensure-hermes.ps1:9   @((Join-Path $Root 'Scripts\hermes.exe'), (Join-Path $Root 'bin\hermes.exe'), (Join-Path $Root 'hermes.exe'))
+scripts/hermes-drive.ps1:30   (Join-Path $homeDir 'hermes-agent\venv\Scripts\hermes.exe'),
+                       :31   (Join-Path $homeDir 'hermes-agent\.venv\Scripts\hermes.exe'),
+                       :32   (Join-Path $homeDir 'venv\Scripts\hermes.exe'),
+                       :33   (Join-Path $homeDir 'Scripts\hermes.exe')
+```
+
+Common to both: `Scripts\hermes.exe` only.
+
+`scripts/ensure-hermes.sh` `hermes_home_valid()` (L12-14) requires
+`$1/hermes-agent` + `$1/hermes-agent/pyproject.toml` + `hermes_executable
+"$1"` returning success. `scripts/ensure-hermes.ps1` `Test-HermesHome`
+(L12-14) requires `Get-HermesExe` + `$Root\hermes-agent\pyproject.toml`.
+After that guard passes, `launch-north-forge.sh` defines
+`hermes() { scripts/hermes-drive.sh "$@"; }` (L241) and every subsequent
+Hermes call - `hermes skin use north-forge` (L366), `hermes skin list`
+(L368), `hermes skills trust .` (L374), the cron probes (L392, L400), and
+the interactive launch (L417) - goes through `hermes-drive.sh`. The `.bat`
+does the same via `set "HERMES_CMD=powershell ... -File scripts\hermes-drive.ps1"`
+(L194) used at L265, L267, L273, L279, L293, L311.
+
+Consequence: if the real upstream Hermes installer places the executable
+at any accepted-by-`ensure-hermes` path that is NOT the single common one
+(`bin/hermes` / `Scripts\hermes.exe`) - e.g. `$HERMES_HOME/hermes` or
+`$HERMES_HOME/hermes-agent/hermes` on POSIX, or `$HERMES_HOME\bin\hermes.exe`
+or `$HERMES_HOME\hermes.exe` on Windows, all of which `ensure-hermes`
+explicitly accepts - then `ensure_drive_hermes` reports the install valid,
+and the very next line, `hermes skin use north-forge`, fails: `hermes-drive.sh`
+/ `hermes-drive.ps1` exit 72 with "the drive-local Hermes executable is
+unavailable". That is a hard first-run stop, and it is conditional purely
+on the installer's layout.
+
+Why it cannot be resolved here: no `hermes` binary in this image
+(`command -v hermes` -> not found) and no network to
+`hermes-agent.nousresearch.com` (`curl`/`Invoke-WebRequest` for
+`install.sh`/`install.ps1`), the same limitation already recorded in
+`logs/HERMES_CRON_GATEWAY_HOME_AUDIT.md` ("The build container does not
+contain a Hermes executable ... no installed upstream module paths in this
+image to quote"). The real install layout is unknown.
+
+Why the test suite does not catch it: `tests/test-drive-local-hermes.sh`
+L33-40 has its fake installer create the executable at
+`"$HERMES_HOME/bin/hermes"` - the one path common to both resolver lists -
+so the divergence is never exercised. `tests/test_drive_hermes_contract.py`
+only asserts string presence in the guard files, not cross-file agreement
+of the candidate lists.
+
+Not previously flagged: `logs/CODEX_FULL_SANDBOX_REAUDIT_2026-09-05.md`
+L26-31 documents `ensure-hermes`'s three-state gate and its accepted
+executable locations, but does not note that `hermes-drive.*` - the file
+that actually runs Hermes for every skin/skill/cron/interactive call -
+uses a different, only-1-deep-overlapping list. `hermes-drive.*` probing
+venv-style paths (`hermes-agent/venv/bin/hermes`) that `ensure-hermes.*`
+never validates suggests the two files were written against different
+mental models of the installer's output.
+
+Suggested direction (NOT applied): on a machine with a real drive-local
+`.hermes-home`, run `find .hermes-home -name 'hermes*' -type f`
+(POSIX) / `Get-ChildItem -Recurse -Filter 'hermes*.exe' .hermes-home`
+(Windows), then make both resolvers share one authoritative, ordered
+candidate list (a single sourced helper, ideally). Until the real layout
+is known, any code change here is a guess.
+
+### F3 - `launch-north-forge.bat` L363-367: `:HERMES_READY` is unreachable dead code
+
+```bat
+:HERMES_READY
+if not exist "%HERMES_HOME%\hermes-agent\" exit /b 1
+if not exist "%HERMES_HOME%\venv\" exit /b 1
+if not exist "%HERMES_EXE%" exit /b 1
+exit /b 0
+```
+
+`grep -nE "call :HERMES_READY|goto :?HERMES_READY" launch-north-forge.bat`
+-> no match. The label is never invoked. It also references `%HERMES_EXE%`,
+which `grep -nE 'set +"?HERMES_EXE' launch-north-forge.bat` shows is never
+set anywhere in the file, so `if not exist "%HERMES_EXE%"` would expand to
+`if not exist ""` (always true) and the subroutine, if it ever ran, would
+`exit /b 1` on L366 regardless of Hermes state. Almost certainly a
+leftover from before install validation was factored out into
+`scripts\ensure-hermes.ps1` (L175). Zero runtime effect today. The `.sh`
+has no equivalent block. Recommend deleting L363-367 for tidiness on the
+next `.bat` touch; flagging rather than editing because dead code is not a
+reproducible bug.
+
+## Minor notes (not findings, no action requested)
+
+- `launch-north-forge.sh` L241 defines `hermes() { scripts/hermes-drive.sh
+  "$@"; }` but the cron block (L392-405) calls `scripts/hermes-drive.sh`
+  directly rather than through the function. Same target and behaviour;
+  purely stylistic.
+- `launch-north-forge.bat` L181 prepends
+  `%HERMES_HOME%\Scripts;%HERMES_HOME%\bin;%HERMES_HOME%` to `PATH`, but
+  every Hermes call after it uses `%HERMES_CMD%` (the wrapper), per the
+  L183-193 comment explaining that PATH-shadowing was the thing being
+  designed out. The PATH line is now near-vestigial but harmless (it can
+  still help if the engine itself shells out to a bare `hermes`). The
+  `.sh` side does the analogous prepend inside `ensure-hermes.sh` L23/L93
+  (`export PATH="$home/bin:$home:$PATH"`).
+
+## Verified sound (checked this session, no problem found)
+
+- **Skill frontmatter**: all 16 `skills-source/**/SKILL.md` open with a
+  `---` YAML block carrying `name:` and `description:`. The 16 `name:`
+  values are `menu, manual, assist, kb, draft, audit, flush, switch,
+  train, hl, esc, log, sales, web, kyocera-research, daily-brief` - all
+  distinct. (Folder names differ from several `name:` values by design -
+  e.g. `assist-intake` registers `/assist`, `forge-audit` registers
+  `/audit`, `sales-assist` registers `/sales`, `hotline-ticket` registers
+  `/hl`.)
+- **skills-guard `agent_config_mod` scanner**:
+  `grep -rnE "CLAUDE\.md|AGENTS\.md|\.cursorrules|\.clinerules"
+  skills-source/` returns nothing. The `forge-audit/SKILL.md` literal
+  `CLAUDE.md` that `NEXT_STEPS.md` flagged in its 2026-08-29 correction
+  (which said that one token -> verdict `dangerous` -> withheld from
+  `hermes skills list`) is gone: current L7 reads "unless a
+  code-maintenance or agent-configuration file is specifically requested".
+  No skill file currently trips that rule. (Not runnable here - hermes not
+  installed - but the static trigger is confirmed absent.)
+- **`.hermes.template.md` substitution markers**: `{{MODE_BANNER_BLOCK}}`
+  (L10), `{{COMMAND_MENU_BLOCK}}` (L58), `{{AGENT_NAME}}` (L13). Both
+  launchers substitute all three: `.sh` via the Python heredoc L209
+  (`.replace("{{MODE_BANNER_BLOCK}}", banner).replace("{{COMMAND_MENU_BLOCK}}",
+  menu).replace("{{AGENT_NAME}}", agent_name)`), `.bat` via inline
+  PowerShell L161 (`.Replace('{{MODE_BANNER_BLOCK}}',$b).Replace(
+  '{{COMMAND_MENU_BLOCK}}',$c).Replace('{{AGENT_NAME}}',$name)`). No
+  unreplaced marker type on either path.
+- **Template skill inventory currency**: `.hermes.template.md`
+  `how_this_package_is_organized` lists tsc-only = kb-builder,
+  draft-writer, hotline-ticket, assist-intake, escalation-packet,
+  forge-audit, fault-logging, training-guide (8) and shared =
+  sales-assist, web-navigator, menu, manual, flush, switch,
+  kyocera-research, daily-brief (8). That is exactly the 16 SKILL.md files
+  on disk. Template is current.
+- **mode-blocks vs skills**: `full-menu.md` lists `/menu /manual /assist
+  /kb /draft /audit /flush /switch /train /hl /esc /log /sales /web` -
+  every FULL skill. `sales-menu.md` lists only `/menu /manual /sales /web
+  /flush /switch` and an explicit "does not have that capability" reject
+  list for `/kb /hl /esc /audit /log /train /assist /draft`. Banners
+  (`full-banner.md`, `sales-banner.md`) consistent with each menu's scope.
+- **`scripts/name_validation.py`**: exposes both entry points the
+  launchers rely on - the `read_validated(path, default)` API used by the
+  `.sh` heredoc (L206, `from scripts.name_validation import
+  read_validated`; resolves as a namespace package because the heredoc's
+  `sys.path[0]` is the repo root it `cd`'d to on L9) and the `get --file
+  --default` argparse subcommand used by the `.bat` (L160), plus the
+  `drive` and `agent` actions both launchers call. `from __future__ import
+  annotations` (L9) guards the PEP-604 `str | None` hints. Injection
+  handling (control-byte strip, newline reject, 64-char cap, punctuation
+  allowlist) intact.
+- **`scripts/assemble-skills.ps1`** and the `.sh` `assemble_skills()`
+  function: matching shared list (8) and tsc list (8); staged build ->
+  validate every expected skill dir + SKILL.md -> file-count equality
+  check (`$stageCount -ne $sourceCount` / `stage_count -ne source_count`)
+  -> back up live -> atomic rename swap -> restore-on-failure. `.ps1` uses
+  a PID+GUID staging token; `.sh` uses `$$-$RANDOM` plus an EXIT trap that
+  restores the backup if the live dir is missing. Both preserve the prior
+  build on any failure.
+- **`scripts/hermes-drive.sh` / `.ps1`** gateway wrappers: both force
+  `HERMES_HOME` to `<repo>/.hermes-home`, `cd` to the repo, refuse to run
+  (exit 72) if `.hermes.template.md` or `.hermes-home` is absent or no
+  executable is found, and never fall back to a host Hermes. `.ps1` uses
+  `$homeDir` deliberately (not `$home`, a read-only automatic var - noted
+  in its own L3-8 comment). This is the isolation contract
+  `tests/test_cron_registration.py` and `tests/test_drive_hermes_contract.py`
+  check. (Caveat: the exe-resolution half of that contract is F2.)
+- **`git pull`** clean, working tree clean at start and now (except this
+  report), `bash -n launch-north-forge.sh` parses OK (b768e29 CRLF fix
+  holding under this box's `core.autocrlf=true`).
 
 ## Commits made this session
 
-1. **`b768e29`** "Add .gitattributes to pin shell scripts to LF (fixes
-   broken macOS/Linux first run)" - pushed to `origin/main`. Files:
-   `.gitattributes` (NEW, Zone A), `NEXT_STEPS.md` (Zone C dated entry),
-   `logs/CLAUDE_CODE_LAST_AUDIT.md` (Zone A, the first version of this
-   report). The 13 `*.sh` files are NOT in this commit - their committed
-   content did not change (blobs were already LF); only this drive's working
-   copies were corrected, a local checkout artifact.
-2. **`4fd9fa6`** "Place blinged README.md (in-session Blacksmith handoff)" -
-   pushed to `origin/main`. One file: `README.md` (Zone B placement),
-   202 insertions / 6 deletions. Written byte-for-byte as Kenneth pasted it.
-3. **(this commit, pending)** `logs/CLAUDE_CODE_LAST_AUDIT.md` - this
-   rewritten report covering both tasks. Zone A standing authorization.
-
-`.env` never staged (not present on this drive). `git status` clean between
-each commit and at end.
+1. **(this commit, pending)** `logs/CLAUDE_CODE_LAST_AUDIT.md` - this
+   report. Zone A standing authorisation (Claude Code's own operational
+   record). No other file staged. `.env` not present on this drive, never
+   staged.
 
 ## Uncertain / flagged for primary GPT review
 
-1. **`.gitattributes` is not literally on the CLAUDE.md Zone A list.** I
-   treated it as Zone A by direct analogy to `.gitignore`, which *is* on the
-   list: both are git repo-config dotfiles, mechanical, no field-support or
-   authored content, and a wrong line ending here is "an objective code
-   defect" in the Zone A sense. If the Blacksmith wants new top-level repo
-   files to route through a handoff even when they are pure plumbing, say so
-   and I will revert - the working-tree renormalization of the `.sh` files
-   stands on its own (those files are all explicitly Zone A) but without
-   `.gitattributes` committed, the next `core.autocrlf=true` checkout / pull
-   re-breaks them.
-2. **The `bash script.sh` parse-failure path is asserted, not reproduced
-   here.** Git-for-Windows bash tolerates trailing CR, so this machine runs
-   CRLF `.sh` files fine. The shebang failure (`env: 'bash\r'...`, exit 127)
-   *was* reproduced and is platform-independent. Someone with a real Mac or
-   Linux box should confirm `bash launch-north-forge.sh` now runs clean off
-   the renormalized drive - I could not.
-3. **No end-to-end launch was run.** `hermes` is not installed on this
-   machine, and there is no live model key on this drive, so neither
-   launcher was executed to completion this session. The fix is verified at
-   the byte / `bash -n` level only.
-4. **`.gitattributes` line-ending choice for `.ps1`.** I pinned `*.ps1` to
-   `eol=crlf` (Windows-native, matches current state). PowerShell 5.1+ and
-   pwsh both accept LF fine, so `eol=lf` would also work and would be more
-   consistent with a "LF in the repo" stance. Left as CRLF to change nothing
-   about the Windows scripts' current working-tree bytes. Easy to flip if
-   preferred.
-5. **`archive/setup-thumbdrive.ps1`** is now covered by the `*.ps1 eol=crlf`
-   rule. `archive/` is called out in CLAUDE.md as read-only historical
-   storage "even though it carries no separate zone label". The attribute
-   does not modify the file (it is already CRLF and stays CRLF); it only
-   pins that. Flagging that the rule's glob does reach into `archive/`.
-
-## Task 2 - `README.md` Zone B placement (commit `4fd9fa6`)
-
-### Trigger / authorization
-In the same session, after Task 1 was committed, Kenneth pasted a full
-revised `README.md` and described wanting "bling navigation Wingding and
-Github elements ... Just for me ... when I'm working and someone is watching
-they see bling." I did NOT auto-apply it. I read the current `README.md`
-(Zone B, 212 lines), read the pasted version, and presented a diff-flag
-summary (dropped intro paragraph; the `Advanced/` path fix not folded in;
-em-dash vs house-style hyphen; new `img.shields.io` dependency; some
-sections now condensed + full). I then asked place-as-is vs revise-first vs
-skin-only. Kenneth answered **"Place as-is + push"**. Per CLAUDE.md's Zone B
-placement exception + the 2026-08-26 CONFIRMED note ("an in-session named
-handoff from Kenneth ... identifying a specific Zone B file ... with an
-instruction to commit it - is the intended and sufficient trigger"), this
-is a valid placement. It is placement, not editing: I wrote the file
-byte-for-byte as pasted and did not compose, rephrase, or extend it.
-
-### Diff-before-placement check (CLAUDE.md 2026-08-29 STANDING RULE)
-`git diff --cached -M README.md`: 202 insertions, 6 deletions. Verified line
-by line that no previously-recorded deliberate fix is reverted:
-- `forge-audit` CLAUDE.md-token CORRECTION note in the file tree - PRESERVED
-  verbatim.
-- `.hermes/skills/` folder-name correction paragraph - PRESERVED.
-- "Project skills need to be trusted" auto-trust-tradeoff section - PRESERVED.
-- "Setting up a new drive" FAT32-refusal / exFAT-or-NTFS text - PRESERVED.
-- `%%LOCALAPPDATA%%\hermes`, the `full-drive-reset` "type the full path not
-  YES" section, the RESET eight-marker list - all PRESERVED.
-- "Built on Hermes Agent" + "Branding" ATTRIBUTION.md references and the
-  "Nous Research is not affiliated with or endorsing this deployment" line -
-  PRESERVED.
-- `## Repo governance`, `## Model choice matters`, `## Two-repo
-  architecture`, the full `## What's in here` tree, the GitHub-CLI admin
-  steps (now inside a `<details>`) - all PRESERVED, content unchanged.
-
-### What the 6 deletions are
-1. Old H1 `# North Forge - Hermes Edition` -> `<div align="center">` + ASCII
-   header + `# North Forge — Hermes Edition` (em-dash).
-2. `North Forge - Hermes Edition (Kyocera Edition v21.8) is part of the
-   North Forge project. Created and maintained by Kenneth C. Walker Jr. -
-   Senior Technical Support Engineer, TSC.` -> the descriptor moves into the
-   centered badge block; the "Created and maintained by Kenneth C. Walker
-   Jr. — Senior Technical Support Engineer, TSC" credit is kept there.
-3. `A field-support AI built specifically for Kyocera ... never asks you to
-   remember a slash command you don't already know.` -> shorter one-line
-   description.
-4. **`Why this exists: a technician on a call shouldn't have to open a
-   manual ...` - DELETED with no replacement.** Kenneth was shown this
-   specific flag before answering "place as-is".
-(5-6 are the blank lines around those.)
-
-### Additions (the "bling")
-ASCII compass + `NORTH FORGE` wordmark + anvil in a fenced block; 5
-`img.shields.io` `for-the-badge` shields (Engine / Version / Repository /
-Modes / Platform); `> [!NOTE]` and `> [!IMPORTANT]` GitHub admonitions;
-`## ⚡ At a glance` 2-col table; `### What it is designed to do` bullet list;
-`## 🧭 Navigate` anchor-link row; `## 🏗 Architecture` with a
-```mermaid flowchart TD``` and a `<details>` "Why this architecture exists";
-`## 🧰 Skills and runtime content` with a `skills-source/` tree and a
-`### FULL vs SALES` capability table (✅ / —); `🔧` on the Maintenance
-heading; the GitHub-admin block wrapped in `<details><summary>🔐
-Maintainer-only GitHub administration`; a centered `### 🔥 North Forge`
-footer with `<sub>` credit line. Several `---` rules and blank lines between
-existing sections.
-
-### Verification
-- `git diff --cached --stat` -> `README.md | 208 +/- , 202 insertions(+), 6
-  deletions(-)`.
-- Fenced-block delimiters: 20 ` ``` ` lines = 10 balanced blocks
-  (`text` ASCII art, `mermaid`, `text` skills tree, the big `What's in here`
-  block, `powershell` x2, `powershell` x2 more in the admin steps...). Even
-  count, no unterminated block.
-- 26 `#`-headings total; all 19 `## ` sections listed and present; anchor
-  targets in the Navigate row match the generated slugs for the headings
-  they point at (GitHub strips the emoji + leading space, hence the
-  leading `-` in `#-architecture` etc).
-- Not rendered/checked: actual GitHub preview (no network render this
-  session), and whether every `img.shields.io` URL returns 200 (external,
-  not fetched).
-- `git ls-files --eol README.md` -> `w/lf` (my Write wrote LF; the other
-  `.md` files on this drive are CRLF in the working tree). `.md` has no
-  `.gitattributes` rule; `core.autocrlf=true` will store the blob as LF
-  anyway, same as every other tracked `.md`. Cosmetic working-tree-only
-  difference, left as-is.
-
-### Flagged for primary GPT (Task 2)
-- The `b744b10` `Advanced/` path gap is still open and now sits under this
-  large decorative commit. If/when the Option A/B handoff for it arrives, it
-  must be diffed against `4fd9fa6`, not against `b85d649`.
-- `README.md` now depends on `img.shields.io` (5 external image requests on
-  render). This repo is otherwise deliberately self-contained (it gitignores
-  `.claude/` for that reason). Called out; Kenneth accepted it via
-  "place as-is".
-- The "Why this exists" rationale paragraph is gone from the README. If that
-  copy still has value it now lives nowhere in the repo's user-facing docs.
-- House style drift: the placed file uses em-dashes in headings/taglines
-  where every other file here uses spaced hyphens. Placement fidelity vs
-  house style - placement won, per instruction.
+1. **Part 1 of the request has no content yet.** Kenneth said "all three"
+   including "a Zone B handoff is incoming," but nothing was pasted. If a
+   revised `.hermes.template.md` or `skills-source/**` file is meant to
+   come, it still needs to be handed over as byte-for-byte content; this
+   session placed nothing. If "Hermes update" did NOT mean a handoff,
+   disregard - Parts 2 and 3 are covered above.
+2. **F2 is the one worth a decision.** It is a genuine cross-file
+   inconsistency in Zone A code that could produce a first-run stop
+   (`hermes skin use` exit 72 right after a "successful" install), but
+   only if the upstream installer's executable layout differs from the
+   single path the two resolvers share. Someone with a real Hermes
+   install needs to report the actual on-disk path(s) so both resolvers
+   can be reconciled to one list. Until then Claude Code should not guess.
+   Question for primary GPT / Blacksmith: is the venv-style layout that
+   `hermes-drive.*` assumes (`hermes-agent/venv/bin/hermes`) the real one,
+   in which case `ensure-hermes.*`'s validator is the file that is wrong,
+   or vice versa?
+3. **F1** - should the `.sh` size-guard be restructured to match the
+   `.bat`'s behaviour (show "Launch aborted: .hermes.md was not written."
+   and exit cleanly)? It is a one-block change (`if ! python3 ... then ...
+   fi`) but it is in the launcher's `errexit` control flow, so flagging
+   rather than doing it unprompted.
+4. **F3** - OK to delete the dead `:HERMES_READY` label
+   (`launch-north-forge.bat` L363-367) on the next `.bat` edit? Harmless
+   either way; just untidy.
+5. **Carried over, unchanged**: the five open flags from the c7cc3b0
+   report (`.gitattributes` ratification; real-hardware confirmation of
+   the renormalised `.sh`; README `img.shields.io` dependency; dropped
+   "Why this exists" paragraph; the `Advanced/` path gap in README.md +
+   USER_MANUAL.md needing a byte-for-byte Zone B handoff). None are in the
+   Hermes surface and none were touched this session.
 
 ## Status
 
 Needs primary GPT review.
-- Task 1: ratify `.gitattributes` as a Zone A addition or tell me to revert
-  (Uncertain item 1); confirm on real macOS/Linux hardware that the
-  renormalized `launch-north-forge.sh` now runs (Uncertain item 2). The
-  first-run break on this drive is fixed and verified at the byte / `bash
-  -n` level.
-- Task 2: `README.md` placed byte-for-byte per an explicit in-session
-  Blacksmith instruction and pushed (`4fd9fa6`). Confirm the placement is
-  accepted, and note the four Task-2 flags above - especially that the
-  `Advanced/` path gap is still open on top of this commit and that the
-  "Why this exists" paragraph was dropped.
+- No code changed. No Zone B file touched. Only this audit report
+  committed.
+- Decision needed on F2 (executable-resolver divergence) - the only
+  finding that could be a real first-run break, blocked on an upstream
+  fact not observable in this environment.
+- If "Hermes update" was meant to carry a Zone B handoff, that content
+  still needs to be pasted.
