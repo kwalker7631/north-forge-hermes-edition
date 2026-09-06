@@ -1,4 +1,5 @@
 <div align="center">
+<img src="assets/north-forge-banner-etched.png" alt="North Forge" width="820">
 
 ```text
                          N
@@ -295,6 +296,14 @@ The CLI is rebranded via a Hermes **skin** (`skins/north-forge.yaml`) - agent na
 `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md` is the complete, original, unsplit v21.8 master prompt - the same one used before the Hermes adaptation. If the drive, the engine, or the skill-loading mechanism is ever unavailable, copy that file's content into any chat AI (Claude, ChatGPT, Gemini, whatever's on hand) as a last resort - no setup required, works standalone. It is not auto-generated from `.hermes.template.md` and `skills-source/`, so keep it updated manually when the master prompt changes.
 
 ## Setting up a new drive (Windows) - the one canonical path
+
+North Forge is designed to run from the root of a USB drive or other
+portable/remote storage device, but it will work from the root of any
+drive - a laptop's internal drive, a network share, anywhere. Installing
+at a drive's root keeps it self-contained and makes it available to
+anyone who plugs in or mounts that drive, without needing anything
+pre-installed on the host machine beyond what the drive itself checks
+for at first launch.
 
 `provision-new-drive.ps1` is the only recommended way to set up a new drive. It is drive-letter-agnostic (does NOT assume D:, E:, or any specific letter - it lists the drives actually present and auto-picks if there's only one), hard-refuses to ever touch the system (`C:`) drive no matter how it's selected, and refuses to proceed on a FAT32-formatted drive (4GB file-size cap, real problems here) - exFAT or NTFS only. It installs Git if missing, clones (or pulls, if already cloned), and launches - one command, nothing else to run first.
 
