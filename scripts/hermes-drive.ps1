@@ -26,11 +26,16 @@ if (-not (Test-Path -LiteralPath $homeDir -PathType Container)) {
     Stop-DriveJob 'the drive-local .hermes-home is unavailable'
 }
 
+# Same ordered list as scripts\ensure-hermes.ps1 Get-HermesExe - the install
+# guard and this runtime wrapper MUST agree. Grounded in install.ps1's layout
+# (venv console script; $HERMES_HOME\bin launcher staged by Set-PathVariable,
+# .exe for a normal venv or .cmd for a relocatable one). Speculative .venv\,
+# flat venv\, and bare Scripts\ paths were removed - the installer only ever
+# creates $InstallDir\venv and stages into $HERMES_HOME\bin.
 $candidates = @(
     (Join-Path $homeDir 'hermes-agent\venv\Scripts\hermes.exe'),
-    (Join-Path $homeDir 'hermes-agent\.venv\Scripts\hermes.exe'),
-    (Join-Path $homeDir 'venv\Scripts\hermes.exe'),
-    (Join-Path $homeDir 'Scripts\hermes.exe')
+    (Join-Path $homeDir 'bin\hermes.exe'),
+    (Join-Path $homeDir 'bin\hermes.cmd')
 )
 $hermes = $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 if (-not $hermes) { Stop-DriveJob 'the drive-local Hermes executable is unavailable' }

@@ -5,9 +5,19 @@ $stage = Join-Path $RepoRoot '.hermes-install-staging'
 $marker = Join-Path $RepoRoot '.hermes-install-incomplete'
 $logs = Join-Path $RepoRoot 'install-logs'
 
+# Ordered list of where a drive-local Hermes launcher lands after a default
+# install. Grounded in install.ps1, not guessed: venv at $InstallDir\venv
+# (= $HERMES_HOME\hermes-agent\venv), console script venv\Scripts\hermes.exe;
+# Set-PathVariable then stages that launcher into $HERMES_HOME\bin as hermes.exe
+# (normal venv) or hermes.cmd (relocatable venv). MUST stay identical to
+# scripts\hermes-drive.ps1's list - the guard and the runtime wrapper are not
+# allowed to disagree.
 function Get-HermesExe([string]$Root) {
-    @((Join-Path $Root 'Scripts\hermes.exe'), (Join-Path $Root 'bin\hermes.exe'), (Join-Path $Root 'hermes.exe')) |
-        Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+    @(
+        (Join-Path $Root 'hermes-agent\venv\Scripts\hermes.exe'),
+        (Join-Path $Root 'bin\hermes.exe'),
+        (Join-Path $Root 'bin\hermes.cmd')
+    ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 }
 function Test-HermesHome([string]$Root) {
     return [bool](Get-HermesExe $Root) -and (Test-Path (Join-Path $Root 'hermes-agent\pyproject.toml') -PathType Leaf)

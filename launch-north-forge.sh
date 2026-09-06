@@ -194,7 +194,12 @@ assemble_skills || exit 1
 
 python3 scripts/name_validation.py agent
 
-python3 - "$MODE" << 'PYEOF'
+# Heredoc is the `if` condition itself: under `set -e` a bare `python3 <<EOF`
+# that exits non-zero aborts the script before any following `if [ $? -ne 0 ]`
+# can run, so the "Launch aborted" message below was previously unreachable on
+# the failure path. `if ! ...` both suppresses errexit for this command and
+# reaches the message. (.bat side already handles this; cmd.exe has no errexit.)
+if ! python3 - "$MODE" << 'PYEOF'
 import sys, os
 mode = sys.argv[1]
 with open(".hermes.template.md", "r", encoding="utf-8") as f:
@@ -223,7 +228,7 @@ if size >= 19800:
 with open(".hermes.md", "w", encoding="utf-8") as f:
     f.write(tmpl)
 PYEOF
-if [ $? -ne 0 ]; then
+then
     echo "Launch aborted: .hermes.md was not written."
     exit 1
 fi

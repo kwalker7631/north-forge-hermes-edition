@@ -19,7 +19,15 @@ fail() {
 [ -f "$REPO_DIR/.hermes.template.md" ] || fail "the removable repository is unavailable"
 [ -d "$HERMES_HOME" ] || fail "the drive-local .hermes-home is unavailable"
 HERMES_EXE=""
-for candidate in "$HERMES_HOME/hermes-agent/venv/bin/hermes" "$HERMES_HOME/hermes-agent/.venv/bin/hermes" "$HERMES_HOME/venv/bin/hermes" "$HERMES_HOME/bin/hermes"; do
+# Same ordered list as scripts/ensure-hermes.sh hermes_executable() - the install
+# guard and this runtime wrapper MUST agree. Grounded in the upstream install.sh
+# layout (venv console script; $HERMES_HOME/bin for --no-venv / test fixtures;
+# checked-in ./hermes launcher). Speculative .venv/ and flat venv/ paths were
+# removed - the installer only ever creates $INSTALL_DIR/venv.
+for candidate in \
+    "$HERMES_HOME/hermes-agent/venv/bin/hermes" \
+    "$HERMES_HOME/bin/hermes" \
+    "$HERMES_HOME/hermes-agent/hermes"; do
     if [ -x "$candidate" ]; then HERMES_EXE="$candidate"; break; fi
 done
 [ -n "$HERMES_EXE" ] || fail "the drive-local Hermes executable is unavailable"

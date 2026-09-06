@@ -1,9 +1,21 @@
 #!/usr/bin/env bash
 # Drive-local Hermes installation guard. This file is sourced by the launcher.
 
+# Ordered list of where a drive-local Hermes executable lands after a default
+# (USE_VENV=true) install. Grounded in the upstream installer, not guessed:
+#   install.sh -> INSTALL_DIR=$HERMES_HOME/hermes-agent, venv at $INSTALL_DIR/venv,
+#   pyproject [project.scripts] "hermes" -> venv/bin/hermes. The checked-in
+#   ./hermes launcher (upstream mode 100755, shebang python3) is also present in
+#   the clone. $HERMES_HOME/bin/ only holds managed `uv` on POSIX, but is kept
+#   here for --no-venv installs and is the path the North Forge test fixtures
+#   stub. MUST stay identical to scripts/hermes-drive.sh's list - the install
+#   guard and the runtime wrapper are not allowed to disagree.
 hermes_executable() {
     local root="$1" candidate
-    for candidate in "$root/bin/hermes" "$root/hermes" "$root/hermes-agent/hermes"; do
+    for candidate in \
+        "$root/hermes-agent/venv/bin/hermes" \
+        "$root/bin/hermes" \
+        "$root/hermes-agent/hermes"; do
         [ -f "$candidate" ] && [ -x "$candidate" ] && { printf '%s\n' "$candidate"; return 0; }
     done
     return 1

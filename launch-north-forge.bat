@@ -359,9 +359,3 @@ exit /b 0
 :LOG_PROVIDER_DETAIL
 powershell -NoProfile -Command "$text=((Get-Content -Raw -LiteralPath '%~1')+(Get-Content -Raw -LiteralPath '%~2')); $safe=$text -replace '(?i)(api[_-]?key|token|secret|password)(\s*[:=]\s*)\S+','$1$2[REDACTED]'; Add-Content -LiteralPath 'forge-events.log' -Value ('[provider-config detail] '+$safe.Trim())"
 exit /b 0
-
-:HERMES_READY
-if not exist "%HERMES_HOME%\hermes-agent\" exit /b 1
-if not exist "%HERMES_HOME%\venv\" exit /b 1
-if not exist "%HERMES_EXE%" exit /b 1
-exit /b 0
