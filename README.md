@@ -1,34 +1,6 @@
 <div align="center">
 <img src="assets/north-forge-banner-etched.png" alt="North Forge" width="820">
 
-<img src="assets/north-forge-banner-etched.png" alt="North Forge" width="820">
-
-```text
-                         N
-                         ▲
-                         │
-                    W ◄──┼──► E
-                         │
-                         ▼
-                         S
-
-          _   _  ___  ____ _____ _   _    _____ ___  ____   ____ _____
-         | \ | |/ _ \|  _ \_   _| | | |  |  ___/ _ \|  _ \ / ___| ____|
-         |  \| | | | | |_) || | | |_| |  | |_ | | | | |_) | |  _|  _|
-         | |\  | |_| |  _ < | | |  _  |  |  _|| |_| |  _ <| |_| | |___
-         |_| \_|\___/|_| \_\|_| |_| |_|  |_|   \___/|_| \_\\____|_____|
-
-                         ╔═══════════════╗
-                    _____║   NORTH FORGE ║_____
-                   /     ╚═══════════════╝     \
-                  /_____________________________\
-                          \           /
-                           \_________/
-                              ||
-                            __||__
-                           /______\
-```
-
 # North Forge — Hermes Edition
 
 ### Field intelligence. Built locally. Forged for the work.
