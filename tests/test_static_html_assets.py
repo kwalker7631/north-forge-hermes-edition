@@ -45,10 +45,11 @@ class StaticHtmlAssetTests(unittest.TestCase):
 
         self.assertEqual([], missing, "Missing local HTML assets: " + ", ".join(missing))
 
-    def test_welcome_uses_expected_logo_paths(self):
+    def test_welcome_uses_expected_header_image_paths(self):
         parser = LocalReferenceParser()
         parser.feed(HTML_FILES[0].read_text(encoding="utf-8"))
 
+        self.assertIn("assets/north-forge-banner-mono.png", parser.references)
         self.assertIn("assets/north-forge-icon.svg", parser.references)
         self.assertIn("assets/logo-kyocera-1024.png", parser.references)
 

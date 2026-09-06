@@ -101,6 +101,7 @@ Files:
 - `skills-source/**` (every skill file, built or placeholder)
 - `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`
 - `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html`
+- `WELCOME.html`
 - `CLAUDE.md` (this file, itself)
 
 Reasoning: this is the technical/field-support content itself - the same
