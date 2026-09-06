@@ -1,6 +1,8 @@
 <div align="center">
 <img src="assets/north-forge-banner-etched.png" alt="North Forge" width="820">
 
+<img src="assets/north-forge-banner-etched.png" alt="North Forge" width="820">
+
 ```text
                          N
                          ▲
