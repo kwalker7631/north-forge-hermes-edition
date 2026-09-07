@@ -64,9 +64,19 @@ try {
     else { Invoke-WebRequest 'https://hermes-agent.nousresearch.com/install.ps1' -OutFile $installer -UseBasicParsing }
     Add-Content $log "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] [PASS] Installer acquired; installer invocation started."
     $oldHome = $env:HERMES_HOME; $env:HERMES_HOME = $stage
-    & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $installer *>> $log
-    $exitCode = $LASTEXITCODE
-    $env:HERMES_HOME = $oldHome
+    $oldErrorActionPreference = $ErrorActionPreference
+    try {
+        # Windows PowerShell 5.1 turns native stderr into an error record. The
+        # Hermes installer writes normal diagnostics there, so do not let those
+        # messages terminate this wrapper; its process exit code remains the
+        # authoritative success/failure signal.
+        $ErrorActionPreference = 'Continue'
+        & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $installer *>> $log
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $oldErrorActionPreference
+        $env:HERMES_HOME = $oldHome
+    }
 } catch { $_ | Out-File $log -Append; $exitCode = 1 }
 if ($exitCode -ne 0 -or -not (Test-HermesHome $stage)) {
     Add-Content $log "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] [FAIL] Installer/validation failed (installer exit $exitCode; executable and pyproject check did not both pass)."

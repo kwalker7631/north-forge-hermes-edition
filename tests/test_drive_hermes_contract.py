@@ -33,3 +33,22 @@ def test_windows_guard_has_three_states_staging_and_diagnostics():
         "[COMPLETE] Hermes installation activated",
     ):
         assert required in guard
+
+
+def test_windows_installer_allows_diagnostics_and_restores_parent_state():
+    guard = (ROOT / "scripts/ensure-hermes.ps1").read_text(encoding="utf-8")
+    invocation = guard.split("$oldHome = $env:HERMES_HOME", 1)[1]
+
+    assert "$ErrorActionPreference = 'Continue'" in invocation
+    assert "& powershell.exe" in invocation
+    assert "$exitCode = $LASTEXITCODE" in invocation
+    assert "finally {" in invocation
+    assert "$ErrorActionPreference = $oldErrorActionPreference" in invocation
+    assert "$env:HERMES_HOME = $oldHome" in invocation
+
+    # Continue must be scoped to the child installer call; the wrapper's
+    # write/staging checks still rely on the script-wide Stop setting.
+    continue_at = invocation.index("$ErrorActionPreference = 'Continue'")
+    installer_at = invocation.index("& powershell.exe")
+    restore_at = invocation.index("$ErrorActionPreference = $oldErrorActionPreference")
+    assert continue_at < installer_at < restore_at
