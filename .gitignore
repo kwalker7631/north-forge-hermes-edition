@@ -71,3 +71,12 @@ node_modules/
 # stray old build artifact by that name can never be committed by accident.
 # Root-anchored so it does not touch skills-source/ (tracked source content).
 /skills/
+
+# Drive-local Hermes installer runtime state written by scripts/ensure-hermes.ps1
+# / scripts/ensure-hermes.sh. Per-drive, generated at install time, never source.
+# "*.log" above already catches files inside install-logs/, but not the
+# directory itself nor the staged installer script it also writes
+# (hermes-installer-*.ps1) - so all three are named explicitly here.
+/.hermes-install-incomplete
+/.hermes-install-staging/
+/install-logs/
