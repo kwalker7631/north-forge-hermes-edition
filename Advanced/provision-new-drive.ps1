@@ -129,7 +129,14 @@ Set-Location -LiteralPath $repositoryPath
 # carry a custom icon; only a .lnk can. Its target is drive-letter-specific, so
 # it is generated here (and re-created by the launcher if ever deleted), never
 # committed. Same principle as the launcher's existing Desktop shortcut.
-$rootShortcut = Join-Path $repositoryPath "North Forge.lnk"
+#
+# This must be the actual drive root ("${target}:\"), NOT $repositoryPath -
+# $repositoryPath is the "north-forge-hermes-edition" subfolder this script
+# always clones into, one level below the real root. Joining against it here
+# reproduced the same bug the launcher had: the shortcut silently landed at
+# <drive>:\north-forge-hermes-edition\North Forge.lnk instead of
+# <drive>:\North Forge.lnk (confirmed on a real drive 2026-09-11).
+$rootShortcut = Join-Path "${target}:\" "North Forge.lnk"
 if (-not (Test-Path -LiteralPath $rootShortcut)) {
     try {
         $shell = New-Object -ComObject WScript.Shell

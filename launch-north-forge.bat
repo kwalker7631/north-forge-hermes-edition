@@ -107,20 +107,31 @@ if not exist "!DESKTOPDIR!\North Forge.lnk" (
 
 rem --- one obvious thing to double-click at the drive root itself: a real
 rem .lnk carrying assets\north-forge.ico and pointing at this launcher. A .bat
-rem can never show a custom icon; only a .lnk can. The target path is
-rem drive-letter-specific, so it is generated here (and by
-rem provision-new-drive.ps1 at provisioning time) and never committed.
-if not exist "%~dp0North Forge.lnk" (
+rem can never show a custom icon; only a .lnk can. This must land at the
+rem actual drive root (e.g. E:\), NOT inside this checkout's own folder -
+rem provision-new-drive.ps1 always clones into a "north-forge-hermes-edition"
+rem subfolder, so %~dp0 (this script's own directory) IS that subfolder, one
+rem level below the real root, on every drive set up that way. Using %~dp0
+rem here silently placed the shortcut a folder too deep (reproduced on a real
+rem drive 2026-09-11: "North Forge.lnk" landed in
+rem <drive>:\north-forge-hermes-edition\ instead of <drive>:\). %~d0 is the
+rem drive letter only, so "%~d0\" is the true root regardless of how deep
+rem this script itself is nested. The target path is drive-letter-specific,
+rem so it is generated here (and by provision-new-drive.ps1 at provisioning
+rem time) and never committed.
+set "ROOTSHORTCUT=%~d0\North Forge.lnk"
+if not exist "%ROOTSHORTCUT%" (
     powershell -NoProfile -Command ^
-        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%~dp0North Forge.lnk');" ^
+        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%ROOTSHORTCUT%');" ^
         "$s.TargetPath='%~f0'; $s.WorkingDirectory='%~dp0';" ^
         "$s.IconLocation='%~dp0assets\north-forge.ico'; $s.Description='North Forge - double-click to start'; $s.Save()" >nul 2>nul
-    if exist "%~dp0North Forge.lnk" (
-        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [shortcut]: drive-root North Forge.lnk created with icon
+    if exist "%ROOTSHORTCUT%" (
+        >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [shortcut]: drive-root North Forge.lnk created with icon at "%ROOTSHORTCUT%"
     ) else (
-        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [shortcut]: drive-root North Forge.lnk creation FAILED
+        >> "forge-events.log" echo [%DATE% %TIME%] [WARNING] [shortcut]: drive-root North Forge.lnk creation FAILED ^(target: "%ROOTSHORTCUT%"^)
     )
 )
+set "ROOTSHORTCUT="
 
 rem --- log repo state at launch (no git pull happens here by design - drives
 rem update manually; this records what code the session ran on) ---
