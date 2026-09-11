@@ -12,11 +12,11 @@ Try one of these:
 
     /menu
 
-**Want to see it write a real hotline ticket, then make it sound human?**
+**Want to see it write a real hotline ticket?**
 
-1. Type `/hl` and describe a cold-call scenario (a machine model,
-   a symptom, nothing tried yet — just "what should I prepare for")
-2. Once it gives you the write-up, type `/humanizer` and watch it
-   rework the same text so it reads like you typed it yourself
+Type `/hl` and describe a cold-call scenario (a machine model, a
+symptom, nothing tried yet — just "what should I prepare for"). It'll
+give you a paste-ready write-up: next step, evidence to collect, and
+when to escalate.
 
 That's it. Poke around, ask it anything — that's the whole point.
