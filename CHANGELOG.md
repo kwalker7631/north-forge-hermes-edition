@@ -4,6 +4,21 @@ Plain-language running log of what actually changed and why. Distinct from `git 
 
 ## [Unreleased] - 2026-09-12
 
+### Security (later session, Claude Code - branch protection applied)
+
+- **`main` branch protection applied**, matching `north-forge-agent`'s own
+  hardening from `RUN-2026-09-11-002`: `enforce_admins: true`,
+  `allow_force_pushes: false`, `allow_deletions: false`,
+  `allow_fork_syncing: false` (via `PUT /repos/kwalker7631/
+  north-forge-hermes-edition/branches/main/protection`). Closes the gap
+  flagged in the same-day connector/access audit (this repo had **zero**
+  branch protection before this). Verified live afterward with a separate,
+  independent `GET` on the protection endpoint (not the `PUT` call's own
+  echoed response) plus a direct query of the `enforce_admins`
+  sub-resource specifically - all four settings confirmed enabled/disabled
+  as intended, and cross-checked byte-for-byte identical to
+  `north-forge-agent`'s current live config on the same four fields.
+
 ### Governance (2026-09-12 session, Claude Code - deploy-console zoned, authorship check)
 
 - **`Advanced/deploy-console/` given a Zone A assignment in `CLAUDE.md`.**
