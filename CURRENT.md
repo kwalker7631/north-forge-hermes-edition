@@ -8,21 +8,18 @@ and [FOR_THE_PERSON_GETTING_THIS_DRIVE.txt](Advanced/deploy-console/FOR_THE_PERS
 
 ## Why this exists
 
-A tech types **what is an F248** into Google or a generic chatbot and gets a
-confident wrong paragraph. They give up. That is not on them. Nobody on a
-live call is going to paste an 8,000-character prompt.
-
-This pack *is* that prompt, broken into compartments: device, PC, network,
-PaperCut, MyQ, ticket, KB, escalation. The tech talks like a coworker.
-If the pack does not have the page, it is supposed to say so and keep the
-answer after someone supplies it.
+A tech on a live call should not have to become a prompt engineer. This pack
+is the long prompt, broken into compartments: device, PC, network, PaperCut,
+MyQ, ticket, KB, escalation. The tech talks like a coworker. If the pack does
+not have the page, it is supposed to say so and keep the answer after someone
+supplies it.
 
 Built by Kenneth C. Walker Jr. as a pocket senior — learns from the shop,
 corrects when caught, does not sound like a brochure.
 
 Architecture since 2026-09-11: this repo is a profile pack that installs into
-the public North Forge checkout. FULL/SALES launchers in the long README are
-history.
+the public North Forge checkout. FULL/SALES launchers in the long historical
+README are history.
 
 ## Domain
 
@@ -34,8 +31,9 @@ history.
 ## Skill catalog
 
 | Skill folder | Tech types | Job |
-|---|---|---|
+|---|---|
 | `menu` | `/menu` | Front door |
+| `readme` | `/readme` | Documentation map (public chassis or this edition) |
 | `assist-intake` | `/a` `/assist` | Structured intake |
 | `hotline-ticket` | `/hl` `/ticket` | Hotline / ticket packet |
 | `kb-builder` | `/kb` | Draft to the locked KB template |
@@ -52,11 +50,14 @@ history.
 | `flush` | `/flush` | Clear generated scratch |
 | `switch` | `/switch` | Edition switch (open sticks only) |
 
+`readme` lives in both `skills-source/shared/readme/` and `skills/readme/` so a
+profile install sees it without depending on an unpublished chassis assembler.
+
 Sharp / Ricoh / Xerox later = this table, different portals and templates.
 
 ## Ship it
 
-`Advanced/deploy-console/ADMIN_FIRST_TIME.txt`  
+Preferred: [Advanced/deploy-console/ADMIN_FIRST_TIME.txt](Advanced/deploy-console/ADMIN_FIRST_TIME.txt)  
 Stick: **8 GB or larger**. Windows first. Offline only with a local model.
 
 Roadmap (not shipped): database, graphical workbench, graph / slides / video
