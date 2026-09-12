@@ -1,0 +1,19 @@
+NORTH FORGE
+What you do. That is the whole list.
+
+1. Plug the stick in.
+2. Open it like any USB drive.
+3. Double-click "Start North Forge".
+4. Wait until a window asks you a question.
+5. Type the problem in normal English. Press Enter.
+
+If you get lost, type this and press Enter:
+
+    /menu
+
+You do not need a password, GitHub, or Python.
+
+Do not format the stick.
+Do not delete folders.
+Do not "update" anything.
+If it breaks, hand it back to Kenneth.
