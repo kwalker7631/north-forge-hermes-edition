@@ -90,7 +90,12 @@ try {
     $listener.Start()
 }
 catch {
-    throw "Could not bind $prefix. Is the port in use? $($_.Exception.Message)"
+    throw @"
+Could not open the local web page at $prefix
+$($_.Exception.Message)
+
+Fix: close any old Deploy Console window, or right-click Launch-Deploy-Console.cmd and Run as administrator.
+"@
 }
 
 Write-Host ""
@@ -116,23 +121,19 @@ try {
                 Send-Text $res $html 'text/html; charset=utf-8'
                 continue
             }
-
             if ($req.HttpMethod -eq 'GET' -and $path -eq '/api/drives') {
                 Send-Json $res @{ drives = @(Get-UsbDrives) }
                 continue
             }
-
             if ($req.HttpMethod -eq 'GET' -and $path -eq '/api/status') {
                 Send-Json $res (Get-Prereq)
                 continue
             }
-
             if ($req.HttpMethod -eq 'POST' -and $path -eq '/api/deploy') {
                 if ($script:DeployLock) {
                     Send-Json $res @{ ok = $false; error = 'A deploy is already running.' } 409
                     continue
                 }
-
                 $raw = Read-Body $req
                 $body = $raw | ConvertFrom-Json
                 $letter = [string]$body.letter
@@ -140,7 +141,6 @@ try {
                 $tier = [string]$body.tier
                 $pass = [string]$body.passcode
                 $skipFormat = [bool]$body.skipFormat
-
                 if ($letter -notmatch '^[A-Za-z]$') {
                     Send-Json $res @{ ok = $false; error = 'Pick a USB drive letter.' } 400
                     continue
@@ -149,40 +149,51 @@ try {
                     Send-Json $res @{ ok = $false; error = 'Type FORMAT in capitals to allow wipe.' } 400
                     continue
                 }
-                if ($tier -notin @('full', 'basic')) { $tier = 'full' }
+                if ($tier -notin @('full', 'basic')) { $tier = 'basic' }
                 if ([string]::IsNullOrWhiteSpace($pass) -or $pass.Length -lt 6) {
                     Send-Json $res @{ ok = $false; error = 'Admin passcode must be at least 6 characters.' } 400
                     continue
                 }
-
+                $prereq = Get-Prereq
+                if (-not $prereq.git) {
+                    Send-Json $res @{ ok = $false; error = 'Git is not installed. Install Git for Windows, then retry.' } 400
+                    continue
+                }
+                if (-not $prereq.ghAuthed) {
+                    Send-Json $res @{ ok = $false; error = 'GitHub is not signed in. On this PC open a terminal and run: gh auth login' } 400
+                    continue
+                }
                 $script:DeployLock = $true
                 $logDir = Join-Path $env:TEMP 'north-forge-deploy'
                 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
                 $logFile = Join-Path $logDir ("deploy-" + (Get-Date -Format 'yyyyMMdd-HHmmss') + ".log")
-
                 $argList = @(
                     '-NoProfile', '-ExecutionPolicy', 'Bypass',
                     '-File', $Engine,
                     '-DriveLetter', $letter.ToUpperInvariant(),
-                    '-Tier', $tier,
-                    '-Passcode', $pass
+                    '-Tier', $tier
                 )
                 if ($skipFormat) { $argList += '-SkipFormat' }
                 else { $argList += @('-ConfirmFormat', 'FORMAT') }
-
-                $p = Start-Process -FilePath 'powershell.exe' -ArgumentList $argList `
-                    -RedirectStandardOutput $logFile `
-                    -RedirectStandardError "$logFile.err" `
-                    -PassThru -WindowStyle Hidden
-
-                Send-Json $res @{
-                    ok      = $true
-                    pid     = $p.Id
-                    logFile = $logFile
+                try {
+                    $prevPass = $env:NF_ADMIN_PASSCODE
+                    $env:NF_ADMIN_PASSCODE = $pass
+                    $p = Start-Process -FilePath 'powershell.exe' -ArgumentList $argList `
+                        -RedirectStandardOutput $logFile `
+                        -RedirectStandardError "$logFile.err" `
+                        -PassThru -WindowStyle Hidden
+                    Send-Json $res @{ ok = $true; pid = $p.Id; logFile = $logFile }
+                }
+                catch {
+                    $script:DeployLock = $false
+                    Send-Json $res @{ ok = $false; error = "Could not start deploy: $($_.Exception.Message)" } 500
+                }
+                finally {
+                    if ($null -eq $prevPass) { Remove-Item Env:NF_ADMIN_PASSCODE -ErrorAction SilentlyContinue }
+                    else { $env:NF_ADMIN_PASSCODE = $prevPass }
                 }
                 continue
             }
-
             if ($req.HttpMethod -eq 'GET' -and $path -eq '/api/log') {
                 $logFile = [string]$req.QueryString['file']
                 if (-not $logFile -or $logFile -notmatch 'north-forge-deploy' -or -not (Test-Path -LiteralPath $logFile)) {
@@ -205,7 +216,6 @@ try {
                 Send-Json $res @{ text = $text; running = $running }
                 continue
             }
-
             Send-Text $res 'not found' 'text/plain' 404
         }
         catch {
