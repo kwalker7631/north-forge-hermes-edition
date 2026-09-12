@@ -53,6 +53,26 @@ Files:
 - `tests/*.py`
 - `full-drive-reset.sh`
 - `full-drive-reset.bat`
+- `Advanced/deploy-console/*.ps1`
+- `Advanced/deploy-console/*.cmd`
+- `Advanced/deploy-console/ui/*.html`
+- `Advanced/deploy-console/VERSION.txt`
+
+Extended 2026-09-12 to explicitly include the deploy-console code/UI entries
+above (`Zero-Touch-Deploy.ps1`, `Start-DeployConsole.ps1`,
+`Launch-Deploy-Console.cmd`, `ui/index.html`, `VERSION.txt`): this whole
+subsystem was added 2026-09-12 with no zone assignment at all, flagged in
+that session's audit. Same mechanical-glue reasoning as the rest of Zone A -
+a local web server + PowerShell orchestration wrapping `bootstrap-north-forge.ps1`
+/ `nf-setup.ps1`, no field-support judgment content. Deliberately **not**
+included: the prose/admin-facing files in the same folder -
+`Advanced/deploy-console/README.md`, `DEPLOY.md`, `Deploy-NorthForge.md`,
+`ADMIN_FIRST_TIME.txt`, `FOR_THE_PERSON_GETTING_THIS_DRIVE.txt` - these are
+authored handoff/instructional text for an admin or a non-coder, the same
+category as the root-level Zone B docs, not mechanical glue; they are Zone B
+by the same reasoning as `README.md` below, pending the Blacksmith's
+confirmation this analogy is correct (not yet added to the Zone B list
+explicitly - flagged, not resolved, in the 2026-09-12 session audit).
 
 Extended 2026-09-06 to explicitly include the seven `scripts/`/`tests/`/
 `full-drive-reset.*` entries above: mechanical glue/test code, same
@@ -171,6 +191,13 @@ Files:
 - `NEXT_STEPS.md`
 - `DEMO_PREP_BACKLOG.md`
 - `CHANGELOG.md`
+- `ADVISOR-BRIEFING.md`
+
+Added 2026-09-12: `ADVISOR-BRIEFING.md` - a short, paste-elsewhere status doc
+for external AI tools (Grok, ChatGPT, Gemini, etc.), explicitly telling the
+reading tool it has no write access here. Same category as the rest of this
+list - keep it current at the end of significant sessions, not a one-time
+document.
 
 Reasoning: this is a running work-status log, not field-support content and
 not infrastructure code - it's closer to the audit report than to Zone A or
@@ -293,7 +320,7 @@ state:
 
 ```text
 NORTH FORGE HERMES EDITION - CLAUDE CODE WORKING RULES ACTIVE
-Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, machine-reset.bat, setup script, provision-new-drive.ps1, .env.example, skins/north-forge.yaml, this audit report, .gitignore
+Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, machine-reset.bat, setup script, provision-new-drive.ps1, .env.example, skins/north-forge.yaml, this audit report, .gitignore, Advanced/deploy-console/ scripts+UI (not its README/DEPLOY docs)
 Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, FIRST_TIME_README.txt, USER_MANUAL.md, CLAUDE.md
 Zone C (operational docs, may update + commit freely): NEXT_STEPS.md, DEMO_PREP_BACKLOG.md, CHANGELOG.md
 Git: git pull automatically at session start; auto-commit/push for Zone A fixes, Zone C updates, and placing pre-approved Zone B handoffs; never author or edit Zone B content myself

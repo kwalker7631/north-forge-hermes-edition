@@ -2,6 +2,34 @@
 
 Plain-language running log of what actually changed and why. Distinct from `git log` (which needs git to read) and `logs/CLAUDE_CODE_LAST_AUDIT.md` (which is Claude Code's own session-to-session working notes, overwritten each session). This file is the human-readable history - what happened, in the order it happened, kept permanently.
 
+## [Unreleased] - 2026-09-12
+
+### Governance (2026-09-12 session, Claude Code - deploy-console zoned, authorship check)
+
+- **`Advanced/deploy-console/` given a Zone A assignment in `CLAUDE.md`.**
+  The whole subsystem (`Zero-Touch-Deploy.ps1`, `Start-DeployConsole.ps1`,
+  `Launch-Deploy-Console.cmd`, `ui/index.html`, `VERSION.txt`) was added
+  earlier the same day with no zone assignment at all, flagged in that
+  session's audit. Added as Zone A (mechanical glue, same reasoning as the
+  rest of that list). Deliberately left **out** of Zone A: the prose/
+  admin-facing files in the same folder (`README.md`, `DEPLOY.md`,
+  `Deploy-NorthForge.md`, `ADMIN_FIRST_TIME.txt`,
+  `FOR_THE_PERSON_GETTING_THIS_DRIVE.txt`) - treated as Zone B by analogy
+  to the root docs, pending Kenneth confirming that analogy is right (not
+  yet added to the explicit Zone B list).
+- **Authorship of the 2026-09-12 04:00-05:37 session (Deploy Console,
+  `README.md` rewrite, `CURRENT.md`, `LEARNING.md`) checked, result:
+  genuinely unclear, not guessed at.** Every commit in that burst
+  (`dbe5e7c`..`1cfdf98`) is authored *and* committed under Kenneth's own
+  GitHub identity, unsigned (no GPG), with no `Co-Authored-By:` /
+  `Claude-Session:` / Codex-style trailer of any kind - the same shape a
+  human typing and committing directly would produce, and also the same
+  shape an AI session committing under Kenneth's own local git identity
+  with no trailer habit would produce. Commit cadence (spaced roughly
+  1-30 minutes apart across 90 minutes) doesn't distinguish the two either.
+  No technical signal in the git history settles this either way. If it
+  matters for the record, only Kenneth can say who/what was actually typing.
+
 ## [Unreleased] - 2026-09-11
 
 ### Changed (2026-09-11 session, Claude Code - retired standalone install model, adopted as a Hermes profile distribution)
