@@ -52,6 +52,16 @@ Plain-language running log of what actually changed and why. Distinct from `git 
   to list them. `python -m pytest tests/` went from 12 failed / 11 passed to
   11 passed / 0 failed.
 
+### Added (later session, Claude Code - one-line README link, Zone B handoff)
+
+- **`README.md`'s "Start here" table: one row added**, linking to
+  `north-forge-agent/ARCHITECTURE.md` (the new engineering-audience
+  architecture reference in the public chassis repo). Per Kenneth's
+  explicit in-session instruction naming the exact link text and target -
+  this is placement of a specific, named addition, not composition of new
+  README content, so it's made directly per the Zone B placement
+  exception. No other `README.md` content touched.
+
 ### Security (later session, Claude Code - branch protection applied)
 
 - **`main` branch protection applied**, matching `north-forge-agent`'s own

@@ -29,6 +29,7 @@ procedures, skills, and deploy tools that do not belong on a public page.
 | Start here | Purpose |
 |---|---|
 | **[CURRENT.md](CURRENT.md)** | Current architecture and skill catalog |
+| **[north-forge-agent/ARCHITECTURE.md](https://github.com/kwalker7631/north-forge-agent/blob/main/ARCHITECTURE.md)** | How the chassis actually works internally |
 | **[Advanced/deploy-console/DEPLOY.md](Advanced/deploy-console/DEPLOY.md)** | Build a stick without typing Git |
 | **[LEARNING.md](LEARNING.md)** | How the pack gets less wrong over time |
 | **`/readme kyocera`** | In-session pointer to this set |
