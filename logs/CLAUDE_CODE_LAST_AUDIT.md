@@ -1,92 +1,155 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-12 (early evening session, follow-up to today's
-consolidated cross-repo investigation)
-Requested task: per Kenneth's task, in two parts — (1) create
-`ADVISOR-BRIEFING.md`, a short paste-elsewhere status doc for external AI
-tools, to be maintained going forward; (2) three small governance items from
-today's earlier consolidated report: zone `Advanced/deploy-console/` in
-`CLAUDE.md`, determine (for the ledger) who/what authored today's
-04:00-05:37 session's content, and explicitly do NOT touch the 9 failing
-tests or `skills/menu/SKILL.md`.
+Timestamp: 2026-09-12 (late session)
+Requested task: per
+`C:\Users\kwalk\Downloads\CLAUDE_TASK_authorship_and_access_audit.md` — two
+independent items: (1) replace the prior "genuinely unclear" authorship note
+with Kenneth's direct statement of who actually built the 2026-09-12
+04:00-05:37 session's content; (2) a full, read-only audit of every
+GitHub connector/integration currently attached to this repo, each one's
+actual permission scope, last activity, and whether it matches the standing
+rule (external AI tools = suggestions only; Claude Code = sole
+implementation authority) — with Grok's current access specifically
+confirmed for the record, not changed.
 
-## Files inspected
+## Files inspected / commands run
 
-- `CLAUDE.md`, `CHANGELOG.md` (to match existing structure/voice before
-  editing either)
-- `git show -s --format=fuller` on all 9 commits of today's 04:00-05:37
-  burst (`dbe5e7c`, `8d06cf2`, `e190ccd`, `6c92b94`, `9496888`, `2d220b3`,
-  `2ded494`, `015cb1d`, `1cfdf98`) — author, committer, GPG signature status,
-  full commit body — looking for any AI-session trailer or signing signal
-- `Advanced/deploy-console/` file listing (to split code/UI from prose docs
-  for the zone assignment)
+- `gh auth status` (confirmed session identity: `kwalker7631`, token scopes
+  `gist, read:org, repo, workflow`)
+- `gh api repos/.../collaborators` (both repos)
+- `gh api repos/.../hooks` (webhooks, both repos)
+- `gh api repos/.../keys` (deploy keys, both repos)
+- `gh api repos/.../branches/main/protection` (both repos)
+- `gh api user/installations` (attempted — see limitation below)
+- `gh api user/keys`, `gh api user/gpg_keys` (attempted — see limitation
+  below)
+- `gh pr list --state all` on both repos, filtered for bot authors
+- `gh api repos/.../pulls/<n>` on every bot-authored PR, checking
+  `merged_by` / `merged_by_type` / `auto_merge`
+- `git log --all` (full commit-author history, both repos)
+- `gh api repos/.../commits/main/check-runs` and `/status` (hermes-edition)
+- `find .github` (hermes-edition — confirmed no workflow files exist there)
 
 ## Zone A changes made
 
-- **`CLAUDE.md`**: added `Advanced/deploy-console/*.ps1`,
-  `Advanced/deploy-console/*.cmd`, `Advanced/deploy-console/ui/*.html`,
-  `Advanced/deploy-console/VERSION.txt` to the Zone A file list, with a new
-  "Extended 2026-09-12" paragraph explaining the reasoning (mechanical glue,
-  same as the rest of Zone A) and explicitly naming what was deliberately
-  left out (the prose/admin docs in that same folder — see Zone B findings
-  below). Also updated the "Required first response" summary line to match.
-  Also added `ADVISOR-BRIEFING.md` to the Zone C list (see Commits below).
-  Commit `80dbb56`.
-- This audit file itself, same commit as always.
+None. This was a read-only audit (Part 2) plus one Zone C content update
+(Part 1, `CHANGELOG.md` — see Commits below; not a Zone A action).
 
 ## Zone B findings (not fixed — reported only)
 
-- **`Advanced/deploy-console/README.md`, `DEPLOY.md`, `Deploy-NorthForge.md`,
-  `ADMIN_FIRST_TIME.txt`, `FOR_THE_PERSON_GETTING_THIS_DRIVE.txt`** —
-  Kenneth's instruction said "Add `Advanced/deploy-console/` to CLAUDE.md's
-  zone list (Zone A ...)" without distinguishing the folder's code from its
-  prose. I zoned only the code/UI files as Zone A and left these five
-  docs unzoned-but-flagged, treating them as Zone B by analogy to the root
-  `README.md`/`ADMIN_FIRST_TIME.txt`-style content (authored, admin/
-  non-coder-facing instructional text, not mechanical glue). This is a
-  judgment call, not what was literally asked — flagging it rather than
-  silently narrowing the instruction. If Kenneth actually meant the whole
-  folder including its docs, that needs to be said explicitly and the
-  zone list updated again.
-- **Authorship of today's 04:00–05:37 burst — genuinely could not be
-  determined, not guessed at.** Checked every commit's author, committer,
-  GPG status, and full body: all nine are authored and committed under
-  Kenneth's own GitHub identity (`kwalker7631`), unsigned, with no
-  `Co-Authored-By:` / `Claude-Session:` / any Codex-style trailer. That is
-  exactly what a human typing and committing directly would produce, and
-  also exactly what an AI session committing under Kenneth's own local git
-  config with no trailer habit would produce — no technical signal
-  distinguishes the two. Recorded as genuinely unclear in `CHANGELOG.md`
-  (commit `80dbb56`) rather than asserting either answer.
+None new.
+
+## Part 1 result — authorship note updated
+
+`CHANGELOG.md`'s 2026-09-12 authorship entry replaced: the prior
+"genuinely unclear from git evidence" language is now Kenneth's own direct
+statement (not a git inference) — `Advanced/deploy-console/` was built
+working with **Grok**, which had direct GitHub write access to this repo at
+the time; the `README.md` rewrite and related docs (`CURRENT.md`,
+`LEARNING.md`, `skills-source/shared/readme/SKILL.md`) were produced
+working with **ChatGPT/Codex**. Cited as the owner's statement of record.
+Commit `dc444cc`, pushed.
+
+## Part 2 result — connector/integration access audit
+
+| Actor | Mechanism | Permission observed | Last activity | Matches standing rule? |
+| --- | --- | --- | --- | --- |
+| Kenneth (`kwalker7631`) | Repo collaborator | `admin` on both repos (only collaborator listed on either) | Ongoing | N/A — owner |
+| **GitHub Copilot coding agent** (`copilot-swe-agent[bot]`) | GitHub App | **PR-open only, in practice** — 25 PRs on `north-forge-agent` (2026-09-08–10) + 1 PR on `north-forge-hermes-edition` (2026-09-06, #19), **100% merged by `kwalker7631` himself** (`merged_by_type: "User"` on every one checked), `auto_merge: null` on all — the bot never merged its own work or pushed directly | `north-forge-agent`: PR #25, 2026-09-10; hermes-edition: PR #19, 2026-09-06 | **Matches** — suggestion/review-gated, human is sole merger. This is the reference standard the task asked to compare Grok against. |
+| Codex (ChatGPT) | Local CLI, not a repo-attached connector | Every `codex/*`-branch PR in hermes-edition's history (#1–21) was opened **and merged** by `kwalker7631` — no separate bot identity anywhere; it runs under Kenneth's own local git/gh credentials | Most recent PR #21, 2026-09-07 | N/A — not an installed connector at all, so nothing to scope-check |
+| **Grok** | **Unknown** — no bot-attributable commit or PR exists in either repo's history; if it wrote directly (per Kenneth's Part-1 statement), it did so under Kenneth's own git identity, not as a separately-badged actor the way Copilot's bot account is | **Could not be verified this session** — see limitation below | Unknown — no attributable trace | **Cannot confirm current state from here — see below** |
+| Webhooks | Repo setting | None configured on either repo | — | N/A |
+| Deploy keys | Repo setting | None configured on either repo | — | N/A |
+| CI / check-runs / GitHub Actions | Repo setting | hermes-edition: no `.github/workflows`, no check-runs, no commit statuses on `main` at all — no CI configured | — | N/A |
+| Branch protection | Repo setting | `north-forge-agent`: protected (`enforce_admins`, no force-push, no fork-syncing, no deletions). **`north-forge-hermes-edition`: `main` has NO branch protection at all** (`404 Branch not protected`) | — | **Mismatch, flagged below** |
+
+### Grok — could not confirm current permission scope
+
+Tried three ways to get a live answer, all blocked by tooling, not by
+choice:
+
+1. `gh api user/installations` → `403`: this repo's `gh` token is a normal
+   OAuth token, not a GitHub-App user-to-server token, so it cannot list
+   app installations. There is no REST endpoint that lets a personal
+   account's regular token enumerate "which GitHub Apps / OAuth Apps are
+   currently authorized against my account or this repo" — GitHub only
+   exposes that through the web UI for a personal (non-org) account.
+2. `gh api user/keys` / `user/gpg_keys` → `403`, missing
+   `admin:public_key`/`admin:gpg_key` scope. Getting that scope requires
+   `gh auth refresh`, which opens an interactive re-authorization flow —
+   an account-permission change, not something to trigger without asking
+   first, so I did not.
+3. Tried the Claude-in-Chrome browser tool to check
+   `github.com/settings/installations` (account-wide) and
+   `github.com/kwalker7631/north-forge-hermes-edition/settings/installations`
+   (repo-scoped) directly — **the Chrome extension is not connected in this
+   environment**, so this wasn't possible either.
+
+**What I can say for certain:** Grok has left no trace as a distinctly
+identified GitHub App or bot account in either repo's commit/PR/check-run
+history — unlike Copilot's `copilot-swe-agent[bot]`, which is fully
+attributable. That absence is itself informative: if Grok's write access
+was granted the "proper" way (an installed GitHub App with its own scoped
+permissions, reviewable and revocable from Settings → Installations), it
+would be expected to leave the same kind of distinct trail Copilot did —
+its own bot identity on any commit or PR it made. It doesn't. That's
+consistent with (not proof of) Grok having been given write access via a
+personal access token or similar credential under Kenneth's own account
+rather than a separately scoped, separately auditable installation — which
+would be a materially different, harder-to-audit, harder-to-revoke kind of
+access than Copilot's.
+
+**What actually needs checking, and by whom:** Kenneth checking
+`github.com/settings/installations` and
+`github.com/kwalker7631/north-forge-hermes-edition/settings/installations`
+directly in a browser is the only way to get a definitive current answer —
+exactly the two pages GitHub shows this on for a personal account. He said
+he's handling the change there directly; this note is so the "confirm
+current state" half of the ask isn't silently marked done when it wasn't.
+
+### The one concrete, verified, flaggable mismatch
+
+**`north-forge-hermes-edition`'s `main` branch has zero branch
+protection** — no restriction on force-pushes, branch deletion, or who can
+push directly, and `enforce_admins` isn't even a question because there's
+no protection rule to enforce. `north-forge-agent` has had this protection
+since the `RUN-2026-09-11-002` fork-sync incident; this repo has never had
+it. Combined with Kenneth's own Part-1 statement that Grok "had direct
+GitHub write access to this repo at the time" Deploy Console was built:
+whatever access Grok has right now, there is currently **nothing on this
+repo** that would stop a force-push, history rewrite, or branch deletion by
+anything holding write access, the same class of exposure
+`north-forge-agent` was hardened against. This is the one item from this
+audit that is fully verified (not speculative) and squarely matches "write
+access that shouldn't have it" in spirit, even though it's a repo setting
+rather than a connector setting — flagged, not changed, since Part 2 asked
+for a report only and this wasn't the specific thing asked to fix.
 
 ## Commits made this session
 
-- `80dbb56` — "Add ADVISOR-BRIEFING.md; zone deploy-console; log authorship
-  check (2026-09-12)" — `ADVISOR-BRIEFING.md` (new, Zone C), `CLAUDE.md`
-  (Zone A list + Zone C list updated), `CHANGELOG.md` (Zone C entry
-  recording the zone change and the authorship-check result). Pushed.
+- `dc444cc` — "CHANGELOG: record actual authorship of 2026-09-12 session,
+  per Kenneth" (Part 1). Pushed.
 - (pending, immediately after this report is written) — this file.
+- No commits for Part 2 — report-only, as instructed. No connector/
+  integration/branch-protection setting was touched.
 
 ## Uncertain / flagged for primary GPT review
 
-- The Zone A/B split within `Advanced/deploy-console/` above — confirm the
-  docs-as-Zone-B judgment call is right, or say the whole folder (docs
-  included) should be Zone A.
-- The authorship question remains genuinely open. If it matters for the
-  record beyond "flagged, unclear," only Kenneth can settle it.
-- Per Kenneth's explicit instruction this session, the 9 failing tests
-  (stale references to the retired standalone launcher) and
-  `skills/menu/SKILL.md`'s stale FULL/SALES mode-routing text were
-  deliberately **not** touched — both still need his decision on the right
-  fix, already flagged in the prior session's report and in
-  `[[north-forge-hermes-edition-governance]]` memory.
-- `ADVISOR-BRIEFING.md`'s "Current state" section is a curated, short
-  summary, not the full ledger — it will drift if not updated at the end of
-  future significant sessions; worth a standing reminder the way
-  `logs/CLAUDE_CODE_LAST_AUDIT.md` itself already has one.
+- Grok's actual current permission scope — genuinely not confirmed this
+  session, for the tooling reasons above, not for lack of trying. Needs
+  Kenneth's own check of the two Settings→Installations pages (or a future
+  session with a working Chrome connection).
+- `north-forge-hermes-edition` has no branch protection at all — flagged
+  above, not fixed, since it wasn't what this pass was asked to change.
+  Worth its own explicit decision given the Grok write-access context.
+- The Zone A/B split I made for `Advanced/deploy-console/` in the prior
+  session (code = Zone A, its docs = Zone B by analogy) is still awaiting
+  Kenneth's confirmation, per that session's own audit — unchanged this
+  session.
 
 ## Status
 
-Clean. Both requested governance items resolved (one with an explicit,
-flagged judgment call on scope; the other reported as genuinely unclear per
-instruction). Nothing touched that was told not to be touched.
+Needs primary GPT review — Part 1 clean and complete; Part 2 complete for
+everything checkable from this environment, with one real unresolved
+verification (Grok's live scope) and one real unresolved repo-security gap
+(hermes-edition's unprotected `main`) surfaced, not silently dropped.
