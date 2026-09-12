@@ -32,6 +32,19 @@
 *.cmd       text eol=crlf
 *.ps1       text eol=crlf
 
+# Advanced/deploy-console/Launch-Deploy-Console.cmd showed as "modified" on
+# every fresh checkout across two independent sessions (2026-09-12) - always
+# byte-identical to HEAD once actually diffed (confirmed via `cmp`), never
+# real content drift. Root cause: this file's committed blob predated (or
+# briefly drifted from) this eol=crlf rule, so a plain checkout kept
+# re-normalizing it. Decision: keep CRLF for *.cmd (the policy above is
+# deliberate - Windows-only scripts should read naturally in a Windows
+# editor/terminal, same reasoning as the LF pin on *.sh for the opposite
+# platform), not relax it for this one file - that would make the ruleset
+# inconsistent for no functional gain, since a `git add --renormalize .`
+# (already run this session) is the correct, one-time fix for blob drift
+# and does not recur once the blob itself matches the rule.
+
 # Binary assets - never run line-ending or diff filters on these.
 *.png       binary
 *.ico       binary
