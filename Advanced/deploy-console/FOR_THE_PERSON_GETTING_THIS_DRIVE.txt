@@ -5,15 +5,18 @@ What you do. That is the whole list.
 2. Open it like any USB drive.
 3. Double-click "Start North Forge".
 4. Wait until a window asks you a question.
-5. Type the problem in normal English. Press Enter.
+5. Type the problem the way you would tell a coworker.
+   Example: TASKalfa 3554ci showing F248 after a paper jam.
+   Say the model. Say what you already tried.
 
 If you get lost, type this and press Enter:
 
     /menu
 
-You do not need a password, GitHub, or Python.
+You do not need a password, GitHub, or a class.
+You do not need to "learn AI."
 
-Do not format the stick.
-Do not delete folders.
-Do not "update" anything.
+If it gives you an answer that feels thin, say so.
+Tell it what page or fact it is missing.
+Do not format the stick. Do not delete folders.
 If it breaks, hand it back to Kenneth.
