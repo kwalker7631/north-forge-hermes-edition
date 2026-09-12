@@ -1,144 +1,65 @@
 # North Forge Deploy Console
 
-Admin-only tool for building a **formatted USB thumb drive** that carries:
+**Version:** 0.2.0  
+**Date:** 2026-09-12  
+**Author:** Kenneth C. Walker Jr.  
+**Access:** Admin only (this folder lives in the private Kyocera edition repo)
 
-1. Public engine: `kwalker7631/north-forge-agent`
-2. Private Kyocera edition: `kwalker7631/north-forge-hermes-edition` → `private-editions/kyocera`
-3. Drive-local Python venv + `HERMES_HOME` (siblings of the checkout)
-4. Signed provisioning (`full` or `basic`, pinned to `kyocera`)
-5. Admin passcode hash in `<data>\north-forge\.nf-admin` (never stored in this repo)
+Builds a portable USB that runs North Forge without installing anything on the teammate's PC.
 
-This matches the architecture locked on **2026-09-11**: the Hermes edition is a
-profile distribution, not a standalone launcher.
+If you are building a stick, start at `ADMIN_FIRST_TIME.txt`.  
+If you were handed a stick, start at `FOR_THE_PERSON_GETTING_THIS_DRIVE.txt`.
 
-## What you get
+## Why this exists
 
-| File | Role |
-|---|---|
-| `Launch-Deploy-Console.cmd` | Double-click. Opens the web UI. |
-| `Start-DeployConsole.ps1` | Local web UI (default http://127.0.0.1:8765) |
-| `Zero-Touch-Deploy.ps1` | The actual deploy engine (CLI or called by the UI) |
-| `ui/index.html` | The console page |
+A teammate should never type `git`, `gh`, or PowerShell. Those belong on **your** admin PC, once. After `gh auth login`, every stick is: plug in → Run as administrator → fill in the web page → wait.
 
-The web UI never talks to the internet except through `git` / `gh` on your machine.
-USB format and clones run **locally** as the logged-in Windows user.
-
-## Before first use (admin machine)
-
-1. Windows 10/11, PowerShell 5.1+
-2. [Git](https://git-scm.com/) on PATH
-3. [GitHub CLI](https://cli.github.com/) on PATH, signed in as **kwalker7631**:
-
-   ```
-   gh auth login
-   ```
-
-   HTTPS is fine. Confirm private-repo access:
-
-   ```
-   gh repo view kwalker7631/north-forge-hermes-edition
-   ```
-
-4. Python 3.11+ **or** `uv` on PATH (bootstrap uses host toolchain if the drive
-   does not yet carry `north-forge-agent-toolchain`). First bootstrap needs
-   network.
-
-## Web UI (recommended)
-
-```
-Launch-Deploy-Console.cmd
-```
-
-Or:
-
-```
-powershell -ExecutionPolicy Bypass -File Start-DeployConsole.ps1
-```
-
-Then in the page:
-
-1. Refresh USB list
-2. Pick the **removable** drive
-3. Choose tier (`full` = switcher on, `basic` = locked to kyocera)
-4. Type `FORMAT` (exact) — this is the only way format runs
-5. Set the admin passcode (≥ 6 characters). It is sent once into
-   `nf-setup.ps1 -NonInteractive -SetPasscode -Passcode …` and stored as a
-   PBKDF2 hash. It is not written into any file in this console.
-6. Deploy. Watch the live log.
-
-The UI **refuses**:
-
-- System drive / `C:`
-- Non-removable volumes
-- Empty or mismatched FORMAT confirmation
-- Missing `git` / `gh` / GitHub auth
-
-## CLI (same engine, no browser)
-
-```
-powershell -ExecutionPolicy Bypass -File Zero-Touch-Deploy.ps1 `
-  -DriveLetter E `
-  -ConfirmFormat FORMAT `
-  -Tier full `
-  -Passcode "your-admin-passcode"
-```
-
-Optional:
-
-```
--SkipFormat          # reuse a drive already labeled NorthForge
--SkipBootstrap       # repos already cloned; only pin / passcode
--AgentRepoUrl        # override public clone URL
--EditionRepoUrl      # override private clone URL
--Label NorthForge
-```
-
-## What lands on the stick
+## What a finished stick contains
 
 ```
 E:\
-  north-forge-agent\              engine checkout
-    private-editions\kyocera\     private profile (gitignored on the engine)
-  north-forge-agent-venv\         Python venv (sibling)
-  north-forge-agent-data\         HERMES_HOME (sibling)
-  .uv-cache\                      optional uv cache on the same volume
+  Start North Forge.lnk          double-click this
+  HOW_TO_START.txt
+  north-forge-agent\             public engine
+    private-editions\kyocera\    only if this stick is a Kyocera stick
+  north-forge-agent-venv\
+  north-forge-agent-data\        HERMES_HOME + admin passcode hash
 ```
 
-Launch after deploy:
+## Stick types (2026-09-11 architecture)
 
-```
-E:\north-forge-agent\north-forge.cmd
-```
+The old on-drive FULL / SALES toggle is retired. Do not use `toggle-mode.bat`.
 
-## Why the old attached .ps1 was replaced
+| Choice in the page | What it means |
+|---|---|
+| Locked stick | `basic` tier. The pin is the only project they can reach. |
+| Open stick | `full` tier. You can switch later. Also installs Penny, Pine Barron, field-service overlays when they exist in the engine. |
+| North Forge / Kyocera | Private profile from this repo. Priority for TSC. |
+| Pocket Penny | Public overlay `editions/penny-pincher` in the engine. |
+| Pine Barron Farms | Public overlay `editions/pine-barron-farms`. Studio is still growing; canon packet is deploy-time, not in git. |
+| Field-service | Public voice overlay. |
 
-The draft in chat was corrupted by Word/Markdown (broken `Where-Object`,
-broken `for` loop, split `Write-Host` strings, `Set-Location` to a bare
-drive letter). This console is the clean replacement and calls the real
-`scripts\bootstrap-north-forge.ps1` and `scripts\nf-setup.ps1` from the
-engine repo instead of inventing a third install path.
+## Files
 
-## On-the-fly edits after a drive exists
+| File | Role |
+|---|---|
+| `ADMIN_FIRST_TIME.txt` | Admin setup with almost no typing |
+| `FOR_THE_PERSON_GETTING_THIS_DRIVE.txt` | Tape this to the stick |
+| `Launch-Deploy-Console.cmd` | Start the local web page |
+| `Start-DeployConsole.ps1` | Local server on 127.0.0.1:8765 |
+| `Zero-Touch-Deploy.ps1` | Format, clone, bootstrap, pin, lock |
+| `ui/index.html` | The page |
+| `VERSION.txt` | Version and authorship |
 
-Do **not** format again. From the engine checkout on the stick:
+## Safety
 
-```
-cd E:\north-forge-agent
-git -C private-editions\kyocera pull
-powershell -ExecutionPolicy Bypass -File scripts\nf-setup.ps1 -Show
-```
+- Refuses `C:` and the Windows system drive
+- Formats only removable USB (`DriveType=2`) and only if you type `FORMAT`
+- Format requires Run as administrator
+- Passcode is not put on the process command line; hash only on the stick
+- Private Kyocera clone requires GitHub signed in as the repo owner
 
-Content updates for an already-pinned profile:
+## Authorship
 
-```
-hermes profile update kyocera
-```
-
-(run via `north-forge.cmd` so `HERMES_HOME` points at the sibling data dir)
-
-Re-pin / rotate passcode (admin only):
-
-```
-powershell -ExecutionPolicy Bypass -File scripts\nf-setup.ps1 -SetPasscode
-powershell -ExecutionPolicy Bypass -File scripts\nf-setup.ps1 -Tier full -Pin kyocera -Installed kyocera
-```
+Kenneth C. Walker Jr. — sole admin of the private edition.  
+Engine is a public fork of Hermes Agent (Nous Research, MIT). See the engine `ATTRIBUTION.md`.
