@@ -67,7 +67,7 @@ As of 11 September 2026 this repository is a **profile pack**. It installs into 
 
 Retired launchers remain under `archive/legacy-standalone-launcher/`. Do not use them for a new stick.
 
-Cron scheduling for `kyocera-research` and `daily-brief` is declared in each skill's own `SKILL.md` frontmatter and picked up automatically by the chassis's `scripts/nf_sync_cron.py` on every launch and after provisioning — fixed 12 September 2026, closing the gap where a Basic-tier stick never got its research/brief jobs registered because nobody typed `/cron add` by hand. See the "Setup note" in each skill file for the fallback command and for the `hermes gateway install` step a registered job still needs to actually fire unattended.
+Cron scheduling for `kyocera-research` and `daily-brief` is declared in each skill's own `SKILL.md` frontmatter and picked up automatically by the chassis's `scripts/nf_sync_cron.py` on every launch and after provisioning — fixed 12 September 2026, closing the gap where a Basic-tier stick never got its research/brief jobs registered because nobody typed `/cron add` by hand. That same pass now also installs and starts the Hermes gateway service itself (the same zero-prompt path `hermes setup` uses) the first time a job needs one, so a registered job fires unattended without anyone running `hermes gateway install` by hand. See the "Setup note" in each skill file for the manual fallback commands for both steps.
 
 ```
 USB
