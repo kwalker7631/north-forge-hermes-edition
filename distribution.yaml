@@ -1,0 +1,22 @@
+# North Forge edition — Kyocera.
+# A Hermes profile distribution: `hermes profile install <this-repo>` (as a
+# local directory, e.g. cloned into north-forge-agent's private-editions/)
+# clones this into <HERMES_HOME>/profiles/kyocera/.
+#
+# This repo used to be a standalone, drive-installable product with its own
+# launcher and installer (see archive/legacy-standalone-launcher/README.md
+# for why that was retired). It now ships as a plain Hermes profile
+# distribution like north-forge-agent's other editions/ overlays, installed
+# into an already-running North Forge/Hermes environment - no separate
+# .hermes-home, no separate venv, no bootstrap script of its own.
+name: kyocera
+version: 0.1.0
+description: >-
+  Field-support AI content for Kyocera Document Solutions: KB authoring,
+  hotline assist, escalation packets, fault logging, and pre-sales guidance
+  for technicians and sales reps.
+author: North Forge
+license: MIT
+hermes_requires: ">=0.12.0"
+
+env_requires: []

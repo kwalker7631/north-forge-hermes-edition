@@ -1,5 +1,22 @@
 # Build Status
 
+## 2026-09-11 session (Claude Code) - retired standalone launcher, adopted as a Hermes profile distribution
+
+Full detail in `CHANGELOG.md` and `logs/CLAUDE_CODE_LAST_AUDIT.md`. Summary:
+mechanical restructuring done (launcher/installer/mode-system quarantined into
+`archive/`, `skills-source/` flattened to `skills/`, new `distribution.yaml`
+at repo root). **Still needs the Blacksmith's own hand** (Zone B, not
+composed by Claude Code):
+- `SOUL.md` authored from `.hermes.template.md` (drop the retired
+  `{{MODE_BANNER_BLOCK}}`/`{{COMMAND_MENU_BLOCK}}`/`{{AGENT_NAME}}` templating)
+- `skills/menu/SKILL.md` updated - no longer routes between FULL/SALES modes
+- `README.md`, `USER_MANUAL.md`, `FIRST_TIME_README.txt`, `WELCOME.html`
+  rewritten for the new install path (same gap pattern as the 2026-09-05
+  entry below - drop-in text still needed)
+- Recommended: tag the release (`git tag v0.1.0`) once the above lands, to
+  start using the versioning the profile-distribution model expects
+  (see `hermes-agent.nousresearch.com/docs` profile-distributions guide)
+
 ## Done
 - `.hermes.template.md` - core template (identity, persona, startup routing, universal rules, Hermes-specific memory/skill-lock addendum, mode-aware banner/menu markers)
 - `mode-blocks/` - FULL and SALES banner + menu content

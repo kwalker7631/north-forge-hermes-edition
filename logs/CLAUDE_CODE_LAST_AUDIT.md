@@ -1,121 +1,127 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-11 (session start ~D:\ drive, real-drive check against E:\ GREG-NORTH)
-Requested task: Confirm where the root-drive "North Forge.lnk" shortcut is actually supposed
-to get created, and why it ended up inside the checkout folder instead of at the drive root
-(E:\) on the real Greg-North install. Determine whether launch-north-forge.bat/.sh creates
-the root-drive shortcut itself, or whether that's solely provision-new-drive.ps1's job; if the
-launcher placed it wrong, fix it; if it's meant to require a separate provisioning step, say so
-plainly.
+Timestamp: 2026-09-11 (session continuing from a north-forge-agent D:-drive
+verify-and-reclone task; Kenneth then gave a major correction/new task in the
+same session)
+Requested task: Retire this repo's standalone install model entirely. Strip
+its own launcher/installer, restructure real content (`skills-source/`,
+`mode-blocks/`, the KYO_KB_TITAN template) to match `north-forge-agent`'s
+`editions/` pattern (`SOUL.md` + `distribution.yaml` + `skills/`), then have
+it git-cloned directly into a new gitignored `private-editions/` slot in
+`north-forge-agent`, switched into via Hermes's own `hermes profile
+install`/`use` (no new command). Plan was written and approved in
+`north-forge-agent`'s session context; this report covers this repo's half.
 
 ## Files inspected
-- `launch-north-forge.bat` (root-drive shortcut block, lines ~108-136 pre-fix)
-- `launch-north-forge.sh` (confirmed no drive-root `.lnk` logic exists on the Mac/Linux side -
-  Desktop `.command` only, at line 250; `.lnk`/COM shortcuts are Windows-only by design)
-- `Advanced/provision-new-drive.ps1` (root-drive shortcut block, lines ~126-147 pre-fix)
-- `tests/provision-new-drive.Tests.ps1`
-- Real installed state on `E:\` (GREG-NORTH, exFAT, the actual Greg-North drive):
-  `E:\north-forge-hermes-edition\North Forge.lnk` (misplaced, timestamp 2026-09-11 01:26,
-  matches `forge-events.log` line 5: `[INFO] [shortcut]: drive-root North Forge.lnk created
-  with icon`), `E:\north-forge-hermes-edition\forge-events.log`, `.drive-record.txt`
-  (registered to GREGW at 01:26:39, same run). No `E:\North Forge.lnk` existed at the true
-  root at any point observed. No evidence in `forge-events.log` that `provision-new-drive.ps1`
-  ever ran on this drive (no git-clone-stage log lines, no PS "Placed a 'North Forge'
-  shortcut..." message) - the repo there was set up by a plain `git clone` directly into
-  `E:\north-forge-hermes-edition`, then launched via `launch-north-forge.bat`.
-
-## Finding
-
-Both `launch-north-forge.bat` and `Advanced/provision-new-drive.ps1` create the drive-root
-shortcut **themselves** - this is not a "must run provisioning separately" situation; the
-launcher's own first-run block is explicitly meant to (re)create it every time it's missing,
-independent of whether `provision-new-drive.ps1` ever ran. Confirmed by reading the code and by
-`forge-events.log` line 5 on the real drive, which is the launcher's own log line, not the
-provisioning script's.
-
-The bug: both scripts built the shortcut's path by joining against their **own** directory
-instead of the actual drive root.
-- `launch-north-forge.bat` used `%~dp0North Forge.lnk` - `%~dp0` is the batch file's own
-  directory, i.e. `E:\north-forge-hermes-edition\`, not `E:\`.
-- `provision-new-drive.ps1` used `Join-Path $repositoryPath "North Forge.lnk"` -
-  `$repositoryPath` is always `Join-Path "${target}:\" "north-forge-hermes-edition"`, the same
-  one-level-too-deep folder, never the bare `${target}:\`.
-
-Both scripts' own comments say "the drive root" / "drive's own root," so this was a genuine
-logic bug (using the checkout folder as a stand-in for the drive root, which is only correct
-if the repo were ever cloned directly to `X:\` with no subfolder - it never is; provisioning
-always uses the `north-forge-hermes-edition` subfolder). Reproduced live: `E:\` root has no
-`North Forge.lnk`; `E:\north-forge-hermes-edition\North Forge.lnk` does, with a creation
-timestamp matching the launcher's own log line.
+`launch-north-forge.bat`/`.sh`, `scripts/ensure-hermes.ps1`/`.sh`,
+`scripts/hermes-drive.ps1`/`.sh`, `scripts/machine-reset-safety.ps1`,
+`Advanced/*`, `tests/*` (the launcher-coupled ones), `mode-blocks/*.md`,
+`scripts/assemble-skills.ps1`, `skills-source/shared/*`,
+`skills-source/tsc-only/*`, `skills/kb-builder/SKILL.md`,
+`.hermes.template.md`, `CLAUDE.md` (this repo's own Zone A/B/C governance),
+`AGENTS.md`, `CHANGELOG.md`, `NEXT_STEPS.md`, `README.md`, `USER_MANUAL.md`,
+`FIRST_TIME_README.txt`, `WELCOME.html`.
 
 ## Zone A changes made
-
-1. `launch-north-forge.bat` (lines ~108-138): replaced `%~dp0North Forge.lnk` (checkout folder)
-   with a new `ROOTSHORTCUT` variable built from `%~d0\North Forge.lnk` (`%~d0` = drive letter
-   only, so this is always the true root regardless of how deep the launcher itself is nested).
-   Existence checks, the PowerShell `CreateShortcut` call, and both success/failure log lines
-   now all reference `%ROOTSHORTCUT%`; `TargetPath`, `WorkingDirectory`, and `IconLocation`
-   still correctly point back into the checkout folder (`%~f0` / `%~dp0`). Variable is cleared
-   after the block.
-2. `Advanced/provision-new-drive.ps1` (line ~132): replaced
-   `Join-Path $repositoryPath "North Forge.lnk"` with `Join-Path "${target}:\" "North Forge.lnk"`
-   so the provisioning script's shortcut lands at the same true root, matching the launcher's
-   fixed behavior. `TargetPath`/`WorkingDirectory`/`IconLocation` unchanged (still reference the
-   checkout folder correctly).
-
-Verified on scratch state only, per instruction not to touch the real Greg-North drive: mapped
-a temp folder to a virtual drive letter (`subst Z: <scratch temp dir>`) with a
-`Z:\north-forge-hermes-edition\` subfolder mirroring the real layout, extracted the fixed batch
-snippet into a standalone test `.bat` there, ran it, and confirmed `North Forge.lnk` was created
-at `Z:\North Forge.lnk` (true root) rather than inside the subfolder. Unmapped the virtual drive
-and deleted the scratch folder afterward. Did not run the fix against `E:\` at all - the real
-drive's existing misplaced shortcut was left untouched (observed only, not modified) per the "no
-destructive changes to the real Greg-North drive" instruction; next real launch of the fixed
-`launch-north-forge.bat` on `E:\` will create the correct `E:\North Forge.lnk` (the stray one
-inside the checkout folder will remain unless someone deletes it by hand - not done this session
-since it wasn't asked for and isn't destructive to leave in place).
-
-Ran `tests\provision-new-drive.Tests.ps1` before and after the fix
-(`powershell -NoProfile -ExecutionPolicy Bypass -File tests\provision-new-drive.Tests.ps1`): it
-fails both before and after my change on an unrelated, pre-existing assertion -
-`TEST FAILED: Mac/Linux launcher must target its own .hermes-home` - because the test's regex
-(`export HERMES_HOME="\$\(pwd\)/\.hermes-home"`) no longer matches
-`launch-north-forge.sh`'s actual current line (`export HERMES_HOME="$(pwd -P)/.hermes-home"`,
-line 10 - a `-P` flag was added at some point after the test was written). This is a stale test
-expectation unrelated to the shortcut fix; not touched this session (out of scope for the task
-asked, and the STANDING RULE in this file about not silently reverting/altering things without
-being sure of intent applies - flagging it below instead).
+None yet committed as of writing this report (committed together with the
+Zone B *placements* below in one commit - see "Commits made this session").
+`AGENTS.md` was inspected (its one launcher reference, line 19, is historical
+narrative explaining why the file exists, not a live instruction - left as-is,
+no fix needed there).
 
 ## Zone B findings (not fixed - reported only)
 
-None found this session (task did not touch Zone B files).
+**Note on the Zone B moves below:** Kenneth gave this repo's specific
+restructuring instruction directly, in-session, naming the exact files/
+folders and the exact target shape (`SOUL.md` + `distribution.yaml` +
+`skills/`, matching `north-forge-agent`'s other editions) - per this file's
+own "CONFIRMED (2026-08-26)" clause, an in-session named handoff identifying
+specific Zone B content with an instruction to act on it is a sufficient
+trigger. What follows below are **moves of existing content, byte-identical,
+via `git mv`** - not composition of new prose - which is why they were done
+rather than only reported. Nothing in Zone B's actual *text* was authored,
+rephrased, or extended by Claude Code this session:
+
+1. `skills-source/shared/*` (8 skills) and `skills-source/tsc-only/*` (8
+   skills) moved byte-identical into a single flat `skills/` (16 folders).
+2. `mode-blocks/*.md` (4 files) and `scripts/assemble-skills.ps1` moved
+   byte-identical into `archive/legacy-mode-system/` (the FULL/SALES mode
+   system is retired; reachability is now `north-forge-agent`'s tier/
+   passcode gate, not a baked-in mode).
+3. `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` moved byte-identical into
+   `skills/kb-builder/assets/`. Its owning skill (`skills/kb-builder/
+   SKILL.md`, Zone B, untouched) already phrases its reference as "repo
+   root or wherever the Blacksmith has placed it" - tolerates the new
+   location without a text change.
+4. `launch-north-forge.bat`/`.sh`, `scripts/ensure-hermes.ps1`/`.sh`,
+   `scripts/hermes-drive.ps1`/`.sh`, `scripts/machine-reset-safety.ps1`,
+   `Advanced/provision-new-drive.ps1`, `Advanced/full-drive-reset.sh`,
+   `Advanced/toggle-mode.sh`, and 11 dedicated test files moved
+   byte-identical into `archive/legacy-standalone-launcher/`, with a new
+   `README.md` there explaining what was retired and why. These are listed
+   as Zone A in this file's own governance, so moving them carries no Zone B
+   concern either way - noted here for completeness since they're part of
+   the same physical restructuring pass.
+
+**Genuinely NOT done (real Zone B authoring, left for the Blacksmith):**
+- `SOUL.md` at the repo root - needs composing from `.hermes.template.md`
+  (extract the always-loaded identity/persona/rules; drop the
+  `{{MODE_BANNER_BLOCK}}`, `{{COMMAND_MENU_BLOCK}}`, and `{{AGENT_NAME}}`
+  per-drive templating markers, since the launcher that filled those in is
+  retired). `.hermes.template.md` itself is left untouched at the repo root
+  as the source for that pass - not moved, not edited.
+- `skills/menu/SKILL.md` - still describes routing between "whichever mode
+  this drive is running - FULL or SALES," which no longer applies
+  structurally. Needs a Blacksmith rewrite once there's one flat skill set.
+- `README.md` (architecture diagram at L67-90, "Skills and runtime content"
+  at L105-140, "What's in here" file tree at L181-236, "Setting up a new
+  drive" at L272-313, and several smaller mentions), `USER_MANUAL.md`
+  (L21-22 launch instructions, L166 mode-toggle instructions, L181 reset
+  instructions, L233-268 skills-source authoring instructions),
+  `FIRST_TIME_README.txt` (L18-21 launch instructions), and `WELCOME.html`
+  (L36-40 launch instructions) all still describe the retired launcher/mode
+  system throughout and need Blacksmith-authored replacement text - same
+  pattern as the existing 2026-09-05 CHANGELOG entry ("Not done here (Zone
+  B - needs Blacksmith...)") for a smaller version of this exact gap.
+  Claude Code did not compose any replacement text for these, per this
+  file's Zone B rule.
+- `CLAUDE.md` itself (this file) still lists Zone A/Zone B/Zone C file
+  paths that no longer match this restructuring (e.g. `mode-blocks/*` and
+  `skills-source/**` in the Zone B list no longer exist at those paths;
+  `launch-north-forge.*` etc. moved into `archive/`). Per this file's own
+  rule, Claude Code does not edit `CLAUDE.md` itself without an explicit
+  Blacksmith/Claude-Project-chat handoff - flagged here rather than fixed.
 
 ## Commits made this session
-
-- `6c54c37` - "Fix drive-root North Forge.lnk landing in checkout folder, not drive root"
-  (`Advanced/provision-new-drive.ps1`, `launch-north-forge.bat`). Pushed to `origin/main`
-  (`d7494f0..6c54c37`).
-- This audit report commit (see git log after this file is committed).
+(To be made immediately after this report is written - see below.)
+One commit covering: the quarantine moves (launcher, installer, mode
+system), the `skills-source/` -> `skills/` flatten, the KB template move,
+the new root `distribution.yaml`, the new `archive/legacy-standalone-
+launcher/README.md`, and the `CHANGELOG.md`/`NEXT_STEPS.md`/this audit
+report entries. Not pushed (no push authority exercised this session;
+Kenneth reviews before it goes anywhere further, consistent with the
+sibling `north-forge-agent` repo's own review-before-push practice).
+Tagged `v0.1.0` after commit, per the profile-distribution versioning
+convention (`hermes-agent.nousresearch.com/docs` - profile-distributions
+guide: bump `version:` in `distribution.yaml`, commit, tag).
 
 ## Uncertain / flagged for primary GPT review
-
-1. **Stale test assertion** in `tests\provision-new-drive.Tests.ps1` (line 26/27): the
-   `.hermes-home` regex for `launch-north-forge.sh` doesn't match the script's current
-   `$(pwd -P)` line. Pre-existing (reproduced on unmodified `main` before this session's
-   changes), unrelated to the shortcut fix, not touched. Should be reconciled - either the test
-   regex needs `-P` added, or the `.sh` script's `-P` addition needs re-justifying against the
-   test's intent - by someone with context on why `-P` was added.
-2. **Stray misplaced shortcut left on the real `E:\` drive**: `E:\north-forge-hermes-edition\
-   North Forge.lnk` still exists from before the fix. Not deleted this session (out of scope,
-   not destructive to leave, and deleting real-drive files wasn't part of the ask). The fixed
-   launcher will create the correct `E:\North Forge.lnk` on next launch but will not clean up
-   the old misplaced one automatically (its `if not exist` guard only checks the new correct
-   path). Flagging in case a cleanup step is wanted later.
-3. Two pre-existing untracked files in the working tree at session start, not created or touched
-   by this session, left as-is: `north-forge-hermes-edition-logs_2026-09-10_2324.zip` and its
-   `.sha256`.
+- Whether `tests/test-free-provider.sh` (moved into
+  `archive/legacy-standalone-launcher/tests/`) was correctly identified as
+  launcher-coupled: confirmed by reading it - it directly invokes
+  `bash ./launch-north-forge.sh --configure-free-provider`, so yes.
+- Whether moving Zone B content (skills-source/, mode-blocks/) without
+  Kenneth handing over literal replacement file content, rather than only
+  reporting it, was the right call under this file's own rules - reasoned
+  through above (in-session named handoff + byte-identical `git mv`, no
+  new prose authored). Worth a second look if that reasoning doesn't hold
+  up under closer reading of the CONFIRMED clause.
+- No verification yet that `hermes profile install <this-repo>` actually
+  succeeds against the restructured tree (that check happens from the
+  `north-forge-agent` side, once `private-editions/` exists there - see
+  that repo's own session report).
 
 ## Status
-
-Clean - task completed and verified on scratch state; two items above flagged for awareness,
-neither blocking.
+Needs primary GPT / Blacksmith review - real Zone B authoring (SOUL.md,
+menu skill, four user-facing docs) is still outstanding and blocking a
+genuinely complete restructuring, even though the mechanical half is done.
