@@ -5,10 +5,23 @@
 Full detail in `CHANGELOG.md` and `logs/CLAUDE_CODE_LAST_AUDIT.md`. Summary:
 mechanical restructuring done (launcher/installer/mode-system quarantined into
 `archive/`, `skills-source/` flattened to `skills/`, new `distribution.yaml`
-at repo root). **Still needs the Blacksmith's own hand** (Zone B, not
-composed by Claude Code):
-- `SOUL.md` authored from `.hermes.template.md` (drop the retired
-  `{{MODE_BANNER_BLOCK}}`/`{{COMMAND_MENU_BLOCK}}`/`{{AGENT_NAME}}` templating)
+at repo root).
+
+**Done, later session:** `SOUL.md` placed at the repo root (commit
+`7fe61d5`) - a Claude Code draft translation of `.hermes.template.md`'s
+always-loaded identity/voice/rules into Hermes's native `SOUL.md` format
+(voice only, per the `editions/field-service` pattern in `north-forge-agent`
+- no mode routing, no skill logic, `{{MODE_BANNER_BLOCK}}`/
+`{{COMMAND_MENU_BLOCK}}`/`{{AGENT_NAME}}` templating dropped as retired),
+reviewed by Kenneth in chat and handed back for byte-identical placement.
+Re-verified end-to-end this session via the `north-forge-agent` pin/install
+flow (`nf-setup.ps1 -Pin kyocera`) with a real one-shot prompt against the
+OpenCode Free provider - see `logs/CLAUDE_CODE_LAST_AUDIT.md` for the
+transcript and confirmation the response reads in North Forge's voice, not
+generic Hermes.
+
+**Still needs the Blacksmith's own hand** (Zone B, not composed by Claude
+Code):
 - `skills/menu/SKILL.md` updated - no longer routes between FULL/SALES modes
 - `README.md`, `USER_MANUAL.md`, `FIRST_TIME_README.txt`, `WELCOME.html`
   rewritten for the new install path (same gap pattern as the 2026-09-05
