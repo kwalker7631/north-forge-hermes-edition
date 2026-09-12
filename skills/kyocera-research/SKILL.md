@@ -78,7 +78,10 @@ Scheduled Task, whichever this host has) using the same zero-prompt path
 stop the job from firing. If that install can't complete on a given host (no
 supported service manager, a container, a permissions issue), the sync
 script's on-screen output says so plainly and falls back to the manual
-step: `hermes gateway install`. The job's own memory/continuity (a real
+step: `hermes gateway install` (see `north-forge-agent`'s README, "Gateway
+service requirements" section, for exactly what a Windows or Linux host
+needs — admin rights, D-Bus/linger — for that install to succeed on its
+own). The job's own memory/continuity (a real
 Hermes feature as of the v0.21.0 release) helps it avoid re-researching the
 same ground twice, on top of this skill's own explicit dedup-against-the-log-file
 instruction above - two layers of protection against repeating findings, not

@@ -51,6 +51,19 @@ Plain-language running log of what actually changed and why. Distinct from `git 
   "Setup note" sections here are updated accordingly; `hermes gateway
   install` remains documented as the manual fallback for the no-service-
   manager/container case only, not as the everyday path anymore.
+- **Documented exactly what the automatic gateway install needs to succeed,
+  per platform.** Follow-up the same day, per direct request: a real,
+  non-mocked run of `ensure_gateway_service()` in a Linux test environment
+  surfaced the specific requirements the prose above only gestured at -
+  `north-forge-agent`'s README now has a "Gateway service requirements"
+  section spelling out that Windows needs no admin rights for the normal
+  Scheduled-Task path (falling back to a Startup-folder shortcut if denied),
+  while Linux needs a real running systemd plus a reachable user D-Bus
+  session with linger enabled (auto-attempted via `loginctl enable-linger`,
+  falling back to a printed `sudo loginctl enable-linger <user>` command),
+  and macOS's `launchd` path normally needs nothing extra. Both skills'
+  "Setup note" sections here now point at that section instead of only
+  naming the `hermes gateway install` fallback.
 - **Removed three dead tests left behind at the first migration pass.**
   `tests/test_cron_registration.py`, `tests/test_drive_hermes_contract.py`,
   and `tests/test_launcher_hermes_home.py` all read `launch-north-forge.sh`/
