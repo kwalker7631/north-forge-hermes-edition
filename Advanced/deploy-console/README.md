@@ -1,65 +1,42 @@
 # North Forge Deploy Console
 
 **Version:** 0.2.0  
-**Date:** 2026-09-12  
+**Date:** 12 September 2026  
 **Author:** Kenneth C. Walker Jr.  
-**Access:** Admin only (this folder lives in the private Kyocera edition repo)
+**Access:** admin only. This folder lives in the private Kyocera edition.
 
 Builds a portable USB that runs North Forge without installing anything on the teammate's PC.
 
-If you are building a stick, start at `ADMIN_FIRST_TIME.txt`.  
-If you were handed a stick, start at `FOR_THE_PERSON_GETTING_THIS_DRIVE.txt`.
+- Building a stick: [DEPLOY.md](DEPLOY.md) or [ADMIN_FIRST_TIME.txt](ADMIN_FIRST_TIME.txt)
+- Handed a stick: [FOR_THE_PERSON_GETTING_THIS_DRIVE.txt](FOR_THE_PERSON_GETTING_THIS_DRIVE.txt)
+
+Assign every stick to a person. Volume name is **FIRSTL-NORTH** (Greg Warhol → `GREGW-NORTH`). Agent name is optional. Default is North Forge.
 
 ## Why this exists
 
-A teammate should never type `git`, `gh`, or PowerShell. Those belong on **your** admin PC, once. After `gh auth login`, every stick is: plug in → Run as administrator → fill in the web page → wait.
+A teammate should never type `git`, `gh`, or PowerShell. Those belong on your admin PC, once. After `gh auth login`, every stick is: plug in → Run as administrator → fill in the page → wait.
 
-## What a finished stick contains
+## Stick types
 
-```
-E:\
-  Start North Forge.lnk          double-click this
-  HOW_TO_START.txt
-  north-forge-agent\             public engine
-    private-editions\kyocera\    only if this stick is a Kyocera stick
-  north-forge-agent-venv\
-  north-forge-agent-data\        HERMES_HOME + admin passcode hash
-```
+The old FULL / SALES toggle is retired. Do not use `toggle-mode.bat`.
 
-## Stick types (2026-09-11 architecture)
-
-The old on-drive FULL / SALES toggle is retired. Do not use `toggle-mode.bat`.
-
-| Choice in the page | What it means |
+| Choice on the page | Meaning |
 |---|---|
-| Locked stick | `basic` tier. The pin is the only project they can reach. |
-| Open stick | `full` tier. You can switch later. Also installs Penny, Pine Barron, field-service overlays when they exist in the engine. |
-| North Forge / Kyocera | Private profile from this repo. Priority for TSC. |
-| Pocket Penny | Public overlay `editions/penny-pincher` in the engine. |
-| Pine Barron Farms | Public overlay `editions/pine-barron-farms`. Studio is still growing; canon packet is deploy-time, not in git. |
-| Field-service | Public voice overlay. |
-
-## Files
-
-| File | Role |
-|---|---|
-| `ADMIN_FIRST_TIME.txt` | Admin setup with almost no typing |
-| `FOR_THE_PERSON_GETTING_THIS_DRIVE.txt` | Tape this to the stick |
-| `Launch-Deploy-Console.cmd` | Start the local web page |
-| `Start-DeployConsole.ps1` | Local server on 127.0.0.1:8765 |
-| `Zero-Touch-Deploy.ps1` | Format, clone, bootstrap, pin, lock |
-| `ui/index.html` | The page |
-| `VERSION.txt` | Version and authorship |
+| Locked stick | Teammate cannot switch projects |
+| Open stick | You can switch later |
+| North Forge / Kyocera | This private pack. Priority for TSC |
+| Pocket Penny | Public overlay |
+| Pine Barron Farms | Public overlay. Studio still growing |
+| Field-service | Public voice overlay |
 
 ## Safety
 
-- Refuses `C:` and the Windows system drive
-- Formats only removable USB (`DriveType=2`) and only if you type `FORMAT`
-- Format requires Run as administrator
-- Passcode is not put on the process command line; hash only on the stick
-- Private Kyocera clone requires GitHub signed in as the repo owner
+- Refuses C: and the Windows system drive
+- Formats only removable USB, and only if you type FORMAT
+- Format needs Run as administrator
+- Passcode is hashed on the stick, not stored in this page
+- Private Kyocera clone needs GitHub signed in as the repo owner
 
 ## Authorship
 
-Kenneth C. Walker Jr. — sole admin of the private edition.  
-Engine is a public fork of Hermes Agent (Nous Research, MIT). See the engine `ATTRIBUTION.md`.
+Kenneth C. Walker Jr. Engine is a public fork of Hermes Agent (Nous Research, MIT).
