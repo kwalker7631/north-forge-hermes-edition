@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>North Forge · Deploy Console</title>
+  <style>
+    :root { --bg:#0b1220; --panel:#121a2b; --ink:#e8eefc; --muted:#93a0bb; --line:#243049; --accent:#3b82f6; --good:#34d399; --warn:#fbbf24; --bad:#f87171; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:15px/1.45 "Segoe UI", system-ui, sans-serif; background: radial-gradient(1200px 500px at 10% -10%, #1e3a8a33, transparent), var(--bg); color: var(--ink); }
+    header { padding:28px 28px 8px; border-bottom:1px solid var(--line); }
+    header h1 { margin:0 0 6px; font-size:22px; }
+    header p { margin:0; color:var(--muted); }
+    main { display:grid; grid-template-columns:360px 1fr; gap:20px; padding:20px 28px 40px; }
+    section { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; }
+    h2 { margin:0 0 12px; font-size:14px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    .row { margin-bottom:12px; }
+    label { display:block; font-size:12px; color:var(--muted); margin-bottom:4px; }
+    input, select, button, textarea { width:100%; border-radius:8px; border:1px solid var(--line); background:#0d1524; color:var(--ink); padding:9px 10px; font:inherit; }
+    button { background:var(--accent); border:0; color:white; font-weight:600; cursor:pointer; }
+    button.ghost { background:transparent; border:1px solid var(--line); color:var(--ink); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .status { font-size:13px; color:var(--muted); margin-bottom:10px; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; margin-right:6px; background:#1f2937; }
+    .ok { color:var(--good); } .bad { color:var(--bad); }
+    #log { height:calc(100vh - 220px); min-height:360px; background:#070b14; color:#d1fae5; font:12px/1.4 Consolas, monospace; white-space:pre-wrap; overflow:auto; }
+    .warnbox { background:#3f1d1d; border:1px solid #7f1d1d; color:#fecaca; padding:10px; border-radius:8px; font-size:13px; margin:10px 0; }
+    @media (max-width:900px) { main { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>North Forge Deploy Console</h1>
+    <p>Admin only. Formats a USB stick, clones the public engine + private Kyocera edition, bootstraps, pins, and locks with a passcode.</p>
+  </header>
+  <main>
+    <section>
+      <h2>Host checks</h2>
+      <div id="prereq" class="status">Checking…</div>
+      <button class="ghost" type="button" onclick="refreshAll()">Refresh USB + status</button>
+      <h2 style="margin-top:22px">Target drive</h2>
+      <div class="row"><label for="drive">Removable volumes</label><select id="drive"></select></div>
+      <div class="row"><label for="tier">Tier</label>
+        <select id="tier">
+          <option value="full" selected>full — pin kyocera, switcher stays open</option>
+          <option value="basic">basic — locked to kyocera only</option>
+        </select>
+      </div>
+      <div class="row"><label><input type="checkbox" id="skipFormat" style="width:auto"> Skip format (reuse existing stick)</label></div>
+      <div class="row"><label for="confirm">Type FORMAT to allow wipe</label><input id="confirm" placeholder="FORMAT" autocomplete="off"></div>
+      <div class="row"><label for="pass">Admin passcode (min 6). Stored as hash on the stick only.</label><input id="pass" type="password" minlength="6" autocomplete="new-password"></div>
+      <div class="warnbox">This erases the selected USB when format is enabled. System drive is blocked. Private repo clone needs <code>gh auth login</code> as kwalker7631.</div>
+      <button id="go" type="button" onclick="deploy()">Format + deploy</button>
+    </section>
+    <section>
+      <h2>Live log</h2>
+      <textarea id="log" readonly>Ready.</textarea>
+    </section>
+  </main>
+  <script>
+    let pollTimer = null;
+    async function jget(url) { const r = await fetch(url); return r.json(); }
+    function pill(ok, label) { return `<span class="pill ${ok ? 'ok' : 'bad'}">${label}: ${ok ? 'yes' : 'no'}</span>`; }
+    async function refreshStatus() {
+      const s = await jget('/api/status');
+      document.getElementById('prereq').innerHTML =
+        pill(s.git, 'git') + pill(s.gh, 'gh') +
+        pill(s.ghAuthed, 'gh auth' + (s.ghUser ? ' (' + s.ghUser + ')' : '')) +
+        pill(s.engine, 'engine script');
+    }
+    async function refreshDrives() {
+      const data = await jget('/api/drives');
+      const sel = document.getElementById('drive');
+      sel.innerHTML = '';
+      if (!data.drives.length) {
+        const o = document.createElement('option'); o.value=''; o.textContent='No removable USB found'; sel.appendChild(o); return;
+      }
+      data.drives.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d.letter;
+        o.textContent = `${d.letter}:  ${d.label || '(no label)'}  ${d.gb} GB  ${d.fs || ''}`;
+        sel.appendChild(o);
+      });
+    }
+    async function refreshAll() { await Promise.all([refreshStatus(), refreshDrives()]); }
+    async function deploy() {
+      const letter = document.getElementById('drive').value;
+      const skipFormat = document.getElementById('skipFormat').checked;
+      const confirm = document.getElementById('confirm').value;
+      const pass = document.getElementById('pass').value;
+      const tier = document.getElementById('tier').value;
+      const log = document.getElementById('log');
+      const go = document.getElementById('go');
+      go.disabled = true;
+      log.value = 'Starting deploy…\n';
+      const r = await fetch('/api/deploy', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ letter, confirm, passcode: pass, tier, skipFormat })
+      });
+      const body = await r.json();
+      if (!body.ok) { log.value += 'ERROR: ' + (body.error || r.status) + '\n'; go.disabled = false; return; }
+      log.value += 'Worker PID ' + body.pid + '\n';
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        const q = new URLSearchParams({ file: body.logFile, pid: body.pid });
+        const st = await jget('/api/log?' + q.toString());
+        log.value = st.text || '(waiting for output)';
+        log.scrollTop = log.scrollHeight;
+        if (!st.running) { clearInterval(pollTimer); go.disabled = false; log.value += '\n--- process exited ---\n'; }
+      }, 800);
+    }
+    refreshAll();
+  </script>
+</body>
+</html>
