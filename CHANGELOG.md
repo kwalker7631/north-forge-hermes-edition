@@ -38,6 +38,19 @@ Plain-language running log of what actually changed and why. Distinct from `git 
   the old launcher's `CRON_DEGRADED` banner did. Both skills' "Setup note"
   sections now say plainly that a stick needs `hermes gateway install` once
   for research/brief jobs to survive a teammate closing the terminal.
+- **The gateway install step is automated too, not just documented.** Follow-up
+  the same day, per direct request: `scripts/nf_sync_cron.py` (north-forge-agent)
+  now also calls `hermes_cli.gateway.ensure_gateway_service()` — the exact
+  zero-prompt, never-raising install path `hermes setup`/`hermes import`
+  already use internally — whenever at least one skill here declares a cron
+  job. It installs a user-scope systemd/launchd/Windows-Scheduled-Task
+  service and starts it if nothing is installed yet, just starts it if a
+  stopped service already exists, short-circuits immediately if one is
+  already running, and safely no-ops (printing its own explanation) inside
+  containers or on hosts with no supported service manager. Both skills'
+  "Setup note" sections here are updated accordingly; `hermes gateway
+  install` remains documented as the manual fallback for the no-service-
+  manager/container case only, not as the everyday path anymore.
 - **Removed three dead tests left behind at the first migration pass.**
   `tests/test_cron_registration.py`, `tests/test_drive_hermes_contract.py`,
   and `tests/test_launcher_hermes_home.py` all read `launch-north-forge.sh`/

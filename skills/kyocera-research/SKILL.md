@@ -70,9 +70,15 @@ live Hermes session:
 
 Check progress any time with `/cron list`. A registered job still only *fires*
 while a Hermes gateway process is running for this drive's `HERMES_HOME` - the
-sync script's on-screen output says so plainly when it detects the gateway is
-down; run `hermes gateway install` once to make research/brief jobs survive
-the teammate closing the terminal. The job's own memory/continuity (a real
+sync script now handles that too (12 September 2026): the same
+`scripts/nf_sync_cron.py` pass that registers the job also installs and
+starts the gateway as a background service (systemd/launchd/Windows
+Scheduled Task, whichever this host has) using the same zero-prompt path
+`hermes setup` itself relies on, so a teammate closing the terminal doesn't
+stop the job from firing. If that install can't complete on a given host (no
+supported service manager, a container, a permissions issue), the sync
+script's on-screen output says so plainly and falls back to the manual
+step: `hermes gateway install`. The job's own memory/continuity (a real
 Hermes feature as of the v0.21.0 release) helps it avoid re-researching the
 same ground twice, on top of this skill's own explicit dedup-against-the-log-file
 instruction above - two layers of protection against repeating findings, not
