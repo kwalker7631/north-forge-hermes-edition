@@ -1,0 +1,65 @@
+NORTH FORGE — ADMIN, FIRST TIME ON A NEW PC
+You do not type git commands to build a stick after this page is done.
+
+--------------------------------
+ONCE on this computer (not every stick)
+--------------------------------
+1. Install Git for Windows. Next, Next, Finish.
+   https://git-scm.com/download/win
+
+2. Install GitHub CLI. Next, Next, Finish.
+   https://cli.github.com/
+
+3. Install Python 3.11 or newer if the box asks for it.
+   https://www.python.org/downloads/
+   Check the box "Add python.exe to PATH".
+
+4. Open "GitHub CLI" or PowerShell ONE time and type only this:
+
+     gh auth login
+
+   Choose GitHub.com, HTTPS, Yes, Login with a web browser.
+   That is the only command you ever type.
+
+5. Get this console onto the PC (pick one):
+   A. In the browser, open the private repo while signed in:
+      https://github.com/kwalker7631/north-forge-hermes-edition
+      Code → Download ZIP → unzip → open folder
+      Advanced\deploy-console\
+   B. Or, if the repo is already cloned, open that same folder.
+
+--------------------------------
+EVERY stick after that
+--------------------------------
+1. Plug in a blank USB, 8 GB or larger.
+2. Right-click Launch-Deploy-Console.cmd
+   → Run as administrator
+3. A page opens. If it does not, look at the black window for the error.
+4. Pick the USB.
+5. Locked stick = teammate. Open stick = you.
+6. What it opens as:
+      North Forge / Kyocera     ← support team (priority)
+      Pocket Penny              ← budget helper
+      Pine Barron Farms         ← studio, still growing
+7. Type FORMAT
+8. Type the admin passcode twice
+9. Click Format + deploy
+10. Wait. First stick can take a long time. Leave it alone.
+11. When it says DEPLOYMENT COMPLETE, eject the stick.
+
+Hand the stick to the teammate with HOW_TO_START.txt
+They double-click "Start North Forge". They never see this folder.
+
+--------------------------------
+What "sales" vs "full" means now
+--------------------------------
+The old FULL / SALES toggle on the Kyocera drive was retired 2026-09-11.
+Today:
+
+  Locked stick  = one project only (safe for the team)
+  Open stick    = you can switch projects (Kyocera, Penny, Pine Barron)
+
+Kyocera content is one profile. There is not a separate "sales-only Kyocera"
+skill pack yet. A sales-rep stick today is: Locked + Kyocera, or Locked +
+field-service voice. Do not promise a stripped sales edition until that
+profile exists.

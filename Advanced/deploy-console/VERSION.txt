@@ -1,0 +1,9 @@
+North Forge Deploy Console
+Version: 0.2.0
+Date: 2026-09-12
+Author: Kenneth C. Walker Jr.
+Repo: kwalker7631/north-forge-hermes-edition
+Path: Advanced/deploy-console/
+
+Engine: kwalker7631/north-forge-agent
+Private content: this repo, installed as profile "kyocera"
