@@ -1,237 +1,139 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-11 (late evening session, following tonight's fork-sync
-wipe-and-recovery, `RUN-2026-09-11-002`)
-Requested task: per
-`C:\Users\kwalk\Downloads\CLAUDE_TASK_missing_bootstrap_investigation.md` —
-Kenneth ran `north-forge.cmd` on a fresh clone (his "Sandbox test") and it
-reported `scripts/bootstrap-north-forge.ps1` missing. Investigate root
-cause rather than assume it, given tonight's fork-sync incident, then fix
-appropriately before Kenneth tries `north-forge.cmd` again. This session
-did its work entirely in `north-forge-agent` (this repo, `kyocera`, was
-not touched except for this audit file).
+Timestamp: 2026-09-12 (afternoon session)
+Requested task: per `C:\Users\kwalk\Downloads\CLAUDE_TASK_ONE_CONSOLIDATED_PASS (1).md`
+— a single consolidated pass across BOTH `north-forge-agent` and this repo
+(`north-forge-hermes-edition`, `kyocera`): find the last known fully-working
+deployment reference point, diff to HEAD, root-cause why deployment stopped
+working smoothly and why "foreign-language content appeared somewhere it
+shouldn't have" after a README-editing + automation session, restore/fix
+broadly (not narrowly), verify with a real live deployment run, and produce
+one full current-state ledger inventory across both repos. Full findings are
+in the separate cross-repo report handed to Kenneth directly (this file
+covers only this repo's own required session audit).
 
 ## Files inspected
 
-- `E:\north-forge-agent` — full local git state (`git status`, `git log
-  -1`, `git remote -v`, `git fetch origin main`, `git log --oneline -20`,
-  full history count via `git log --oneline | wc -l`)
-- `E:\north-forge-agent\scripts\` (`ls -la`, `git ls-files scripts/`,
-  `git ls-files | grep -i bootstrap`) before and after the fix
-- GitHub API directly, bypassing any local cache:
-  `gh api repos/kwalker7631/north-forge-agent/contents/scripts/bootstrap-north-forge.ps1`
-  and `gh api repos/kwalker7631/north-forge-agent/commits/main`
-- `E:\north-forge-agent\AGENTS.md` (grepped for `reset --hard` / `Zone A` /
-  `sandbox` / `fork-sync` — no repo-specific standing authorization found
-  for destructive git ops in that repo; it documents `git reset --hard
-  origin/main` as a normal accepted recovery pattern for squash-merge
-  drift, lines 301-305, but that's general guidance, not a session
-  authorization)
-- `E:\north-forge-agent\logs\ledger\CHANGELOG.md` and `INDEX.md` (tail,
-  grepped for `RUN-2026-09-11`, `fork-sync`, `force-push`) — see "Uncertain
-  / flagged" below, this surfaced a real gap
-- This repo's own `CLAUDE.md` (re-read the Zone A/B/C rules and the
-  required audit-report structure before writing this file)
+- `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md`, `CHANGELOG.md` (this repo's Zone C
+  operational logs)
+- `CLAUDE.md`, `AGENTS.md` (zone/authority rules, re-read before acting)
+- `git log` (dated, full session-burst range `1857f79..HEAD`) and
+  `git log -p` over that same range, scanned for CJK/Hangul/Cyrillic/Arabic
+  script ranges and mojibake byte signatures on every added line (0 hits)
+- `Advanced/deploy-console/*` (all 10 files added this session's burst):
+  `Zero-Touch-Deploy.ps1`, `Start-DeployConsole.ps1`, `ui/index.html`,
+  `Launch-Deploy-Console.cmd`, `DEPLOY.md`, `README.md`,
+  `Deploy-NorthForge.md`, `ADMIN_FIRST_TIME.txt`,
+  `FOR_THE_PERSON_GETTING_THIS_DRIVE.txt`, `VERSION.txt`
+- `README.md`, `CURRENT.md`, `LEARNING.md`, `skills-source/shared/readme/SKILL.md`,
+  `skills/readme/SKILL.md` (the last one arrived via `git pull` mid-session —
+  see below)
+- `logs/CODEX_REPOSITORY_SCOPE_README_REVIEW_2026-09-12.md` (Codex's own
+  report, pulled mid-session — read in full, findings cross-checked, not
+  taken at face value)
+- Live-ran a full deployment simulation (fresh clone of both repos assembled
+  into the real drive layout, `bootstrap-north-forge.ps1` +
+  `nf-setup.ps1 -Tier full -Pin kyocera -Installed kyocera -SetPasscode`,
+  then `hermes profile list/info`, `nf_tier show`, `skills list --source local`)
+  entirely in a throwaway `D:\_deploy_test_*` sandbox, cleaned up (`rm -rf`)
+  before this report was written — no artifact of that test remains on disk
+- `python -m unittest discover -s tests -p 'test_*.py'` (full suite, reproduced
+  Codex's SCOPE-05 finding independently)
 
 ## Zone A changes made
 
-None in this repo (`private-editions/kyocera`) this session other than
-this audit file itself (Zone A per `CLAUDE.md` line 296 — "this audit
-report").
+None. `git pull` at session start fast-forwarded `1857f79..9cb39b1` (picked
+up Codex's `skills/readme/SKILL.md` placement + its own audit report — no
+conflict with anything this session did, since this session made no edits
+before pulling). This file itself is the one Zone A write, per the standing
+"this audit report" exception — committed/pushed automatically below, no
+separate fix bundled into the same commit.
 
 ## Zone B findings (not fixed — reported only)
 
-None new this session. This session's work was entirely in the sibling
-`north-forge-agent` repo, not this one — see "Findings and fix in
-north-forge-agent" below, which is the substantive content of this report
-even though it falls outside this repo's own Zone A/B/C taxonomy (same
-pattern as the 2026-09-11 evening audit, which also reported on
-`north-forge-agent` push status).
-
-## Findings and fix in `north-forge-agent` (not a Zone A/B/C action in
-   this repo, but the actual work this session)
-
-**Step 1 — is the file present on origin/main right now?** Yes, confirmed
-directly against GitHub's API (not local cache):
-
-```
-gh api repos/kwalker7631/north-forge-agent/contents/scripts/bootstrap-north-forge.ps1
-```
-
-returned `sha: f8eba4c83274f465bf31b7bbcb38a4fb16bc9435`, `size: 25713`,
-content that base64-decodes to a legitimate, North-Forge-branded bootstrap
-script (opens `# bootstrap-north-forge - one-time setup so a fresh clone
-can launch: makes a venv and a data folder OUTSIDE the checkout, installs
-North Forge editable from the checkout...`), `download_url` pointing at
-`raw.githubusercontent.com/.../main/scripts/bootstrap-north-forge.ps1`.
-Cross-checked against `gh api repos/kwalker7631/north-forge-agent/commits/main`,
-whose returned sha (`4113d5740f02e29d9f53758d40f4e5ddf35217f9`) matches
-what local `git fetch` later pulled down — so this was read against the
-true, current tip, not a stale API cache.
-
-**Step 2 — the local clone was stale, not a fresh clone.** Before any
-fetch, `E:\north-forge-agent` reported:
-
-```
-git status  →  On branch main. Your branch is up to date with 'origin/main'.
-               nothing to commit, working tree clean
-git log -1  →  1021a0325696e9070e6659f95fcd84c3e7e114df
-               Author: Teknium <127238744+teknium1@users.noreply.github.com>
-               Date:   Fri Sep 11 16:44:34 2026 -0700
-               chore: map contributor email for jakobdylanc
-```
-
-That "up to date" claim was checked against the **locally cached**
-`refs/remotes/origin/main`, not GitHub's live state — a well-known git
-pitfall (`git status` never talks to the network on its own). Running
-`git fetch origin main` proved it stale:
-
-```
-+ 1021a03256...4113d5740f main → origin/main  (forced update)
-```
-
-A **forced update** on a normal fetch (not `git fetch --force`) is itself
-a signal: the previous local `origin/main` ref could not fast-forward to
-the new one, i.e. this local clone's cached view of `origin/main` had
-been superseded by a non-fast-forward change upstream — exactly what a
-force-push/fork-sync reset produces. After the fetch, `git status` then
-correctly reported:
-
-```
-On branch main and 'origin/main' have diverged,
-and have 217 and 187 different commits each, respectively.
-```
-
-- The local branch's 217 "unique" commits were not real local work —
-  `git log -1` on that tip showed a `Teknium` (Nous Research co-founder)
-  authored commit about contributor-email mapping, and the full working
-  tree matched a plain **NousResearch/hermes-agent** upstream checkout
-  (root-level `README.es.md`, `SECURITY.md`, `CONTRIBUTING.md`,
-  `hermes_state*.py`, `mcp_serve.py`, `gateway/`, `cron/`, no North Forge
-  branding files at all — `SOUL.md` present but generic, no
-  `BRANDING.md`, no `north-forge.cmd`... actually `north-forge.cmd` was
-  absent from disk at this point too, confirming this was the wiped
-  state, not partial corruption). `git log --format=%H -- scripts/bootstrap-north-forge.ps1`
-  against this old HEAD returned **empty** — the file has never existed
-  in that lineage, consistent with the wipe having reset the fork's `main`
-  ref to upstream's tip wholesale (a ref replacement, not a per-file
-  change).
-- Confirmed via `git show HEAD:scripts/bootstrap-north-forge.ps1` (errored
-  — path does not exist at that commit) and `ls -la scripts/
-  bootstrap-north-forge.ps1` on disk (`No such file or directory`) — so
-  Kenneth's report was accurate: the file was genuinely absent from *this*
-  checkout's working tree, not an operator/directory-location error. (I
-  did not find any evidence pointing at "run from
-  `private-editions/kyocera` by mistake" — that directory is a completely
-  separate git repo with its own remote, sitting at `E:\private-editions\
-  kyocera`, not nested inside `E:\north-forge-agent`, so the two can't be
-  confused by a relative-path launch.)
-
-**Step 3 — this is not new data loss, it's the incident from earlier
-tonight, already fixed upstream and not yet pulled locally.** The new
-`origin/main` tip (`4113d5740f`) is itself the recovery commit:
-
-```
-commit 4113d5740f02e29d9f53758d40f4e5ddf35217f9
-ci: add branding-guard workflow as defense-in-depth against fork-sync resets
-
-origin/main was force-reset to NousResearch/hermes-agent's tip twice via
-GitHub's fork-sync (Discard commits / merge-upstream), which silently
-discarded every fork-only commit — README.md branding, SOUL.md,
-BRANDING.md, the project ledger, the CLI skin, all 186 commits of it...
-
-Structural fix (already applied via API, not in this commit): branch
-protection on main with allow_force_pushes=false,
-allow_fork_syncing=false, enforce_admins=true. This workflow is the
-detection layer underneath that — runs on push/PR to main and daily on
-schedule, grep-checks that the category-1 identity markers from
-BRANDING.md section 1 ... are still present, and fails loudly if not.
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01F7KygYQHcxmteTCn165gdf
-```
-
-This confirms, in the recovery commit's own words, that tonight's incident
-was exactly what the task file described (`RUN-2026-09-11-002`): GitHub's
-fork-sync feature reset `origin/main` to upstream `NousResearch/
-hermes-agent`'s tip **twice**, wiping all 186 fork-only commits including
-`scripts/bootstrap-north-forge.ps1`. That was already fixed — by a
-**different** Claude Code session (`session_01F7KygYQHcxmteTCn165gdf`,
-not this one) — before I started, and branch protection
-(`allow_force_pushes=false`, `allow_fork_syncing=false`,
-`enforce_admins=true`) was applied via the GitHub API to prevent a third
-occurrence. So: no new repo-side data loss. Kenneth's local Sandbox clone
-had simply not fetched since before that recovery push landed, so it was
-still sitting on the wiped state.
-
-**Fix applied**, after confirming with Kenneth via `AskUserQuestion`
-(recommended and chosen: hard reset over delete-and-reclone or
-report-only, since the 217 "local" commits were the bad wiped/upstream
-state, not real work, and the working tree was already clean):
-
-```
-git reset --hard origin/main
-HEAD is now at 4113d5740f ci: add branding-guard workflow as defense-in-depth against fork-sync resets
-```
-
-Verified afterward:
-- `scripts/bootstrap-north-forge.ps1` present, 26191 bytes, timestamp
-  matches the reset.
-- `north-forge.cmd` present, 7675 bytes, at repo root.
-- `git status` → `On branch main. Your branch is up to date with
-  'origin/main'. nothing to commit, working tree clean.`
-
-No commits were made or pushed to `north-forge-agent` this session — this
-was a pure local-checkout repair, not a repo change. Nothing to push.
+1. **`/readme` skill placement — CONFIRMED RESOLVED mid-session, not by this
+   session.** Before the `git pull`, `skills-source/shared/readme/SKILL.md`
+   existed but `skills/readme/` did not — a real, live-verified gap (my own
+   throwaway deployment test installed the `kyocera` profile and its
+   `hermes skills list --source local` came back with exactly the other 16
+   skills, no `readme`). The `git pull` brought in Codex's own independent
+   finding of the same gap (its report's `SCOPE-03`) and its fix
+   (`skills/readme/SKILL.md` placed, `CURRENT.md` catalog line added,
+   commit `9cb39b1`). Re-checked after the pull: `skills/readme/SKILL.md`
+   is present; not re-run through the live deploy test a second time (the
+   scratch sandbox was already torn down) but the file's presence in the
+   tree Kenneth's own `nf-setup.ps1 --Pin kyocera` reads from is the thing
+   that mattered and it now resolves. No further action needed from me here.
+2. **Test suite does not match the retired-launcher architecture (Codex's
+   `SCOPE-05`, independently reproduced this session).**
+   `python -m unittest discover -s tests -p 'test_*.py'` → **9 of 12 tests
+   ERROR** with `FileNotFoundError`, all reading for
+   `launch-north-forge.sh` / `launch-north-forge.bat` /
+   `scripts/hermes-drive.sh` at their old root-level paths — files that were
+   moved under `archive/` by the 2026-09-11 "retire standalone
+   launcher/installer, adopt as a Hermes profile distribution" restructuring
+   (`d4b0abc`), roughly 8 hours before tonight's README/Deploy-Console
+   session started. This is Zone A test code (`tests/*.py` is explicitly on
+   the Zone A list) so I *could* fix it directly, but the correct fix isn't
+   obvious without the Blacksmith's intent: either (a) delete/retire these 9
+   tests since the files they cover are intentionally gone, or (b) repoint
+   them at `archive/`'s copies if the archived scripts are still meant to
+   work standalone from there, or (c) replace them with equivalent tests of
+   the new profile-distribution contract. Any of the three is a real code
+   change to test intent, not a mechanical bug fix, so I left it for
+   Kenneth/the Claude Project chat to pick a direction rather than guessing
+   — flagged in the cross-repo report as an open item, not fixed here.
+3. **README.md / CURRENT.md / LEARNING.md / `skills-source/shared/readme/`
+   — all edited or added directly in tonight's session's commits
+   (`372a7d7a2f`..`1cfdf98` equivalent burst, `dbe5e7c`..`1cfdf98` in this
+   repo) without a commit message that names an explicit Blacksmith/Claude
+   Project chat handoff.** `README.md` and `skills-source/**` are both Zone B
+   per this file. I did not edit any of them myself this session and am not
+   asserting these commits were improper — Kenneth's own git identity
+   authored them and he may well be the one who wrote/approved this content
+   directly (CLAUDE.md's placement exception exists precisely for that path)
+   — but I have no in-session evidence (no "per Blacksmith handoff" /
+   "per Claude Project chat" language in these commit messages, unlike e.g.
+   `7fe61d5`'s "Zone B handoff" framing) to confirm that's what happened
+   versus an AI session composing Zone B content directly. Flagging per
+   this file's own audit convention rather than asserting either way.
 
 ## Commits made this session
 
-- None in `north-forge-agent` (local-only `git reset --hard`, no new
-  commits).
-- (pending, immediately after this report is written) — this file, in
-  `private-editions/kyocera` (Zone A, per-session standing authorization).
+- `<pending — this file, at HEAD after this report is written>` — Zone A,
+  per the standing "audit report" exception.
+- No other commits. No Zone A code fix, no Zone C update, no Zone B
+  placement.
 
 ## Uncertain / flagged for primary GPT review
 
-- **Ledger gap on the `north-forge-agent` side.** Tonight's fork-sync
-  wipe-and-recovery (`RUN-2026-09-11-002`, per the task file) has no
-  corresponding entry in `north-forge-agent`'s own
-  `logs/ledger/CHANGELOG.md` or `INDEX.md` — I grepped both for
-  `RUN-2026-09-11-002`, `fork-sync`, `force-push`, `CHG-2026-09-11`, and
-  `ERR-2026-09-11` and found nothing except the unrelated
-  `RUN-2026-09-11-001` (private-editions discovery) entries already on
-  record. The only trace of the incident is the prose in the
-  `4113d5740f` commit message itself. That repo's own conventions
-  (`scripts/lib/report_completeness.py`, `REPORT-MANIFEST.md`) require
-  every ledger `RUN-` id to map to a report or be explicitly marked
-  ledger-only — a wipe-and-recovery this severe (186 commits force-reset,
-  twice) reads like it should be `ERR-2026-09-11-00X` at HIGH or CRITICAL
-  severity with its own `RUN-2026-09-11-002` block, the way comparably
-  serious incidents (e.g. `ERR-2026-09-07-006`, reclassified CRITICAL)
-  were recorded. I did not add one myself — that's authored ledger
-  content in a repo whose own AGENTS.md I only grepped rather than read
-  in full, and it's a bigger scope decision (severity, exact IDs, whether
-  the branch-protection change belongs in the ledger too) than this
-  task asked for. Flagging for the Blacksmith/primary GPT to decide
-  whether `north-forge-agent`'s ledger needs to be backfilled for this
-  incident the same way `ERR-2026-09-07-004`'s under-reporting gap was
-  closed.
-- I did not independently verify the branch-protection settings
-  (`allow_force_pushes=false`, `allow_fork_syncing=false`,
-  `enforce_admins=true`) mentioned in the recovery commit message are
-  actually live on the GitHub repo — I took the commit message's word for
-  it rather than calling `gh api repos/kwalker7631/north-forge-agent
-  --jq .allow_forking` / the branch-protection endpoint. Worth a
-  one-command confirmation before considering this incident fully closed,
-  since a repeat would wipe the fork a third time.
-- I have not verified whether Kenneth has other local clones/sandboxes of
-  `north-forge-agent` beyond `E:\north-forge-agent` that might be in the
-  same stale state — only checked the one path found on this machine.
+- Same governance-authorship question as Zone B finding 3 above — worth the
+  primary GPT confirming with Kenneth whether tonight's README/CURRENT/
+  LEARNING/skills-source-readme content came from him directly or from an
+  AI session, since CLAUDE.md's Zone B model depends on that distinction and
+  I can't determine it from git alone.
+- `Advanced/deploy-console/` (the entire new subsystem — 10 files, ~700
+  lines) is not on CLAUDE.md's Zone A/B/C lists at all. I treated it as
+  read-only-and-report during this investigation (did not edit it), but
+  whoever maintains it going forward needs an explicit zone assignment —
+  it's mechanical deploy tooling (Zone-A-shaped) but currently unzoned.
+- The pre-existing `Advanced/deploy-console/Launch-Deploy-Console.cmd`
+  working-tree diff (`git status` shows it modified on a byte-identical
+  fresh clone — confirmed via `cmp`, zero byte difference from HEAD; a
+  `.gitattributes`-vs-index CRLF normalization artifact, not real content)
+  is still present. Codex's report (`WORKTREE-01`) independently reached the
+  same "line-ending-only, not touching it" conclusion. Neither of us staged
+  or fixed it. A one-time `git add --renormalize .` would likely clear it
+  permanently, but that's a repo-wide index operation outside what either
+  session was asked to do — flagging rather than running it.
+- Full findings, the reference-commit diff across both repos, the
+  foreign-language-content investigation (negative result, thoroughly
+  checked), and the live deployment test are in the separate consolidated
+  report delivered directly to Kenneth per the task file's own instructions
+  (it spans `north-forge-agent` too, outside this file's single-repo scope).
 
 ## Status
 
-Clean. `north-forge-agent`'s local checkout is fixed and verified; the
-repo-side incident was already resolved by another session before this
-one started. Kenneth can now retry `north-forge.cmd` against
-`E:\north-forge-agent`. Two follow-ups flagged above (ledger backfill,
-branch-protection confirmation) are open but non-blocking.
+Needs primary GPT review — two real, unresolved items above (the stale
+launcher tests, the Zone B authorship question), neither blocking, both
+worth a decision rather than a guess.
