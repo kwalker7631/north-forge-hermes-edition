@@ -3,71 +3,93 @@
 <div align="center">
 <img src="assets/north-forge-banner-etched.png" alt="North Forge" width="820">
 
-# Private TSC pack
+# The pack for the desk
 
-Same chassis as the public build. This repository is the manufacturer pack —
-procedures, skills, and deploy tools that do not belong on a public page.
+This is not a demo. This is the private manufacturer edition — the procedures,
+the skills, the deploy path — loaded onto the public chassis so a technician
+can work like they have a senior sitting with them.
 
 <br>
 
 [![Edition](https://img.shields.io/badge/Edition-Kyocera-0B1F3A?style=for-the-badge)](CURRENT.md)
 [![Version](https://img.shields.io/badge/Distribution-v0.1.0-2563EB?style=for-the-badge)](distribution.yaml)
 [![Access](https://img.shields.io/badge/Repository-Private-111827?style=for-the-badge)](#)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-7C3AED?style=for-the-badge)](#)
-[![Docs](https://img.shields.io/badge/Docs-CURRENT.md-1E3A5F?style=for-the-badge)](CURRENT.md)
+[![Philosophy](https://img.shields.io/badge/Spirit-Blue%20Book-1E3A5F?style=for-the-badge)](PHILOSOPHY.md)
 
-**Version:** `distribution.yaml` v0.1.0 · **Maintained by:** Kenneth C. Walker Jr.  
-**Access:** private. Teammates receive a stick, not this repository.
+**Version:** `distribution.yaml` v0.1.0 · **Kenneth C. Walker Jr.**  
+**Private.** Teammates receive a drive. They do not receive this repository.
 
 </div>
 
 ---
 
 > [!NOTE]
-> North Forge does not replace technician judgment. It reduces friction on routine calls, collects the minimum useful evidence, gives a direct next step, and says plainly when the pack does not have the page.
+> This pack does not replace judgment. It exists so judgment has somewhere honest to stand: the next step when we have it, the hole when we do not.
 
-| Start here | Purpose |
+| Start | Purpose |
 |---|---|
-| **[CURRENT.md](CURRENT.md)** | Current architecture and skill catalog |
-| **[north-forge-agent/ARCHITECTURE.md](https://github.com/kwalker7631/north-forge-agent/blob/main/ARCHITECTURE.md)** | How the chassis actually works internally |
-| **[Advanced/deploy-console/DEPLOY.md](Advanced/deploy-console/DEPLOY.md)** | Build a stick without typing Git |
-| **[LEARNING.md](LEARNING.md)** | How the pack gets less wrong over time |
-| **`/readme kyocera`** | In-session pointer to this set |
-
-Public chassis: [kwalker7631/north-forge-agent](https://github.com/kwalker7631/north-forge-agent) · `/readme north-forge-agent`
+| **[CURRENT.md](CURRENT.md)** | Architecture and skill catalog |
+| **[PHILOSOPHY.md](PHILOSOPHY.md)** | How this pack is supposed to behave — Blue Book spirit, our words |
+| **[DEPLOY.md](Advanced/deploy-console/DEPLOY.md)** | Build a drive without asking a tech to learn Git |
+| **`/readme kyocera`** | In-session map |
 
 ---
 
-## What you hand a teammate
+## Why this exists
 
-1. Plug the stick in.
-2. Double-click **Start North Forge**.
-3. Describe the device and the problem in ordinary English.
-4. If they get lost, they type `/menu`.
+Kyocera's house is built on doing what is right as a human being, putting the
+customer first, and accumulating the kind of effort nobody applauds. The desk
+is that house in miniature. A call is not a search query. It is a person, a
+machine, and a clock.
 
-Volume name is **FIRSTL-NORTH** (Greg Warhol → `GREGW-NORTH`). Agent name is optional. Default is North Forge.
+North Forge Kyocera Edition is the long prompt that nobody on a live call will
+ever write — broken into compartments so a teammate can stay on the floor:
 
-They do not need Git, GitHub, or a password. If the stick fails, they hand it back. They do not format it.
+- the device (print, scan, finish, paper path, supplies)
+- the PC and the network it sits on
+- PaperCut, MyQ, and the document tools this pack has been taught
+- intake, ticket, knowledge-base draft, escalation, fault log, training
 
----
+The power is not that it talks. The power is that it is supposed to **know
+when it does not know**, keep what the shop teaches, and refuse to sound like
+a brochure while a machine is down.
 
-## Scope
+That is commitment. Not a slogan. A rule you can catch it breaking.
 
-Print, scan, finish, paper path, supplies. The PC and network the device sits on (Windows, macOS, Linux). PaperCut, MyQ, and the other document tools the skills know. Hotline, KB draft, escalation, fault log, new-hire training.
+## What this pack can do
 
-When a procedure exists, the next step should be exact. When it does not, the pack should stop and keep the answer after someone supplies it.
+| Capability | On the drive |
+|---|---|
+| Structured intake | `/a` `/assist` — the minimum useful facts, in order |
+| Hotline / ticket packet | `/hl` `/ticket` — what to send, not a novel |
+| Knowledge-base draft | `/kb` — locked template, not a free-form essay |
+| Escalation | `/esc` — evidence that exists, gaps named |
+| Fault history | `/log` `/fault` — so the next person is not starting from zero |
+| New-hire path | `/train` — the workflow, not the entire industry |
+| Sales assist | when the call is still a conversation about the product |
+| Official pages only | vendor hops to public pages, not rumor treated as fact |
+| Nightly public watch | research / brief jobs on an admin PC that stays on |
+| Documentation map | `/readme` `/readme kyocera` `/readme north-forge-agent` |
 
-Live fault walkthroughs belong in skills — not on this front door.
+Live fault walkthroughs belong in those skills. They do not belong on this
+page. The front door is the promise. The shop floor is the pack.
 
----
+## Who receives what
+
+A **technician** gets a labeled drive (`GREGW-NORTH`), double-clicks
+**Start North Forge**, and talks. They do not format it. They do not learn a
+vendor.
+
+An **administrator** builds that drive from
+[ADMIN_FIRST_TIME.txt](Advanced/deploy-console/ADMIN_FIRST_TIME.txt) after a
+one-time GitHub sign-in on the admin PC.
+
+This repository is a **profile pack**. It installs into the public
+[north-forge-agent](https://github.com/kwalker7631/north-forge-agent) checkout.
+Retired FULL/SALES launchers live under `archive/`. Do not use them for a new
+drive.
 
 ## Architecture
-
-As of 11 September 2026 this repository is a **profile pack**. It installs into a public North Forge checkout. It is not a standalone product with a FULL/SALES toggle or its own `.hermes-home`.
-
-Retired launchers remain under `archive/legacy-standalone-launcher/`. Do not use them for a new stick.
-
-Cron scheduling for `kyocera-research` and `daily-brief` is declared in each skill's own `SKILL.md` frontmatter and picked up automatically by the chassis's `scripts/nf_sync_cron.py` on every launch and after provisioning — fixed 12 September 2026, closing the gap where a Basic-tier stick never got its research/brief jobs registered because nobody typed `/cron add` by hand. That same pass now also installs and starts the Hermes gateway service itself (the same zero-prompt path `hermes setup` uses) the first time a job needs one, so a registered job fires unattended without anyone running `hermes gateway install` by hand. See the "Setup note" in each skill file for the manual fallback commands for both steps, and the chassis's [Gateway service requirements](https://github.com/kwalker7631/north-forge-agent#gateway-service-requirements) for exactly what a Windows or Linux stick needs (D-Bus/linger, admin rights, etc.) for that install to succeed on its own.
 
 ```
 USB
@@ -76,64 +98,29 @@ USB
   north-forge-agent/                 public chassis
     private-editions/kyocera/        this repository
   north-forge-agent-venv/
-  north-forge-agent-data/            HERMES_HOME + admin hash
+  north-forge-agent-data/            memory + admin hash
 ```
 
-Admin builds the stick from **Advanced/deploy-console/** on a PC that has completed `gh auth login` once.
+## Admin — advanced, by hand
 
----
-
-## Skills
-
-| Skill | Command | Job |
-|---|---|---|
-| menu | `/menu` | Front door |
-| readme | `/readme` | This documentation set |
-| assist-intake | `/a` `/assist` | Structured intake |
-| hotline-ticket | `/hl` `/ticket` | Ticket packet |
-| kb-builder | `/kb` | KB draft to the locked template |
-| draft-writer | `/draft` | Short draft |
-| escalation-packet | `/esc` | Escalation with evidence on hand |
-| fault-logging | `/log` `/fault` | Durable fault record |
-| forge-audit | `/audit` `/chk` | Check a draft against the rules |
-| training-guide | `/train` | Teach a new tech the workflow |
-| sales-assist | sales prompts | Pre-sales |
-| web-navigator | vendor hops | Official public pages only |
-| kyocera-research | research / auto-cron 6am | Public release-note watch |
-| daily-brief | auto-cron 8am | Morning digest |
-
-A later Sharp, Ricoh, or Xerox edition is this table with different portals.
-
----
-
-## Admin — install by hand
-
-Use only if you are not using the deploy console.
+Prefer the deploy console. If you must install the profile yourself, open
+**PowerShell in the public North Forge folder**, then:
 
 ```
 git clone git@github.com:kwalker7631/north-forge-hermes-edition.git private-editions/kyocera
-```
-
-From the public checkout:
-
-```
 scripts\nf-setup.ps1 -Tier basic -Pin kyocera -Installed kyocera
 ```
 
-Use `-Tier full` only on an admin stick that should switch projects. Set the passcode with `scripts\nf-setup.ps1 -SetPasscode` on the engine side. Store the hash only.
-
-Update later: `hermes profile update kyocera`
-
-If a stick looks wrong, run `scripts\nf-setup.ps1 -Show` and `scripts\nf-preflight.ps1` in the **engine** repository.
-
----
+`-Tier full` is for an admin drive that must switch projects. Passcode:
+`scripts\nf-setup.ps1 -SetPasscode` on the engine side. Hash only.
 
 ## Governance
 
-Kenneth C. Walker Jr. is the only person who commits here. Teammates do not touch Git. Suggestions come back as a note or a fault log.
-
----
+Kenneth C. Walker Jr. is the only person who commits here. Suggestions come
+back as a note or a fault log. That is not control for its own sake. It is
+how the pack stays one mind.
 
 ## Thanks
 
-The runtime under the public checkout is [Hermes Agent](https://github.com/NousResearch/hermes-agent) by Nous Research and contributors (MIT). Thank you. It is not what you pitch first.
+The runtime is [Hermes Agent](https://github.com/NousResearch/hermes-agent)
+(Nous Research, MIT). Listed last. The first page is the work.
