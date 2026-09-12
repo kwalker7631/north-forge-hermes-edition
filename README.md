@@ -1,23 +1,24 @@
 <div align="center">
 <img src="assets/north-forge-banner-etched.png" alt="North Forge" width="820">
 
-# North Forge — Hermes Edition
+# North Forge — Kyocera Edition (Private)
 
-### Field intelligence. Built locally. Forged for the work.
-
-**Kyocera Edition v21.8**
-
-A field-support AI for Kyocera Document Solutions technicians and sales reps — designed for KB authoring, hotline work, escalation packets, pre-sales guidance, and structured field support from a local PC or portable drive.
+**North Forge Kyocera Edition** — the real thing. Same engine as the public
+build, same identity, same voice — but this one actually knows Kyocera cold,
+because it was built and proven against real technical support work, not a
+demo. This repo is private, single-eyes-only, by design: it carries the
+admin recovery procedures and deployment notes the public repo deliberately
+doesn't.
 
 <br>
 
 [![Hermes Agent](https://img.shields.io/badge/Engine-Hermes%20Agent-4B5563?style=for-the-badge)](https://github.com/NousResearch/hermes-agent)
-![Version](https://img.shields.io/badge/North%20Forge-v21.8-2563EB?style=for-the-badge)
+![Version](https://img.shields.io/badge/Distribution-v0.1.0-2563EB?style=for-the-badge)
 ![Access](https://img.shields.io/badge/Repository-Private-111827?style=for-the-badge)
-![Modes](https://img.shields.io/badge/Modes-FULL%20%7C%20SALES-059669?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-7C3AED?style=for-the-badge)
 
-**Created and maintained by Kenneth C. Walker Jr. — Senior Technical Support Engineer, TSC**
+**Version:** `distribution.yaml` `v0.1.0` · **Maintained by:** Kenneth C. Walker Jr.
+· **Access:** Private — Kenneth's GitHub credentials only, no other gate needed.
 
 </div>
 
@@ -25,6 +26,31 @@ A field-support AI for Kyocera Document Solutions technicians and sales reps —
 
 > [!NOTE]
 > **North Forge does not replace technician judgment.** It reduces the friction around routine calls, collects the minimum useful evidence, gives a direct next step, and says plainly when confidence is limited.
+
+## Why this beats stock Hermes (yes, I said it)
+
+Stock Hermes is a genuinely great engine — no argument there. But a great
+engine with no driver is just a great engine. North Forge is the driver:
+40+ years of real technical-support instinct, a knowledge base validated
+against actual field cases, a personality people actually want to talk to,
+and a growing stable of custom tools (Pocket Penny, Pine Barron Farms, and
+whatever's next) that stock Hermes has no opinion about at all. Mine's
+better. Fight me. 😄
+
+---
+
+> [!IMPORTANT]
+> **Architecture changed 2026-09-11.** This repo no longer runs as a
+> standalone, drive-installable product with its own `.hermes-home`,
+> launcher, or FULL/SALES mode toggle — that whole system is retired (see
+> `archive/legacy-standalone-launcher/README.md` and the 2026-09-11
+> `CHANGELOG.md` entry). It now installs as a plain Hermes profile
+> distribution into an already-running North Forge/Hermes environment.
+> Most of the sections below this point (`⚡ At a glance` through
+> `🧭 Navigate`'s linked sections) still describe the retired model and are
+> pending a full rewrite — read them as history, not current instructions,
+> until that pass lands. The **Administrative Instructions** section further
+> down is current.
 
 ## ⚡ At a glance
 
@@ -175,6 +201,60 @@ North Forge's identity, tone, and rules in `.hermes.template.md` are written mod
 
 This repo is private and not published. Kenneth Walker Jr. is the sole administrator - he is the only person who creates, edits, or commits content here. Team members who use a drive built from this repo never touch the repo itself; if someone has a suggestion or hits a problem, it's relayed to Kenneth (via a log, a description, or eventually the fault-logging skill once built) and handled through the Claude Project chat + Claude Code + Blacksmith review loop - never applied directly by whoever reported it.
 
+---
+
+## Administrative Instructions
+
+*(Private repo — this section stays here on purpose. Nobody but Kenneth ever sees this file.)*
+
+This content no longer carries its own admin gate, drive-local install, or
+FULL/SALES mode toggle — those belonged to the standalone-launcher model
+retired 2026-09-11 (see `archive/legacy-standalone-launcher/README.md`).
+Administration now happens entirely on the `north-forge-agent` side.
+
+### Admin passcode
+
+Set once, on the `north-forge-agent` side, via `scripts\nf-setup.ps1
+-SetPasscode` — stored there as a PBKDF2 hash in `north-forge\.nf-admin`,
+never in plaintext, never in this repo (or any tracked file — a passcode
+value belongs in a hash, not in prose, so it isn't repeated here even
+though this file is private). It gates re-provisioning (tier / pinned-
+edition changes) via `hermes_cli\nf_tier.py`. If you need the current value,
+it's yours to know already — check where you actually set it, not a doc.
+
+### Installing / updating this content for a deployment
+
+1. Clone this repo into `north-forge-agent`'s gitignored `private-editions/`
+   slot:
+   ```
+   git clone git@github.com:kwalker7631/north-forge-hermes-edition.git private-editions/kyocera
+   ```
+   (see `north-forge-agent`'s `editions/README.md`, "Private editions"
+   section, for how the fallback discovery works).
+2. From `north-forge-agent`:
+   ```
+   scripts\nf-setup.ps1 -Tier <full|basic> -Pin kyocera -Installed kyocera
+   ```
+   installs it as the `kyocera` Hermes profile and records the tier/pin.
+3. To pick up a later content update: `hermes profile update kyocera`
+   (re-clones from the recorded source; the operator's own config, memories,
+   and sessions are never touched).
+
+### If something looks wrong with an installed deployment
+
+This repo carries no `.hermes-home` and no install-recovery scripts of its
+own anymore — recovery / re-provisioning is a `north-forge-agent`-side
+concern. Start with `scripts\nf-setup.ps1 -Show` and `scripts\nf-preflight.ps1`
+there, not anything in this repo's `Advanced/` (retired — see
+`archive/legacy-standalone-launcher/README.md`).
+
+### Retired (history only — see `archive/legacy-standalone-launcher/`)
+
+The old "clone this repo directly onto a drive root and launch it,"
+`Advanced/toggle-mode.bat` FULL/SALES switching, and `full-drive-reset` /
+`machine-reset` procedures no longer apply to this content. Anything you
+find still describing those (this file included, further down) is
+describing the retired model, not current instructions.
 
 ---
 
