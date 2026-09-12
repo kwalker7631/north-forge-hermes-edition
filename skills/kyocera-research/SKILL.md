@@ -1,6 +1,10 @@
 ---
 name: kyocera-research
 description: Targeted research pass over public Kyocera resources - firmware notes, known issues, forums - logging only genuinely new findings
+cron:
+  - name: nightly-kyocera-research
+    schedule: "0 6 * * *"
+    prompt: "Run the kyocera-research pass"
 ---
 # Kyocera Research Skill
 
@@ -49,10 +53,27 @@ This log is a plain git-tracked file, not something living only in Hermes's own 
 
 ## Setup note (not part of the skill's own behavior - for whoever is reading this to configure the schedule)
 
-Inside a live Hermes session, run:
+As of 2026-09-12 this is automatic: the `cron:` block in this file's frontmatter
+(above) is read by `north-forge-agent`'s `scripts/nf_sync_cron.py`, which runs
+at every launch and after `nf-setup.ps1` provisioning, on Full and Basic tier
+alike - no admin step, no manual `/cron add`, and it survives a HERMES_HOME
+flush the same way the old launcher-embedded self-heal used to. It never pins
+a model/provider, so the job runs on whatever the drive is already configured
+with (the free default on a Basic drive included).
+
+To do it by hand instead (equivalent to what the sync script runs), inside a
+live Hermes session:
 
     /cron add "0 6 * * *" "Run the kyocera-research pass" --skill kyocera-research --name nightly-kyocera-research
 
 (Schedule corrected 2026-09-04 with Blacksmith approval: originally "every 24h", which anchors to whenever the job was created and drifts to mid-day runs. Fixed 6 AM gives the 8 AM daily-brief fresh findings to read every morning.)
 
-Check progress any time with `/cron list`. The job's own memory/continuity (a real Hermes feature as of the v0.21.0 release) helps it avoid re-researching the same ground twice, on top of this skill's own explicit dedup-against-the-log-file instruction above - two layers of protection against repeating findings, not just one.
+Check progress any time with `/cron list`. A registered job still only *fires*
+while a Hermes gateway process is running for this drive's `HERMES_HOME` - the
+sync script's on-screen output says so plainly when it detects the gateway is
+down; run `hermes gateway install` once to make research/brief jobs survive
+the teammate closing the terminal. The job's own memory/continuity (a real
+Hermes feature as of the v0.21.0 release) helps it avoid re-researching the
+same ground twice, on top of this skill's own explicit dedup-against-the-log-file
+instruction above - two layers of protection against repeating findings, not
+just one.

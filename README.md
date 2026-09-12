@@ -66,6 +66,8 @@ As of 11 September 2026 this repository is a **profile pack**. It installs into 
 
 Retired launchers remain under `archive/legacy-standalone-launcher/`. Do not use them for a new stick.
 
+Cron scheduling for `kyocera-research` and `daily-brief` is declared in each skill's own `SKILL.md` frontmatter and picked up automatically by the chassis's `scripts/nf_sync_cron.py` on every launch and after provisioning — fixed 12 September 2026, closing the gap where a Basic-tier stick never got its research/brief jobs registered because nobody typed `/cron add` by hand. See the "Setup note" in each skill file for the fallback command and for the `hermes gateway install` step a registered job still needs to actually fire unattended.
+
 ```
 USB
   Start North Forge.lnk
@@ -96,8 +98,8 @@ Admin builds the stick from **Advanced/deploy-console/** on a PC that has comple
 | training-guide | `/train` | Teach a new tech the workflow |
 | sales-assist | sales prompts | Pre-sales |
 | web-navigator | vendor hops | Official public pages only |
-| kyocera-research | research / cron | Public release-note watch |
-| daily-brief | brief | Morning digest |
+| kyocera-research | research / auto-cron 6am | Public release-note watch |
+| daily-brief | auto-cron 8am | Morning digest |
 
 A later Sharp, Ricoh, or Xerox edition is this table with different portals.
 

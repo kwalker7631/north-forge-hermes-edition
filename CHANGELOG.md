@@ -4,6 +4,54 @@ Plain-language running log of what actually changed and why. Distinct from `git 
 
 ## [Unreleased] - 2026-09-12
 
+### Fixed (later session, Perplexity Computer - cron auto-sync, dead-test cleanup, README/CHANGELOG)
+
+- **Daily research/brief cron jobs now register themselves.** Root cause:
+  the retired standalone launcher used to self-schedule `nightly-kyocera-research`
+  and `daily-kyocera-brief` on every run; when this repo moved to the
+  profile-pack model (see the 2026-09-11 entries below), nothing replaced
+  that self-heal step, and the chassis's new `north-forge.cmd` /
+  `scripts/nf-setup.ps1` had zero cron-related code. Result: those two jobs
+  only ever got created if someone typed `/cron add ...` by hand inside a
+  live session - something a Basic-tier teammate drive is never expected to
+  do, which is exactly the gap Kenneth flagged. Fix, split across both
+  repos: `skills/kyocera-research/SKILL.md` and `skills/daily-brief/SKILL.md`
+  (this repo) now carry a machine-readable `cron:` block in their frontmatter
+  alongside the existing prose "Setup note" (kept as the manual fallback);
+  `north-forge-agent`'s new `scripts/nf_sync_cron.py` reads that block from
+  every installed skill and creates any job that is missing by name, via the
+  same `tools.cronjob_tools.cronjob()` API the CLI uses, called from
+  `north-forge.cmd`'s existing self-healing block on every launch and once at
+  the end of `nf-setup.ps1` right after provisioning. Add-if-missing only (a
+  user's own post-creation edits to schedule/prompt are never touched),
+  never pins model/provider (so it behaves identically on Basic and Full
+  tier - a job created this way inherits whatever model the drive already
+  has configured), and a scheduling failure only ever prints a warning, never
+  blocks a launch. Added `tests/test_cron_frontmatter.py` here to keep the
+  two repos' halves of this contract from drifting apart again, and a full
+  unit-test suite for the sync script itself in `north-forge-agent`'s
+  `tests/scripts/test_nf_sync_cron.py`.
+- **Registering a job still isn't the same as it firing.** The engine's own
+  cron API already reports `gateway_running: false` when nothing is polling
+  the schedule for this `HERMES_HOME` (the ticker lives in the gateway
+  process); `nf_sync_cron.py` surfaces that warning on-screen the same way
+  the old launcher's `CRON_DEGRADED` banner did. Both skills' "Setup note"
+  sections now say plainly that a stick needs `hermes gateway install` once
+  for research/brief jobs to survive a teammate closing the terminal.
+- **Removed three dead tests left behind at the first migration pass.**
+  `tests/test_cron_registration.py`, `tests/test_drive_hermes_contract.py`,
+  and `tests/test_launcher_hermes_home.py` all read `launch-north-forge.sh`/
+  `.bat` directly off disk - files that were quarantined into
+  `archive/legacy-standalone-launcher/` in the 2026-09-11 retirement below,
+  but these three test files were not moved alongside them, so every one of
+  them has been erroring on `FileNotFoundError` (not failing an assertion -
+  erroring before it could even run one) since that session. Moved (not
+  deleted - `git mv`, history preserved) into
+  `archive/legacy-standalone-launcher/tests/` next to the launcher files
+  they actually test, and the archive folder's own `README.md` table updated
+  to list them. `python -m pytest tests/` went from 12 failed / 11 passed to
+  11 passed / 0 failed.
+
 ### Security (later session, Claude Code - branch protection applied)
 
 - **`main` branch protection applied**, matching `north-forge-agent`'s own

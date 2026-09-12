@@ -1,6 +1,10 @@
 ---
 name: daily-brief
 description: A short daily digest of Kyocera and document-solutions industry news - lighter and faster than kyocera-research
+cron:
+  - name: daily-kyocera-brief
+    schedule: "0 8 * * *"
+    prompt: "Run the daily-brief pass"
 ---
 # Daily Brief Skill
 
@@ -35,8 +39,14 @@ Create the file (and research-log/ folder, if it doesn't already exist - it may 
 
 ## Setup note (for whoever is configuring the schedule, not part of this skill's own behavior)
 
-Inside a live Hermes session, run:
+As of 2026-09-12 this is automatic: the `cron:` block in this file's frontmatter
+(above) is read by `north-forge-agent`'s `scripts/nf_sync_cron.py` at every
+launch and after provisioning, on Full and Basic tier alike - no manual
+`/cron add` needed, and no model/provider pin, so it runs on whatever the
+drive is already configured with.
+
+To do it by hand instead, inside a live Hermes session:
 
     /cron add "0 8 * * *" "Run the daily-brief pass" --skill daily-brief --name daily-kyocera-brief
 
-This uses a fixed-time cron schedule (8 AM daily) rather than a rolling "every 24h" - a genuine daily briefing should land at a consistent time each morning, not drift based on when the drive happened to be launched. Check progress with `/cron list`.
+This uses a fixed-time cron schedule (8 AM daily) rather than a rolling "every 24h" - a genuine daily briefing should land at a consistent time each morning, not drift based on when the drive happened to be launched. Check progress with `/cron list`. As with kyocera-research, a registered job only *fires* while a Hermes gateway process is running for this drive - run `hermes gateway install` once so this doesn't depend on a terminal staying open.

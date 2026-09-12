@@ -44,6 +44,7 @@ becomes a live profile.
 | `Advanced/full-drive-reset.sh` | Full wipe-and-reprovision of a drive's `.hermes-home`. |
 | `Advanced/toggle-mode.sh` | Switched a drive between FULL and SALES mode (see below). |
 | `tests/*` (the ones moved alongside this README) | The dedicated test suite for all of the above — drive isolation, install/reset integrity, launcher behavior, skill assembly. |
+| `tests/test_cron_registration.py`, `tests/test_drive_hermes_contract.py`, `tests/test_launcher_hermes_home.py` | Moved here 2026-09-12 (left behind at the first retirement pass, still exercising `launch-north-forge.sh`/`.bat` and failing on every run since those files moved). Cron self-scheduling for the currently shipping edition is now `north-forge-agent`'s `scripts/nf_sync_cron.py`, covered by that repo's own test suite — see this repo's `CHANGELOG.md`. |
 
 `archive/setup-thumbdrive.ps1` (one level up, already archived before this
 retirement) is the original first-time Windows setup script and is unrelated
