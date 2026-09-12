@@ -1,82 +1,67 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-12 (follow-up action, same evening as the authorship +
-connector-access audit)
-Requested task: apply the same branch protection to this repo's `main`
-branch that `north-forge-agent` already has (`RUN-2026-09-11-002`):
-`enforce_admins: true`, `allow_force_pushes: false`,
-`allow_deletions: false`, `allow_fork_syncing: false` — and confirm via the
-API afterward that all four are actually live, not just assumed from the
-mutating call succeeding.
+Timestamp: 2026-09-12 (later evening session)
+Requested task: per
+`C:\Users\kwalk\Downloads\CLAUDE_TASK_readme_review_surface_content.md` —
+Kenneth believes his original intent for these docs (technical depth for
+engineers, real architecture/diagram content) got distorted across
+tonight's rewrite passes with Grok and ChatGPT/Codex. Diagnostic only: show
+`README.md`'s full current content in both repos, inventory any existing
+diagrams/flowcharts anywhere in either repo, and give an honest gap
+assessment against the stated intent. Explicitly **do not rewrite** this
+pass.
 
 ## Files inspected
 
-- `gh api repos/kwalker7631/north-forge-agent/branches/main/protection`
-  (fetched first, to mirror the exact live config rather than guess at the
-  full request body GitHub's `PUT` protection endpoint requires)
+- `README.md` (this repo, in full) and `north-forge-agent/README.md` (in
+  full) — reproduced verbatim in the separate report delivered to Kenneth
+- `CURRENT.md` (this repo) — the doc README itself points to as
+  "Current architecture and skill catalog"
+- `north-forge-agent/CAPABILITIES.md` — the equivalent linked doc there
+- Searched every doc either README links to
+  (`START_HERE.md`/`PRODUCT.md`/`LEARNING.md`/`DOCS.md`/`editions/*` on the
+  agent side; `LEARNING.md`/`Advanced/deploy-console/*.md` here) plus every
+  tracked file in both repos' own authored content, for Mermaid fences,
+  `flowchart`, `sequenceDiagram`, `graph TD/LR` — zero hits anywhere except
+  upstream Hermes UI code that *renders* Mermaid as a chat feature (not a
+  diagram describing North Forge itself)
 
 ## Zone A changes made
 
-None (no repo files changed). This is a GitHub repo **setting**, not a
-tracked file, so it falls outside the Zone A/B/C file taxonomy entirely -
-treated as infrastructure-equivalent given it's the direct fix for a gap
-this same day's earlier audit flagged, and Kenneth explicitly requested it
-by name with exact target values.
-
-**Branch protection applied** to `north-forge-hermes-edition`'s `main`:
-`PUT /repos/kwalker7631/north-forge-hermes-edition/branches/main/protection`
-with `required_status_checks: null`, `enforce_admins: true`,
-`required_pull_request_reviews: null`, `restrictions: null`,
-`required_linear_history: false`, `allow_force_pushes: false`,
-`allow_deletions: false`, `block_creations: false`,
-`required_conversation_resolution: false`, `lock_branch: false`,
-`allow_fork_syncing: false` — the same shape as `north-forge-agent`'s
-existing protection, confirmed by fetching that repo's live config first
-rather than assuming the field set.
-
-**Verified independently, not just from the `PUT` call's own response**
-(per the explicit instruction not to repeat the prior "worth a one-command
-confirmation" gap): ran three separate follow-up `GET`s after the `PUT`:
-1. A fresh full `GET` on
-   `repos/kwalker7631/north-forge-hermes-edition/branches/main/protection`
-   — all four target fields present and correct.
-2. A direct `GET` on the `enforce_admins` **sub-resource specifically**
-   (`.../protection/enforce_admins`) — its own dedicated endpoint, not a
-   field inside the parent object — returned `{"enabled": true}`.
-3. A `--jq`-filtered fresh `GET` extracting exactly the four requested
-   fields, run side-by-side against the same filter on
-   `north-forge-agent`'s live config — **byte-for-byte identical** on all
-   four: `allow_deletions: false, allow_force_pushes: false,
-   allow_fork_syncing: false, enforce_admins: true`.
-
-This closes the branch-protection gap flagged in this same evening's
-earlier connector/access audit (`0d35c1e`) — `north-forge-hermes-edition`
-had zero branch protection before this action.
+None.
 
 ## Zone B findings (not fixed — reported only)
 
-None new this session.
+**`README.md` and `CURRENT.md` (both Zone B) have drifted toward
+general-audience/marketing-style copy, not technical depth for an
+engineering reader — confirmed, not just suspected.** Full quoted evidence
+is in the separate report delivered to Kenneth (Part 2 of that document).
+Summary: both docs share one voice and structure throughout (hero pitch →
+onboarding steps → capability table → "Thanks" crediting the engine last);
+the one section literally titled "Architecture" in `README.md` is two
+narrative paragraphs plus a plain ASCII directory-tree listing (file
+layout, not system design); `CURRENT.md`, linked from `README.md` as
+"Current architecture," has no more architectural depth than the README
+itself. No diagram of any kind — Mermaid or otherwise — exists anywhere in
+either repo describing how the system actually works. Per this task's Part
+3, no fix applied this pass — a follow-up task will hand over the actual
+corrected content for placement.
 
 ## Commits made this session
 
-- `<pending — CHANGELOG.md entry + this file, committed together
-  immediately after this report is written>` — Zone C (CHANGELOG) + the
-  standing audit-report exception. No tracked application file changed;
-  the substantive action was the GitHub API call above, which has no git
-  commit of its own (it's not a file in this repository).
+- `<pending — this file only, immediately after this report is written>`
+  — Zone A, the standing audit-report exception. No other file touched;
+  this was a read-only review with no findings that were this session's to
+  fix.
 
 ## Uncertain / flagged for primary GPT review
 
-- Grok's actual current connector permission scope is still unconfirmed
-  (per the same evening's earlier audit) — this branch-protection change
-  reduces the *blast radius* of whatever access it has (no more silent
-  force-push/history-rewrite/branch-deletion, from Grok or anything else
-  with write access) but does not answer what that access currently is.
-  Still needs Kenneth's own check of `github.com/settings/installations`
-  and the repo-scoped equivalent, or a future session with a working
-  Chrome connection.
+- None new. The prior session's open items (Grok's unconfirmed live
+  connector scope; the 9 stale launcher tests; `skills/menu/SKILL.md`'s
+  mode-routing text) are unchanged and untouched this session — out of
+  scope for a README-only diagnostic pass.
 
 ## Status
 
-Clean. Requested change applied and independently verified live, matching
-the rigor gap flagged against the original `north-forge-agent` hardening.
+Clean. Diagnostic-only task completed exactly as scoped: content surfaced,
+gap assessed and evidenced, nothing rewritten.
