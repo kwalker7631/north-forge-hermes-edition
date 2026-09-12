@@ -18,17 +18,20 @@ Plain-language running log of what actually changed and why. Distinct from `git 
   to the root docs, pending Kenneth confirming that analogy is right (not
   yet added to the explicit Zone B list).
 - **Authorship of the 2026-09-12 04:00-05:37 session (Deploy Console,
-  `README.md` rewrite, `CURRENT.md`, `LEARNING.md`) checked, result:
-  genuinely unclear, not guessed at.** Every commit in that burst
-  (`dbe5e7c`..`1cfdf98`) is authored *and* committed under Kenneth's own
-  GitHub identity, unsigned (no GPG), with no `Co-Authored-By:` /
-  `Claude-Session:` / Codex-style trailer of any kind - the same shape a
-  human typing and committing directly would produce, and also the same
-  shape an AI session committing under Kenneth's own local git identity
-  with no trailer habit would produce. Commit cadence (spaced roughly
-  1-30 minutes apart across 90 minutes) doesn't distinguish the two either.
-  No technical signal in the git history settles this either way. If it
-  matters for the record, only Kenneth can say who/what was actually typing.
+  `README.md` rewrite, `CURRENT.md`, `LEARNING.md`).** A same-day session
+  note (this entry) had recorded this as "genuinely unclear" from git
+  evidence alone - correct as far as it went, since git shows no
+  distinguishing signal (every commit in that burst, `dbe5e7c`..`1cfdf98`,
+  is unsigned, no `Co-Authored-By`/`Claude-Session`/Codex-style trailer,
+  authored and committed under Kenneth's own GitHub identity either way).
+  **Per Kenneth directly** (stated in chat, not inferred from git): the
+  `Advanced/deploy-console/` automation (`Zero-Touch-Deploy.ps1`,
+  `Start-DeployConsole.ps1`, the UI) was built working with **Grok**, which
+  had direct GitHub write access to this repo at the time. The `README.md`
+  rewrite and related docs (`CURRENT.md`, `LEARNING.md`,
+  `skills-source/shared/readme/SKILL.md`) were produced working with
+  **ChatGPT/Codex**. Recorded here as the project owner's own statement of
+  record, not as something git evidence proved.
 
 ## [Unreleased] - 2026-09-11
 
