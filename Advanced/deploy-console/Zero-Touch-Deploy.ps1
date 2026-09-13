@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Zero-touch USB deploy for North Forge + private Kyocera (Hermes) edition.
 #>
@@ -135,8 +135,18 @@ if (-not $SkipBootstrap) {
     Write-Step "Cloning private Kyocera edition → private-editions\kyocera"
     New-Item -ItemType Directory -Force -Path (Join-Path $agentDir 'private-editions') | Out-Null
     if (Test-Path -LiteralPath (Join-Path $editionDir '.git')) {
-        Write-WarnLine "Private edition already present. Pulling."
-        Invoke-LoggedNative { git -C $editionDir pull --ff-only } "private edition pull failed"
+        # Force-checkout, same repair pattern as the agent checkout above - not a
+        # plain `pull --ff-only`. A repair pass on a drive where "someone messed
+        # where they shouldn't" tampered with tracked files needs to actually fix
+        # them, not just refuse to move when history has diverged. This only
+        # discards local changes inside private-editions\kyocera\ itself - the
+        # sibling venv/data folders (and the admin passcode inside them) are
+        # untouched either way, and the private edition's own CLAUDE.md already
+        # says only the Blacksmith commits there, so no legitimate uncommitted
+        # work should ever be sitting in a deployed drive's checkout to lose.
+        Write-WarnLine "Private edition already present. Fetching latest main (depth 1) and repairing any local tampering."
+        Invoke-LoggedNative { git -C $editionDir fetch --depth 1 origin main } "private edition fetch failed"
+        Invoke-LoggedNative { git -C $editionDir checkout --force FETCH_HEAD } "private edition checkout failed"
     }
     else {
         if (Test-Path -LiteralPath $editionDir) { throw "private-editions\kyocera exists but is not a git checkout." }
