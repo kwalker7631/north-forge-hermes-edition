@@ -4,6 +4,35 @@ Plain-language running log of what actually changed and why. Distinct from `git 
 
 ## [Unreleased] - 2026-09-12
 
+### Added (later session, Perplexity Computer - optional Pinokio lab install, admin-only)
+
+- **Pinokio (https://github.com/pinokiocomputer/pinokio) can now be pointed at a
+  large lab disk, mechanically kept off the teammate stick.** Kenneth's own
+  `Advanced/PINOKIO.md` and `Advanced/deploy-console/EXCALIBUR.md` already ruled
+  Pinokio out of the teammate/handoff drive ("Do not put on this stick: Pinokio,
+  local model zoos, AppData installs, the research archive. Those bury the
+  sale.") - this adds the enforcement code for that decision rather than
+  overriding it. New `scripts/pinokio_lab_target.py` validates a candidate
+  target directory against both hard rules from those docs: refuses any drive
+  carrying a North Forge marker file (`north-forge.cmd`, `HOW_TO_START.txt`,
+  `Start North Forge.lnk`, etc., checked from the target up to the drive root),
+  and refuses anything under 200 GB free (500 GB+ is PINOKIO.md's own "real
+  design" floor); neither check is overridable by a flag. New
+  `Advanced/deploy-console/Install-Pinokio-Lab.ps1` runs that check, then - only
+  if Pinokio is already installed - offers to point its `config.json` Home
+  field at the validated target (backing the file up first); if Pinokio isn't
+  installed yet, it just prints the target path to paste into Pinokio's own
+  first-run Home prompt, since letting Pinokio's own installer/UI own an
+  existing-data move is more reliable than scripting around it (see the
+  GitHub issues cited in `PINOKIO.md`). Companion
+  `Advanced/deploy-console/Remove-Pinokio-Lab.ps1` runs Pinokio's registered
+  uninstaller if found, clears its AppData/program folders, and only deletes
+  the Home data folder with an explicit `-RemoveHomeData` switch plus
+  confirmation. Neither script is wired into `north-forge.cmd`,
+  `bootstrap-north-forge.ps1`, `nf-setup.ps1`, or any other teammate-path
+  script - both are only reachable by running them directly from the admin
+  console folder. 10 new tests in `tests/test_pinokio_lab_target.py`.
+
 ### Fixed (later session, Perplexity Computer - cron auto-sync, dead-test cleanup, README/CHANGELOG)
 
 - **Daily research/brief cron jobs now register themselves.** Root cause:
