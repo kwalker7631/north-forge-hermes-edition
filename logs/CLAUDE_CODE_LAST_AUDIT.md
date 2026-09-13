@@ -1,115 +1,142 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-12 (Pinokio validator reconciliation + deploy-console
-repair-path and parse-bug fix)
-Requested task: per `Downloads/CLAUDE_TASK_concern_check_and_excalibur_build.md`
+Timestamp: 2026-09-12 (Pinokio validator reconciliation, deploy-console
+repair-path/parse-bug fix, real Excalibur drive build + verification)
+Requested task: per `Downloads/CLAUDE_TASK_concern_check_and_excalibur_build.md` -
 Part 1 (confirm/fix the Pinokio same-drive-vs-separate-disk validator
-conflict before building a real Excalibur drive), plus two follow-up asks
-from the owner mid-session: build a standing drive-root "How To Start"
-docs entry point (landed in `north-forge-agent`, see that repo's own
-ledger), and fix the deploy console's repair path for a drive where
-"someone messed where they shouldn't."
+conflict), Part 2 (build ONE real, deployable Excalibur drive, verified end
+to end, not assumed). Plus two owner asks mid-session: a standing drive-root
+"How To Start" docs entry point (landed in `north-forge-agent`'s own
+ledger), and a deploy-console repair-path fix for "someone messed where
+they shouldn't."
 
 ## Files inspected
 
-- `scripts/pinokio_lab_target.py`, `tests/test_pinokio_lab_target.py`
-- `logs/HANDOFF_PERPLEXITY_PINOKIO_2026-09-12.md` (the original conflict report)
-- `Advanced/PINOKIO.md`, `PINOKIO-on-drive.md`, both `pinokio/SKILL.md` files
-- `Advanced/deploy-console/Install-Pinokio-Lab.ps1` (confirmed it needed no
-  change - passes no size override, gets the new default correctly)
-- `Advanced/deploy-console/Zero-Touch-Deploy.ps1`
-- `WELCOME.html`, `archive/legacy-standalone-launcher/launch-north-forge.sh`
-  (checking what actually opens `WELCOME.html`)
-- Every non-archived `.ps1` in this repo and `north-forge-agent` (static
-  parse sweep, see below)
+- `scripts/pinokio_lab_target.py`, `tests/test_pinokio_lab_target.py`,
+  `logs/HANDOFF_PERPLEXITY_PINOKIO_2026-09-12.md`
+- `Advanced/deploy-console/Zero-Touch-Deploy.ps1`,
+  `Install-Pinokio-Lab.ps1`, `EXCALIBUR.md`
+- The real target drive: `E:\` (label `GREG-NORTH`, 231 GB exFAT, empty at
+  session start)
+- Post-deploy: `E:\north-forge-agent-data\profiles\kyocera\` (installed
+  profile contents), `hermes skills list`, `hermes status`,
+  both drive-root `.lnk` shortcuts
 
 ## Zone A changes made
 
-1. **`scripts/pinokio_lab_target.py`** (+ `tests/test_pinokio_lab_target.py`):
-   reconciled the hard-block rule with the documented Learning-class
-   same-drive design. Before: any North Forge marker file hard-blocked the
-   target volume unconditionally, regardless of size - silently
-   contradicting `Advanced/PINOKIO.md` / `PINOKIO-on-drive.md`'s 256 GB
-   "Learning stick" (North Forge + Pinokio sharing a drive on purpose).
-   After: a marker only hard-blocks on a volume at/under a new
-   `--excalibur-max-gb` (default 100 GB); above that, the marker no longer
-   blocks by itself and the same free-space floor/warn/ok bands any
-   candidate gets still apply. `Install-Pinokio-Lab.ps1` needed no change -
-   it never passed a size override, so it gets the corrected default
-   automatically. 14/15 tests pass (renamed two, added five); the one
-   pre-existing failure (`test_blocks_missing_ancestor`) is unrelated,
-   already flagged in a prior audit, not touched. Committed `87b513c`.
+1. **`scripts/pinokio_lab_target.py`** + tests - reconciled the Excalibur-
+   vs-Learning-class hard-block rule (full detail in the prior revision of
+   this report; unchanged since). Commit `87b513c`.
 
-2. **`Advanced/deploy-console/Zero-Touch-Deploy.ps1`**, two fixes, one commit
-   (`e9b6ae9`):
-   - **Repair-path gap**: on `-SkipFormat` (repairing an already-deployed
-     drive), the private Kyocera edition checkout used `git pull --ff-only`,
-     which fails rather than repairs once local tampering or divergent
-     history exists there - unlike the agent checkout a few lines above,
-     which already force-checks-out `FETCH_HEAD`. Aligned both to the same
-     fetch + force-checkout pattern. Only discards local changes inside
-     `private-editions\kyocera\` itself; sibling venv/data (and the admin
-     passcode inside them) untouched either way - and per that edition's own
-     `CLAUDE.md`, only the Blacksmith commits there, so no legitimate
-     uncommitted work should ever be at risk in a deployed drive's checkout.
-   - **Parse-breaking BOM gap, found by actually running the script, not
-     just reading it**: `powershell -File` on this script failed to parse
-     at all - the file had no UTF-8 BOM, so Windows PowerShell 5.1 read it
-     via the system ANSI codepage, misreading the pre-existing em-dash on
-     line 170 (unrelated content, not touched otherwise) as invalid tokens.
-     This broke the ENTIRE script, before any code could run - a real,
-     previously-unknown blocker sitting directly in the path of the actual
-     Excalibur build this task exists to do. Added the BOM; re-verified via
-     a clean static parse (`[...Parser]::ParseFile`, no execution) since a
-     second live invocation of the deploy engine was denied by the session's
-     own auto-mode classifier as a repeated risky action - reasonable
-     caution, and the static parse check is equally conclusive for "does
-     this file parse now." Then swept every other non-archived `.ps1` in
-     both `north-forge-hermes-edition` and `north-forge-agent` the same way:
-     all clean - this was a one-off, not a systemic encoding problem across
-     the codebase.
+2. **`Advanced/deploy-console/Zero-Touch-Deploy.ps1`** - private-edition
+   repair-path fix (`git pull --ff-only` -> fetch + force-checkout, matching
+   the agent checkout) and a parse-breaking missing-BOM fix, found by
+   actually invoking the script. Commit `e9b6ae9`. Full detail in the prior
+   revision of this report.
+
+3. **This session's real Excalibur build on `E:\`** (not a code change to
+   this repo, but the actual deliverable Part 2 asked for):
+   - Confirmed `EXCALIBUR.md`'s sequence against the real
+     `Zero-Touch-Deploy.ps1`/`Install-Pinokio-Lab.ps1` on `origin/main`
+     before running anything (no drift beyond the previously-flagged
+     console-UI owner-label gap, worked around here by invoking the engine
+     script directly with `-Label` rather than through the web console).
+   - Ran the real deploy: `-DriveLetter E -SkipFormat -Tier basic
+     -Pin kyocera -Passcode <owner-supplied> -Label GREG-NORTH`. Real
+     `git clone`/`gh repo clone`, real venv bootstrap (67 packages), real
+     `nf-setup.ps1` provisioning. Exit code 0, "DEPLOYMENT COMPLETE."
+   - **Drive-root shortcut, verified not assumed**: `Start North Forge.lnk`
+     landed at `E:\` (not inside the checkout) - read back its real
+     `TargetPath`/`WorkingDirectory` via COM, confirmed correct. This is the
+     exact bug class EXCALIBUR.md flags as a prior issue; confirmed fixed on
+     this real build.
+   - **Real test prompt -> real response: NOT completed.** `hermes status`
+     on this drive's `HERMES_HOME` shows no model, no provider, every API
+     key unset, no `.env` - and none of `EXCALIBUR.md`, `ADMIN_FIRST_TIME.txt`,
+     or `DEPLOY.md` mention configuring an inference provider anywhere in
+     the build sequence. Asked the owner how to proceed (their own
+     OpenRouter key, Nous Portal login, or defer); owner chose to defer as
+     a manual follow-up rather than supply credentials in-session. So this
+     specific verification item is **open**, not silently skipped - the
+     drive cannot answer anything, Kyocera-voiced or otherwise, until a
+     provider is configured.
+   - **Pinokio/admin-tooling visible to the teammate experience - found a
+     real violation, fixed it on this drive**: `hermes skills list` on the
+     freshly-provisioned profile showed `pinokio` as `enabled` alongside
+     the 17 legitimate Kyocera skills - directly reachable via `/pinokio` in
+     chat, contradicting `EXCALIBUR.md`'s own "Do not put on this stick:
+     Pinokio" and `PINOKIO-on-drive.md`'s "Do not put Pinokio on the 32 GB
+     manager-first stick." Root cause: the private-edition profile install
+     copies the entire `north-forge-hermes-edition` source tree (all 18
+     skills, `Advanced/deploy-console/*`, `PINOKIO-on-drive.md`, etc.) into
+     `profiles/kyocera/` with no stick-class-aware curation - there is
+     currently no mechanism anywhere in this pipeline to exclude a skill
+     from a specific build. Removed the installed `skills/pinokio/` and
+     `skills-source/shared/pinokio/` copies from this drive's profile
+     directly (data, not source - safely regenerable, nothing lost) and
+     re-verified: `hermes skills list` now shows exactly the 17 remaining
+     skills, all still enabled. **Not fixed at the source**: the underlying
+     gap (no way to exclude a skill per stick-class) still exists and will
+     recur on the next Excalibur build unless someone decides how it should
+     work - see "Uncertain," below. The admin-only scripts
+     (`Install-Pinokio-Lab.ps1`, `Remove-Pinokio-Lab.ps1`,
+     `pinokio_lab_target.py`) also landed in the profile folder on disk;
+     these are not skill/chat-reachable (not wired into any command), so
+     left in place rather than risk breaking a future `hermes update` that
+     may expect the full source tree - flagged, not removed.
 
 ## Zone B findings (not fixed - reported only)
 
-- Carried forward, unchanged: the dead `#gateway-service-requirements`
-  anchor; `WELCOME.html`'s content still describes the retired
-  `launch-north-forge.bat`/`.sh`, not the current `north-forge.cmd` flow
-  (now more visible than before, since `north-forge-agent`'s new
-  "How To Start.lnk" - see that repo's own ledger, `CHG-2026-09-12-007` -
-  will faithfully open this stale page on every drive going forward until
-  someone with Zone B authority corrects it).
-- The `PINOKIO-on-drive.md` / `Advanced/PINOKIO.md` content-overlap flagged
-  in the prior audit is unchanged - not addressed this session.
+- Carried forward unchanged: the dead `#gateway-service-requirements`
+  anchor; `WELCOME.html`'s stale `launch-north-forge.bat`/`.sh` content
+  (now the actual target of the real, working "How To Start.lnk" on this
+  drive - so a teammate clicking it today gets instructions for the wrong
+  launcher); the `PINOKIO-on-drive.md` / `Advanced/PINOKIO.md` overlap.
 
 ## Commits made this session
 
 - `87b513c` - Reconcile pinokio_lab_target.py with the Learning-class same-drive design
 - `e9b6ae9` - Fix Zero-Touch-Deploy.ps1: repair path for private edition + parse-breaking BOM gap
+- `d10992b` - Session audit (mid-session revision, superseded by this one)
 - `<pending - this file, immediately after this report is written>`
+
+(Deploy + profile fixes to `E:\` itself are not commits - they're the real
+drive build and a direct, data-only edit to that drive's installed profile,
+outside any git repo.)
 
 ## Uncertain / flagged for primary GPT review
 
-- Whether the owner wants a fully automated "detect existing correct-pattern
-  label -> auto-choose repair vs fresh-format" rule built into the pipeline
-  itself (discussed, not yet requested as a concrete build - flagged that a
-  label match alone is spoofable/coincidental and should be corroborated
-  with an actual North Forge marker file check, same evidence
-  `pinokio_lab_target.py` already uses, before being trusted).
-- The real Excalibur build (Part 2 of the owner's task) is still blocked on
-  the admin passcode - not yet supplied. `E:\` (`GREG-NORTH`, 231 GB exFAT,
-  empty) is the real candidate drive; owner has confirmed skip-format
-  (build onto it as-is) but not yet the passcode text itself.
-- `PINOKIO-on-drive.md` vs `Advanced/PINOKIO.md` overlap (prior audit,
-  unresolved, not touched this session either).
+1. **No stick-class-aware skill curation exists anywhere in the pipeline.**
+   The Pinokio-skill leak found and patched on `E:\` this session will
+   recur on every future Excalibur build unless one of these (or another
+   option) is decided: (a) a per-skill "tier"/"stick-class" metadata field
+   the profile installer reads and filters on, (b) a second, stripped
+   distribution variant of the private edition for Excalibur builds
+   specifically, or (c) a documented manual post-deploy cleanup step in
+   `EXCALIBUR.md` itself (lowest engineering cost, easiest to forget).
+2. **No inference provider is configured anywhere in the documented build
+   sequence.** A fresh Excalibur (or Learning) drive cannot answer anything
+   until one is set up - this needs to become an explicit, documented step
+   somewhere (`EXCALIBUR.md`, `ADMIN_FIRST_TIME.txt`, or `nf-setup.ps1`
+   itself), and someone needs to decide the actual mechanism (shared
+   OpenRouter key baked in at build time vs. Nous Portal login vs. each
+   teammate configuring their own).
+3. Carried forward: the Excalibur console-UI owner-label gap (no `-Label`
+   field in `Start-DeployConsole.ps1`'s web UI - worked around this session
+   by calling `Zero-Touch-Deploy.ps1` directly); `PINOKIO-on-drive.md` vs
+   `Advanced/PINOKIO.md` overlap.
 
 ## Status
 
-Needs primary GPT review for the two items above; otherwise clean. Two real
-bugs found and fixed this session by actually reproducing them (not
-assumed from reading code): the Pinokio validator's docs-vs-code
-contradiction, and a parse-breaking encoding gap in the exact deploy
-script this project's stated near-term priority depends on. The real
-Excalibur build itself has not started - blocked purely on the admin
-passcode.
+**Not yet ready to hand to a person.** Mechanically, the drive deployed
+cleanly: locked to Kyocera, both drive-root shortcuts verified correct via
+a real launch (not assumed), the Pinokio skill leak found and removed from
+this specific drive. But two real gaps remain open, not silently passed
+over: (1) no inference provider configured, so it cannot produce any
+response yet - deferred by the owner as a manual follow-up rather than
+supply credentials in-session; (2) the skill-curation gap that let Pinokio
+leak through in the first place is fixed on this one drive only, not at the
+source, so it will recur on the next build without a decision from the
+items above.
 
-Handoff bundle: HANDOFF_2026-09-12_2307.zip (sha256: d60ab8a12f4a5e5293a03683e8d3e5498863d3d6cc627decd36538f518adcace) - created.
+Handoff bundle: <pending - filled in with scripts/build-handoff-bundle.ps1>
