@@ -1,6 +1,27 @@
 ﻿<#
 .SYNOPSIS
   Zero-touch USB deploy for North Forge + private Kyocera (Hermes) edition.
+
+.PARAMETER ExcludeSkills
+  Skill names (as installed under profiles\<Pin>\skills\<name> and
+  profiles\<Pin>\skills-source\shared\<name>) to remove after provisioning,
+  before "DEPLOYMENT COMPLETE" prints. Empty by default - no behavior
+  change unless passed explicitly.
+
+  WHY THIS EXISTS: the private-edition profile install currently ships
+  every skill in the edition's source tree to every drive, with no
+  stick-class-aware curation (flagged, not solved at the source, in
+  logs\CLAUDE_CODE_LAST_AUDIT.md, 2026-09-12/13). A real Excalibur build
+  found `pinokio` installed and chat-reachable on a locked, teammate-facing
+  drive - a direct violation of EXCALIBUR.md's own "Do not put on this
+  stick: Pinokio." This is the concrete, opt-in tool to stop that from
+  requiring a manual post-deploy fix every time: for an Excalibur-class
+  build, pass  -ExcludeSkills pinokio  (or more, as other stick-class-only
+  skills turn up). Does NOT decide the underlying policy question (should
+  this be automatic for tier=basic, a distribution-level split, etc.) -
+  that's still open. This only makes "exclude these specific skills on
+  this specific build" a one-flag, tested operation instead of a manual
+  `rm -rf` after the fact.
 #>
 [CmdletBinding()]
 param(
@@ -15,7 +36,8 @@ param(
     [string]$Label = 'NorthForge',
     [string]$AgentRepoUrl = 'https://github.com/kwalker7631/north-forge-agent.git',
     [string]$EditionRepoUrl = 'https://github.com/kwalker7631/north-forge-hermes-edition.git',
-    [string]$Pin = 'kyocera'
+    [string]$Pin = 'kyocera',
+    [string[]]$ExcludeSkills = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -190,6 +212,19 @@ Write-Step "Provisioning tier=$Tier pin=$Pin and setting admin passcode"
 & $setup -NonInteractive -Tier $Tier -Pin $Pin -Installed $Pin -SetPasscode -Passcode $Passcode
 if ($LASTEXITCODE -ne 0) { throw "nf-setup.ps1 failed (exit $LASTEXITCODE)." }
 Write-Ok "Drive provisioned and locked."
+
+if ($ExcludeSkills.Count -gt 0) {
+    # Same sibling-folder naming nf-setup.ps1 itself derives DataDir from
+    # (parent-of-checkout\<checkout-leaf>-data) - not re-parameterized here,
+    # just replicated, so this always agrees with where nf-setup.ps1 actually
+    # provisioned the profile.
+    $leaf = Split-Path -Leaf $agentDir
+    $dataDir = Join-Path (Split-Path -Parent $agentDir) "$leaf-data"
+    $profileDir = Join-Path $dataDir "profiles\$Pin"
+    Write-Step "Excluding skill(s) from this build: $($ExcludeSkills -join ', ')"
+    $excludeScript = Join-Path $PSScriptRoot 'exclude-profile-skills.ps1'
+    & $excludeScript -ProfileDir $profileDir -SkillNames $ExcludeSkills
+}
 
 $launcher = Join-Path $agentDir 'north-forge.cmd'
 Write-Host ""
