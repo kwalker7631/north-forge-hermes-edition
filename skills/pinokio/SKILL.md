@@ -8,7 +8,7 @@ description: Teach and launch the on-drive Pinokio lab. Use when the user types 
 North Forge is the desk. Pinokio is the lab on the **same drive**.
 
 Do not pitch Pinokio as the support product. Do not send a live ticket
-into a generator and call it done.
+into a image generator and call it done.
 
 ## What to tell them
 
@@ -17,8 +17,11 @@ coding background can install a local generator and watch it run.
 Everything that matters lives under `pinokio-home` on this stick, not
 in the PC's AppData.
 
-1. Double-click **Start Pinokio Lab** at the drive root.
-2. If Home is empty, set it to this stick's `pinokio-home` folder.
+On this drive:
+
+1. Double-click **Start Pinokio Lab** at the root (or run
+   `Start Pinokio Lab.cmd`).
+2. If Home is empty, set it to the stick's `pinokio-home` folder.
    No spaces in that path.
 3. Discover → install **one** app you want to learn from.
 4. When you have seen it work, close Pinokio and go back to
@@ -26,8 +29,9 @@ in the PC's AppData.
 
 ## When the host cannot run an app
 
-Say it plainly: no NVIDIA, not enough VRAM, USB too slow, or not
-enough free space. Offer a smaller app or stop.
+Say it plainly: no NVIDIA / not enough VRAM / USB too slow / not
+enough free space. Offer a smaller Discover app or stop. Do not
+pretend the stick contains a GPU.
 
 ## Guardrails
 
