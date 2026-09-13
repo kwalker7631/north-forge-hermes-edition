@@ -1,5 +1,34 @@
 # Build Status
 
+## 2026-09-13 session (consolidated theme/exFAT/workflow/Documents task, Claude Code)
+
+Full detail in `logs/CLAUDE_CODE_LAST_AUDIT.md` (this repo) and
+`D:\logs\CONSOLIDATED_THEME_EXFAT_DOCS_2026-09-13.md` (`north-forge-agent`,
+`RUN-2026-09-13-007` - most of this task's substance lives there). Closes
+both open items from the entry directly below:
+
+- **Kyocera dashboard theme now tracked** (`0e6b756`):
+  `dashboard-themes/north-forge-kyocera.yaml` + a minimal root
+  `config.yaml` (`dashboard.theme`), plus a real `.gitignore` bug fix (a
+  stale bare `config.yaml` rule was silently blocking the root file from
+  ever being committed). Verified with a real fresh clone + fresh-profile
+  install, not assumed.
+- **exFAT web-dashboard build gap fixed at the source, in
+  `north-forge-agent`**: a real call was made (commit prebuilt
+  `web_dist/` into git vs. automate build-once-copy) - automation chosen;
+  see that repo's `DECISION-2026-09-13-002`. No longer a manual, by-hand
+  workaround.
+- **New: `Documents/` drop-folder + `skills/document-search/` skill**
+  (`bf22fa9`) - index-aware lookup for reference manuals (TOC-first, not
+  brute-force full-text). Verified end-to-end against a real synthetic
+  test manual dropped into the live `E:\` profile's `Documents/`; no real
+  Kyocera manual exists yet to test OCR-need against.
+- **Separately, `north-forge-agent`'s own audit surfaced a real finding**:
+  source content from this same post-use-audit session was committed
+  directly on `E:\north-forge-agent` instead of `D:\`, causing two ledger
+  id collisions (reconciled this pass). Not a `north-forge-hermes-edition`
+  issue, noted here for cross-reference only.
+
 ## 2026-09-13 session (later, Claude Code) - post-use audit + branding + web terminal + editions
 
 Full detail in `logs/CLAUDE_CODE_LAST_AUDIT.md`. Kenneth used the real
