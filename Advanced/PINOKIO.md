@@ -1,33 +1,57 @@
-# Pinokio — later, optional, not the manager stick
+# Pinokio on the same drive as North Forge
 
-[Pinokio](https://github.com/pinokiocomputer/pinokio) is a one-click
-launcher for local open-source apps. Home folder is isolated.
-The installer is ~100 MB. **The apps are not.** A serious local zoo is
-100 GB minimum. A few terabytes only if you keep many large models.
+Pinokio is the free one-click lab: years of work so someone with no
+background can stand up local image, voice, and small-model tools.
+It is not the desk senior. It is the **sandbox next to the desk**.
 
-## AppData vs a big drive
+Official project: https://github.com/pinokiocomputer/pinokio
 
-| Choice | Verdict |
+## Same-drive layout (256 GB learning stick)
+
+Format this class of stick **NTFS**. Pinokio's notes want NTFS and no
+spaces in the home path. The small teammate Excalibur stick stays
+exFAT **without** Pinokio.
+
+```
+E:\
+  Start North Forge.lnk
+  Start Pinokio Lab.cmd
+  HOW_TO_START.txt
+  north-forge-agent\
+  north-forge-agent-venv\
+  north-forge-agent-data\
+  pinokio-home\                 PINOKIO_HOME (no spaces)
+  pinokio-app\                  Pinokio.exe
+```
+
+First launch: Settings → Home → `<this drive>\pinokio-home`.
+A few bytes of “where is home?” may still land in the current user's
+AppData. That is a pointer. The models stay on the stick.
+
+## What it is for
+
+Use Pinokio to **see** generation so a Blue Book reader understands
+local AI without a lecture. Then go back to North Forge for the call.
+
+| Tool | Job |
 |---|---|
-| Default AppData / profile | Fine for a trial. Easy to discard. Fills the system disk. Do not park models here. |
-| `PINOKIO_HOME` on a data SSD (500 GB–2 TB) | The real design. Discard = delete that folder. |
-| Same 32 GB Excalibur stick as North Forge | No. |
-| Few-terabyte drive | Plausible as a lab / Pine Barron disk, not the support handoff. |
+| North Forge | The desk. Procedures. Honesty. |
+| Pinokio | The lab. Click, install, watch something generate. |
 
-Pinokio can sit *beside* North Forge on a large admin disk. Do not merge
-it into the teammate path for the first viewer.
+## Deploy
 
-## If you want it on a lab disk
+1. Build North Forge first.
+2. On a 256 GB NTFS stick, create `pinokio-home` at the root.
+3. Unpack Pinokio into `pinokio-app`.
+4. Set Home to `pinokio-home` on that drive.
+5. Install one Discover app. Stop.
+6. Copy `Advanced/deploy-console/Start Pinokio Lab.cmd` to the root.
 
-`Advanced/deploy-console/Install-Pinokio-Lab.ps1` checks a candidate folder
-against both rules above before touching anything: it refuses any drive that
-looks like a North Forge volume, and refuses anything under 200 GB free
-(500 GB+ is the "real design" line above). If Pinokio is already installed,
-it can point Pinokio's own `config.json` Home field at the validated target
-(after backing the file up); if Pinokio isn't installed yet, it just prints
-the target path to paste into Pinokio's first-run Home prompt. Nothing here
-is wired into any teammate-path script.
+## Hard limits
 
-`Remove-Pinokio-Lab.ps1` in the same folder reverses it: runs Pinokio's own
-uninstaller if found, clears the AppData/program folders, and only deletes
-the Home data folder if you pass `-RemoveHomeData` and confirm.
+- The stick does not carry a GPU.
+- USB 3 is slower than an internal SSD.
+- 256 GB = North Forge + Pinokio + one or two apps.
+- Path must not contain spaces.
+
+Pinokio is MIT, built in public, free. We wrap it. We did not write it.
