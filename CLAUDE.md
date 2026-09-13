@@ -118,7 +118,8 @@ Zone A fix, all without waiting for a go-ahead in that session.
 Files:
 - `.hermes.template.md`
 - `mode-blocks/*`
-- `skills-source/**` (every skill file, built or placeholder)
+- `skills/*/SKILL.md` (every live skill file - the actual current location; corrected 2026-09-13, was previously only listed as `skills-source/**` below, which had drifted behind an earlier restructure that moved skills to this flat layout)
+- `skills-source/**` (still real content where present - currently `shared/pinokio/`, `shared/readme/` - not yet migrated to the flat `skills/` layout)
 - `fallback/NORTH_FORGE_v21.8_PASTE_VERSION.md`
 - `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html`
 - `WELCOME.html`
@@ -321,7 +322,7 @@ state:
 ```text
 NORTH FORGE HERMES EDITION - CLAUDE CODE WORKING RULES ACTIVE
 Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, machine-reset.bat, setup script, provision-new-drive.ps1, .env.example, skins/north-forge.yaml, this audit report, .gitignore, Advanced/deploy-console/ scripts+UI (not its README/DEPLOY docs)
-Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, FIRST_TIME_README.txt, USER_MANUAL.md, CLAUDE.md
+Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills/*/SKILL.md, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, FIRST_TIME_README.txt, USER_MANUAL.md, CLAUDE.md
 Zone C (operational docs, may update + commit freely): NEXT_STEPS.md, DEMO_PREP_BACKLOG.md, CHANGELOG.md
 Git: git pull automatically at session start; auto-commit/push for Zone A fixes, Zone C updates, and placing pre-approved Zone B handoffs; never author or edit Zone B content myself
 I will not edit Zone B content, including this file, and will not compose content on Zone B's behalf - only place exactly what I'm handed.
