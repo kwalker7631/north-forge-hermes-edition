@@ -50,6 +50,7 @@ README are history.
 | `kyocera-research` | research / cron | Release-note watch |
 | `daily-brief` | brief | Morning digest |
 | `manual` | `/manual` | In-session help |
+| `document-search` | `/docsearch` (or ask naturally) | Index-aware lookup in dropped reference PDFs (`Documents/`) |
 | `flush` | `/flush` | Clear generated scratch |
 | `switch` | `/switch` | Edition switch (open sticks only) |
 | `pinokio` | `/pinokio` | On-drive lab (256 GB stick) |
