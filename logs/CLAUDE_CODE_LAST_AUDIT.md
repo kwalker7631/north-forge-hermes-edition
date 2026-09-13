@@ -112,4 +112,4 @@ script this project's stated near-term priority depends on. The real
 Excalibur build itself has not started - blocked purely on the admin
 passcode.
 
-Handoff bundle: <pending - filled in with scripts/build-handoff-bundle.ps1>
+Handoff bundle: HANDOFF_2026-09-12_2307.zip (sha256: d60ab8a12f4a5e5293a03683e8d3e5498863d3d6cc627decd36538f518adcace) - created.
