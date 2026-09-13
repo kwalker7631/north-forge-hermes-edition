@@ -4,6 +4,11 @@ This is the handoff stick. Not a lab clone. Not Pinokio. Not a terabyte
 of models. One prepared Kyocera drive that a Blue Book reader can
 judge in ten minutes.
 
+For the full walk-through with both the console and manual-command paths,
+real verification steps, and real example prompts — see
+[EXCALIBUR_WALKTHROUGH.md](EXCALIBUR_WALKTHROUGH.md). This page stays the
+short checklist; that one is the teaching/reference version.
+
 ## What “Excalibur” means here
 
 - Locked to the Kyocera pack
@@ -28,7 +33,7 @@ Follow the real guide, in this order. Do not invent a second path.
 4. Assigned to: the manager's first and last name → label `GREGW-NORTH` style.
 5. Agent name: leave **North Forge** unless they asked for a nickname.
 6. Tier: **Locked**. Pin: **Kyocera**.
-7. Type `FORMAT`. Type the passcode twice.
+7. Type `FORMAT`. Type the passcode (one field in the console).
 7a. **Configure the inference provider now — not documented anywhere
     before this, and the drive cannot answer anything without it.** From
     the checkout root (`<drive>\north-forge-agent`), with

@@ -42,7 +42,7 @@ EVERY stick after that
       Pocket Penny              ← budget helper
       Pine Barron Farms         ← studio, still growing
 7. Type FORMAT
-8. Type the admin passcode twice
+8. Type the admin passcode (one field in the console)
 9. Click Format + deploy
 10. Wait. First stick can take a long time. Leave it alone.
 11. When it says DEPLOYMENT COMPLETE, do not eject yet.
