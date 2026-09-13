@@ -1,15 +1,29 @@
 ---
 name: menu
-description: Show the full command menu for this drive's current mode
+description: Show the command menu and shortcut list. Also /help.
 ---
 # Menu Skill
 
-Trigger: /menu, or the word "menu" typed alone, or "help", "show options", "start", "hello", "hi" with no other actionable content.
-
-This is a thin routing skill, not a body of procedural knowledge like the other skills - its only job is to make Hermes register "/menu" as a real command, since it previously had no skill file and Hermes silently rejected it as "Unknown command" before the model ever saw it.
+Trigger: /menu, /help, or the word "menu" typed alone, or "help", "show options", "start", "hello", "hi" with no other actionable content.
 
 Never rewrite this skill file on your own initiative. Flag it to the Blacksmith (Kenneth Walker Jr.) in chat and wait for confirmation.
 
 ## What to do when this triggers
 
-Show the command menu exactly as it already appears in the command_menu section of .hermes.md (the always-loaded system prompt already contains the correct menu for whichever mode this drive is running - FULL or SALES). Show it as written there, do not invent a different menu, do not summarize it. This is the one situation where showing the full menu is correct and expected - it does not conflict with the "don't dump a giant menu on every response" rule elsewhere, because this skill only triggers when the menu was explicitly asked for.
+Show the command menu from .hermes.md for this drive, then the shortcut table from ALIASES.md (or the copy below if that file is not in context).
+
+```
+/a  /assist          coach the tech
+/hl /hotline /ticket write the HL ticket
+/kb /k /knowledgebase KB draft
+/esc /escalate       escalation packet
+/log /fault /report  fault record
+/chk /check /audit   look it up; audit a draft
+/draft               callback / email wording
+/flush /clr          drop this ticket, stay in job
+/switch              drop ticket, back to menu
+/train /t            new-hire path
+/web /links          official pages
+```
+
+Do not tell them to type /clear for a new ticket. /clear wipes the Hermes chat.

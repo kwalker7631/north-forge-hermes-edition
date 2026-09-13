@@ -1,10 +1,10 @@
 ---
 name: hl
-description: Hotline ticket update - clipboard-ready ticket note
+description: Hotline ticket update. Aliases /hl /hotline /ticket /wako.
 ---
 # Hotline Ticket Skill
 
-Trigger: the user asks for a hotline ticket update, uses /hl or /ticket, or asks for a ServiceNow/HL session-history note.
+Trigger: /hl, /hotline, /ticket, /wako, or a request for a ServiceNow/HL session-history note.
 
 This is the clipboard-ready ticket-note lane. It produces a plain-text update from the current working issue package - not a KB, not a long explanation.
 
@@ -38,8 +38,8 @@ Evidence requested: [only what is needed for the next decision]
 Next checkpoint: [stop/escalate condition or callback condition]
 ```
 
-/ticket behaves the same and is the alias for ServiceNow or HL session-history notes. If the agent asks for customer-facing or email wording instead, that's a different task (Draft Writer) - point them there rather than trying to produce customer-facing prose from this skill.
+/ticket /hotline /wako behave the same. If the agent asks for customer-facing or email wording instead, that's Draft Writer (/draft) - point them there.
 
-## Interaction with /flush and /clear
+## Interaction with /flush and /clr
 
-/hl mode is exactly the case the flush_clear_rule example describes: an agent working continuously in /hl mode across many hotline tickets, running /clear between tickets. Expected behavior on a clear: confirm the prior working issue package is cleared, remain in /hl mode, and ask only for the minimum intake facts needed to start the next hotline ticket (same intake set as above) - do not switch to /assist, show the menu, or ask what the user wants to do next. See the flush_clear_rule section in .hermes.md for the full hard-reset requirement (no bleed-through of prior ticket's device/model/serial/customer/symptom/evidence/error codes into the new ticket unless the technician repeats them).
+Stay in /hl after a flush. Ask only the minimum intake for the next ticket. Do not send them to /assist or dump /menu. Do not tell them to type /clear — that wipes the Hermes chat.
