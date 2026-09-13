@@ -5,8 +5,15 @@
 .PARAMETER ExcludeSkills
   Skill names (as installed under profiles\<Pin>\skills\<name> and
   profiles\<Pin>\skills-source\shared\<name>) to remove after provisioning,
-  before "DEPLOYMENT COMPLETE" prints. Empty by default - no behavior
-  change unless passed explicitly.
+  before "DEPLOYMENT COMPLETE" prints.
+
+  Defaults to  @('pinokio')  when -Tier is 'basic' (locked - a
+  teammate-facing drive, which is what Excalibur always is per
+  EXCALIBUR.md's own "Tier: Locked. Pin: Kyocera"), and to  @()  when
+  -Tier is 'full' (the switcher stays open - the admin/lab case, where
+  Pinokio belongs per Advanced/PINOKIO.md). Pass -ExcludeSkills explicitly
+  (including  -ExcludeSkills @()  to keep Pinokio on a basic-tier build)
+  to override either default.
 
   WHY THIS EXISTS: the private-edition profile install currently ships
   every skill in the edition's source tree to every drive, with no
@@ -14,14 +21,13 @@
   logs\CLAUDE_CODE_LAST_AUDIT.md, 2026-09-12/13). A real Excalibur build
   found `pinokio` installed and chat-reachable on a locked, teammate-facing
   drive - a direct violation of EXCALIBUR.md's own "Do not put on this
-  stick: Pinokio." This is the concrete, opt-in tool to stop that from
-  requiring a manual post-deploy fix every time: for an Excalibur-class
-  build, pass  -ExcludeSkills pinokio  (or more, as other stick-class-only
-  skills turn up). Does NOT decide the underlying policy question (should
-  this be automatic for tier=basic, a distribution-level split, etc.) -
-  that's still open. This only makes "exclude these specific skills on
-  this specific build" a one-flag, tested operation instead of a manual
-  `rm -rf` after the fact.
+  stick: Pinokio." Tying the default to -Tier (rather than requiring a
+  flag anyone has to remember) means the common Excalibur case is safe
+  by default, using a distinction ("locked" vs "switcher stays open")
+  this pipeline already makes for an unrelated reason - it does NOT
+  invent a new "stick class" concept. Still not the full policy answer
+  (a distribution-level split, or per-skill tier metadata, remain open),
+  but the common case no longer depends on someone remembering a flag.
 #>
 [CmdletBinding()]
 param(
@@ -37,7 +43,7 @@ param(
     [string]$AgentRepoUrl = 'https://github.com/kwalker7631/north-forge-agent.git',
     [string]$EditionRepoUrl = 'https://github.com/kwalker7631/north-forge-hermes-edition.git',
     [string]$Pin = 'kyocera',
-    [string[]]$ExcludeSkills = @()
+    [string[]]$ExcludeSkills = $(if ($Tier -eq 'basic') { @('pinokio') } else { @() })
 )
 
 $ErrorActionPreference = 'Stop'

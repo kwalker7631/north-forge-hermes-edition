@@ -45,7 +45,21 @@ EVERY stick after that
 8. Type the admin passcode twice
 9. Click Format + deploy
 10. Wait. First stick can take a long time. Leave it alone.
-11. When it says DEPLOYMENT COMPLETE, eject the stick.
+11. When it says DEPLOYMENT COMPLETE, do not eject yet.
+12. Configure the inference provider — the drive cannot answer anything
+    without this, and the console does not do it for you yet. Open
+    PowerShell in the stick's checkout folder (<drive>\north-forge-agent)
+    and type:
+
+      $env:HERMES_HOME = "<drive>\north-forge-agent-data"
+      hermes config set ANTHROPIC_API_KEY <the real key>
+      hermes config set model anthropic/claude-sonnet-5
+
+    Check it worked: hermes config show — Anthropic should show a masked
+    key, Model should read anthropic/claude-sonnet-5. Then run a real
+    test question with: hermes -z "..." — a real answer, not an error,
+    means it's ready.
+13. Eject the stick.
 
 Hand the stick to the teammate with HOW_TO_START.txt
 They double-click "Start North Forge". They never see this folder.

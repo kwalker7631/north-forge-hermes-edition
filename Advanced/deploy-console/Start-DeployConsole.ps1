@@ -141,8 +141,13 @@ try {
                 $tier = [string]$body.tier
                 $pass = [string]$body.passcode
                 $skipFormat = [bool]$body.skipFormat
+                $label = [string]$body.label
                 if ($letter -notmatch '^[A-Za-z]$') {
                     Send-Json $res @{ ok = $false; error = 'Pick a USB drive letter.' } 400
+                    continue
+                }
+                if ($label -and ($label.Length -gt 32 -or $label -match '[\\/:*?"<>|]')) {
+                    Send-Json $res @{ ok = $false; error = 'Volume label must be 32 characters or fewer, with none of \ / : * ? " < > |' } 400
                     continue
                 }
                 if (-not $skipFormat -and $confirm -cne 'FORMAT') {
@@ -175,6 +180,7 @@ try {
                 )
                 if ($skipFormat) { $argList += '-SkipFormat' }
                 else { $argList += @('-ConfirmFormat', 'FORMAT') }
+                if ($label) { $argList += @('-Label', $label) }
                 try {
                     $prevPass = $env:NF_ADMIN_PASSCODE
                     $env:NF_ADMIN_PASSCODE = $pass

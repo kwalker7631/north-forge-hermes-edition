@@ -46,6 +46,7 @@
           <option value="basic">basic — locked to kyocera only</option>
         </select>
       </div>
+      <div class="row"><label for="label">Volume label — assigned to (e.g. GREGW-NORTH)</label><input id="label" placeholder="GREGW-NORTH" autocomplete="off"></div>
       <div class="row"><label><input type="checkbox" id="skipFormat" style="width:auto"> Skip format (reuse existing stick)</label></div>
       <div class="row"><label for="confirm">Type FORMAT to allow wipe</label><input id="confirm" placeholder="FORMAT" autocomplete="off"></div>
       <div class="row"><label for="pass">Admin passcode (min 6). Stored as hash on the stick only.</label><input id="pass" type="password" minlength="6" autocomplete="new-password"></div>
@@ -89,13 +90,14 @@
       const confirm = document.getElementById('confirm').value;
       const pass = document.getElementById('pass').value;
       const tier = document.getElementById('tier').value;
+      const label = document.getElementById('label').value;
       const log = document.getElementById('log');
       const go = document.getElementById('go');
       go.disabled = true;
       log.value = 'Starting deploy…\n';
       const r = await fetch('/api/deploy', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ letter, confirm, passcode: pass, tier, skipFormat })
+        body: JSON.stringify({ letter, confirm, passcode: pass, tier, skipFormat, label })
       });
       const body = await r.json();
       if (!body.ok) { log.value += 'ERROR: ' + (body.error || r.status) + '\n'; go.disabled = false; return; }

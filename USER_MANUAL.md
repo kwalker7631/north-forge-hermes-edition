@@ -35,6 +35,15 @@ Lost? Type this and press Enter:
 That shows every command available on THIS drive, with one line each about
 what it does. If you ever don't know what to do next, type /menu.
 
+Copy-paste works too. Ctrl+C/Ctrl+V (or right-click, then Enter) is often
+the fastest way to hand it something - a whole error message, a part
+number, a customer's exact wording. Typing still works fine.
+
+Talk instead of type. `/voice` turns on dictation; Ctrl+B starts
+recording, Ctrl+B again stops and transcribes it as your next message.
+Useful hands-free - driving, standing at a machine, or reading off a
+Pocket Penny expense out loud instead of typing it.
+
 ---
 
 ## 2. What a "/" command is
@@ -292,6 +301,8 @@ Step 6. If it's a keeper, commit it to git so it survives on every clone.
     then run `hermes doctor` from a terminal in this folder.
   Anything else: describe the problem in plain English. That is always
     a valid move.
+  Drive lost, damaged, or stops working: contact Kenneth. It can be
+    repaired or replaced.
 
 ---
 
