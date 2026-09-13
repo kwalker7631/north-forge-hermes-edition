@@ -1,6 +1,7 @@
 # Slash shortcuts
 
-Type the short or the long form. Same job.
+Type the short or the long form. Same job — except `/clr` and `/fl`.
+Those two are different on purpose.
 
 | Short | Also | Job |
 |---|---|---|
@@ -14,20 +15,19 @@ Type the short or the long form. Same job.
 | `/menu` | `/help` | Command list |
 | `/train` | `/t` | New-hire path |
 | `/web` | `/links` | Official pages |
-| `/fl` | `/flush` `/clr` | Drop this ticket, **stay** in the same job |
-| `/switch` | | Drop this ticket **and** go back to the menu |
+| `/clr` | `/flush` | Drop **this ticket only**. Mode stays (`/hl` stays `/hl`). |
+| `/fl` | `/switch` | Reset the **whole North Forge skill session**. Default mode + menu. |
 
-## Do not confuse these two
+## Three resets. Do not mix them.
 
-| You type | What actually happens |
-|---|---|
-| `/fl` `/flush` `/clr` | Our reset. This call is gone. You stay in `/hl` or `/assist`. |
-| `/clear` or `/reset` | **Hermes native.** Wipes the whole chat. Not our ticket flush. |
+| You type | What dies | What lives |
+|---|---|---|
+| `/clr` `/flush` | This ticket / this section | Mode, menu choice, Hermes chat |
+| `/fl` `/switch` | All North Forge working state (tickets, mode, theories) | The Hermes chat window itself |
+| `/clear` `/reset` | **Hermes native.** The whole chat | Nothing in this window |
 
-If someone types `/clear` and they meant the next hotline call, say so:
-that was an engine wipe. Next time use `/fl` or `/clr`.
+`/fl` is our `/clear` — for the North Forge skill session only.
+It does not call Hermes `/clear`. If they also want the raw chat gone,
+they type Hermes `/clear` on purpose.
 
-Hermes only registers one official slash `name` per skill (`hl`, `kb`,
-`audit`, `flush`…). The long forms work because the skill text and this
-list tell the model they are the same job. Keep this file and `/menu` in
-sync when you add a command.
+Between hotline calls use `/clr`. When the desk is starting over, `/fl`.
