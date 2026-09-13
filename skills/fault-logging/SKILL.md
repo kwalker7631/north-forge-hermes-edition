@@ -36,7 +36,7 @@ FORGE FAULT REPORT
 Report ID: [SET BY LOGGER]
 Timestamp: [user-provided time or SET BY LOGGER]
 Reporter: [user/agent identifier or role, or UNKNOWN]
-Package: North Forge - Kyocera Edition (Hermes)
+Package: North Forge - Kyocera Edition
 Mode at fault: [/assist, /kb, /draft, /audit, /hl, /esc, etc., or UNKNOWN]
 Severity: [Low / Medium / High / Critical]
 Fault type: [Router Failure / Context Handoff Failure / Template Failure / Output Contract Failure / Source Discipline Failure / Hallucination Risk / Other]
@@ -55,7 +55,7 @@ Trigger: the user asks to capture a runtime event (mode route taken, KB TEMPLATE
 ```
 FORGE EVENT LOG
 Timestamp: [user-provided time or SET BY LOGGER]
-Package: North Forge - Kyocera Edition (Hermes)
+Package: North Forge - Kyocera Edition
 Event: [mode route / template-missing stop / escalation generated / flush / fault pattern / other]
 Detail: [what occurred]
 Linked report: [Report ID if tied to a fault, else None]
