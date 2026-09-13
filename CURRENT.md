@@ -17,6 +17,9 @@ supplies it.
 Built by Kenneth C. Walker Jr. as a go-to in your pocket — learns from the
 shop, corrects when caught, does not sound like a brochure.
 
+How the desk uses it: [DESK_MODES.md](DESK_MODES.md) — assist coaches the
+tech, HL writes the ticket, `/check` goes looking. One engine.
+
 Architecture since 2026-09-11: this repo is a profile pack that installs into
 the public North Forge checkout. FULL/SALES launchers in the long historical
 README are history.
@@ -33,14 +36,14 @@ README are history.
 | Skill folder | Tech types | Job |
 |---|---|
 | `menu` | `/menu` | Front door |
-| `readme` | `/readme` | Documentation map (public chassis or this edition) |
-| `assist-intake` | `/a` `/assist` | Structured intake |
-| `hotline-ticket` | `/hl` `/ticket` | Hotline / ticket packet |
+| `readme` | `/readme` | Documentation map |
+| `assist-intake` | `/a` `/assist` | Coach the tech (old GPT assist) |
+| `hotline-ticket` | `/hl` `/ticket` | Write the SN / HL ticket (Wako/HL) |
+| `forge-audit` | `/check` `/chk` `/audit` | Look it up, then audit a draft |
 | `kb-builder` | `/kb` | Draft to the locked KB template |
 | `draft-writer` | `/draft` | Shorter draft pass |
 | `escalation-packet` | `/esc` | Escalation with evidence that exists |
 | `fault-logging` | `/log` `/fault` `/report` | Durable fault record |
-| `forge-audit` | `/audit` `/chk` | Check a draft against the rules |
 | `training-guide` | `/train` | Teach a new tech the workflow |
 | `sales-assist` | sales prompts | Pre-sales guidance |
 | `web-navigator` | vendor site hops | Official public pages only |
@@ -49,10 +52,9 @@ README are history.
 | `manual` | `/manual` | In-session help |
 | `flush` | `/flush` | Clear generated scratch |
 | `switch` | `/switch` | Edition switch (open sticks only) |
-| `pinokio` | `/pinokio` | On-drive lab (256 GB stick), not the desk product |
+| `pinokio` | `/pinokio` | On-drive lab (256 GB stick) |
 
-`readme` lives in both `skills-source/shared/readme/` and `skills/readme/` so a
-profile install sees it without depending on an unpublished chassis assembler.
+`readme` lives in both `skills-source/shared/readme/` and `skills/readme/`.
 
 Sharp / Ricoh / Xerox later = this table, different portals and templates.
 
@@ -61,8 +63,9 @@ Sharp / Ricoh / Xerox later = this table, different portals and templates.
 Preferred: [Advanced/deploy-console/ADMIN_FIRST_TIME.txt](Advanced/deploy-console/ADMIN_FIRST_TIME.txt)  
 Stick: **8 GB or larger**. Windows first. Offline only with a local model.
 
-Roadmap (not shipped): database, graphical workbench, graph / slides / video
-/ pictures in the loop, more OEM packs, cleaner offline images.
+Roadmap (not shipped): ServiceNow sidebar / browser extension, parts and
+service-document shelf, database, graphical workbench, more OEM packs,
+cleaner offline images.
 
 ## Thanks
 
