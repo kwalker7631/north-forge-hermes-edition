@@ -10,6 +10,7 @@ Builds a portable USB that runs North Forge without installing anything on the t
 - Building a stick: [DEPLOY.md](DEPLOY.md) or [ADMIN_FIRST_TIME.txt](ADMIN_FIRST_TIME.txt)
 - Handed a stick: [FOR_THE_PERSON_GETTING_THIS_DRIVE.txt](FOR_THE_PERSON_GETTING_THIS_DRIVE.txt)
 - Pinokio on a *separate* lab disk (never this stick): [../PINOKIO.md](../PINOKIO.md), run with `Install-Pinokio-Lab.ps1` / `Remove-Pinokio-Lab.ps1` in this folder
+- Printable desk-copy booklet (public + Kyocera README pair, booklet-ready PDF): [../print/North-Forge-Readme-Booklet.pdf](../print/North-Forge-Readme-Booklet.pdf)
 
 Assign every stick to a person. Volume name is **FIRSTL-NORTH** (Greg Warhol → `GREGW-NORTH`). Agent name is optional. Default is North Forge.
 
