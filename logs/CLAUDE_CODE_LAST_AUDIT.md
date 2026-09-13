@@ -139,4 +139,4 @@ leak through in the first place is fixed on this one drive only, not at the
 source, so it will recur on the next build without a decision from the
 items above.
 
-Handoff bundle: <pending - filled in with scripts/build-handoff-bundle.ps1>
+Handoff bundle: HANDOFF_2026-09-12_2333.zip (sha256: 2d1148b5e5a949e9e546906ec3218df73191f89c64bdf07b961ad9e0f5fc95a2) - created.
