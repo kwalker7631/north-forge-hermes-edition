@@ -1,216 +1,212 @@
 # Claude Code Session Audit
 
-Timestamp: 2026-09-12 (Pinokio validator reconciliation, deploy-console
-repair-path/parse-bug fix, real Excalibur drive build + verification)
-Requested task: per `Downloads/CLAUDE_TASK_concern_check_and_excalibur_build.md` -
-Part 1 (confirm/fix the Pinokio same-drive-vs-separate-disk validator
-conflict), Part 2 (build ONE real, deployable Excalibur drive, verified end
-to end, not assumed). Plus two owner asks mid-session: a standing drive-root
-"How To Start" docs entry point (landed in `north-forge-agent`'s own
-ledger), and a deploy-console repair-path fix for "someone messed where
-they shouldn't."
+Timestamp: 2026-09-13 (post-use audit + branding + web terminal + editions,
+per `Downloads/CLAUDE_TASK_post_use_audit_branding_editions.md`)
+Requested task: Kenneth actually used the deployed Excalibur drive (`E:\`)
+himself tonight and found real issues. Four parts: (1) audit `E:\`'s real logs
+from tonight's use, (2) find and fix remaining live Hermes-branded menu/skill
+output, (3) make the web terminal easy to launch and fix its branding, (4)
+make Pocket Penny / Pine Barron Farms reachable on this drive without
+breaking the working Kyocera experience.
 
 ## Files inspected
 
-- `scripts/pinokio_lab_target.py`, `tests/test_pinokio_lab_target.py`,
-  `logs/HANDOFF_PERPLEXITY_PINOKIO_2026-09-12.md`
-- `Advanced/deploy-console/Zero-Touch-Deploy.ps1`,
-  `Install-Pinokio-Lab.ps1`, `EXCALIBUR.md`
-- The real target drive: `E:\` (label `GREG-NORTH`, 231 GB exFAT, empty at
-  session start)
-- Post-deploy: `E:\north-forge-agent-data\profiles\kyocera\` (installed
-  profile contents), `hermes skills list`, `hermes status`,
-  both drive-root `.lnk` shortcuts
+Real logs from `E:\`: `north-forge-agent-launcher.log`,
+`north-forge-agent-data\logs\{agent,errors,tui_gateway_crash}.log`,
+`north-forge-agent-data\north-forge\provisioning.json`,
+`north-forge-agent-data\profiles\kyocera\logs\{gateway,gateway-stdio,
+gateway-restart,gateway-exit-diag,gui,hermes-update,update}.log`, every
+`process-results\*.json`. This repo's `skills/fault-logging/SKILL.md`,
+`.gitignore`, `NEXT_STEPS.md`, `DEMO_PREP_BACKLOG.md`. `north-forge-agent`
+engine repo's `hermes_cli/nf_tier.py`, `hermes_cli/web_server_dashboard.py`,
+`hermes_cli/main_web_build.py`, `hermes_cli/main_dashboard.py`,
+`north-forge.cmd`, `scripts/make-how-to-start-shortcut.ps1`, its own ledger
+(`logs/ledger/`).
+
+## Part 1 — Audit of tonight's real E:\ logs
+
+No unhandled process crash. Real findings:
+
+1. **User-facing failure, reproduced twice tonight, then a working third
+   attempt** (`process-results/proc_374c2ce1ddf7.json`,
+   `proc_930433bf6da0.json`, `proc_9cbf5347ea31.json`): plain
+   `hermes dashboard` and `hermes -p kyocera dashboard --no-open --port 9119`
+   both exited 1 with `This drive is provisioned for 'kyocera' only (Basic
+   tier). The 'default' edition is not available here.` — the non-isolated
+   machine-dashboard route also tries to stand up the `default` profile
+   alongside the pin. `hermes -p kyocera dashboard --no-open --isolated
+   --port 9119` succeeded. Fixed properly under Part 3 below.
+2. **A real, verified anomaly in the `north-forge-agent` engine repo**
+   (opened as `ERR-2026-09-13-002` there): tonight's GUI/dashboard process
+   and the `hermes update`/gateway-restart flow ran under
+   `C:\Users\kwalk\.hermes\venvs\hermes-dev`, pointed at `D:\north-forge-agent`
+   (Kenneth's separate dev checkout), not this drive's own isolated
+   `E:\north-forge-agent-venv`. `HERMES_HOME` itself stayed correctly
+   pointed at `E:\north-forge-agent-data` throughout (state.db path, a real
+   pre-update snapshot) — only the serving code was wrong. Practical
+   consequence: a bare `hermes` typed in an ordinary terminal on this
+   machine does not exercise this drive's own code. Full evidence in the
+   engine repo's `logs/ledger/errors/ERROR-LOG.md`.
+3. `hermes update` ran tonight (04:47:25) against the mismatched install;
+   both its logs cut off mid-run, can't confirm completion from the log
+   alone. This runs against this repo's own `NEXT_STEPS.md` (2026-09-04)
+   standing instruction not to run `hermes update` until the "4279 commits
+   behind" banner is explained — flagged, not investigated further (real
+   owner use, not a Claude Code action).
+4. Non-fatal noise, correctly self-resolving: a `WebSocketDisconnect`
+   traceback (normal closed-tab race); `SystemExit: 75` (part of the
+   deliberate restart-for-update shutdown, matches `gateway-restart.log`'s
+   two-spawn pattern); a pre-existing SQLite-WAL-bug warning.
+
+Full technical detail lives in `north-forge-agent`'s own ledger (`RUN-
+2026-09-13-006`, `ERR-2026-09-13-002`) since most of Part 1 concerns the
+engine repo, not this one.
 
 ## Zone A changes made
 
-1. **`scripts/pinokio_lab_target.py`** + tests - reconciled the Excalibur-
-   vs-Learning-class hard-block rule (full detail in the prior revision of
-   this report; unchanged since). Commit `87b513c`.
+1. **`.gitignore`** — the root-anchored `/skills/` guard was written back
+   when `skills-source/` was the real tracked source dir; `d4b0abc`
+   (2026-09-11, "Retire standalone launcher/installer; adopt as a Hermes
+   profile distribution") flattened `skills-source/` INTO `skills/`, so the
+   old guard had been silently shadowing the real tracked source directory
+   since then — existing tracked files stayed tracked, but any *new* file
+   under `skills/` would have been silently dropped by a plain `git add`,
+   no error. Found while placing the fault-logging fix below (`git add`
+   warned the path was ignored even though it committed fine).
+   `git status --ignored` confirmed nothing was actually lost under
+   `skills/` in this checkout. Removed the stale guard, replaced with a
+   dated explanation comment. Commit `1922627`.
 
-2. **`Advanced/deploy-console/Zero-Touch-Deploy.ps1`** - private-edition
-   repair-path fix (`git pull --ff-only` -> fetch + force-checkout, matching
-   the agent checkout) and a parse-breaking missing-BOM fix, found by
-   actually invoking the script. Commit `e9b6ae9`. Full detail in the prior
-   revision of this report.
+## Zone B changes made (placed with Kenneth's direct, specific, in-session confirmation)
 
-3. **This session's real Excalibur build on `E:\`** (not a code change to
-   this repo, but the actual deliverable Part 2 asked for):
-   - Confirmed `EXCALIBUR.md`'s sequence against the real
-     `Zero-Touch-Deploy.ps1`/`Install-Pinokio-Lab.ps1` on `origin/main`
-     before running anything (no drift beyond the previously-flagged
-     console-UI owner-label gap, worked around here by invoking the engine
-     script directly with `-Label` rather than through the web console).
-   - Ran the real deploy: `-DriveLetter E -SkipFormat -Tier basic
-     -Pin kyocera -Passcode <owner-supplied> -Label GREG-NORTH`. Real
-     `git clone`/`gh repo clone`, real venv bootstrap (67 packages), real
-     `nf-setup.ps1` provisioning. Exit code 0, "DEPLOYMENT COMPLETE."
-   - **Drive-root shortcut, verified not assumed**: `Start North Forge.lnk`
-     landed at `E:\` (not inside the checkout) - read back its real
-     `TargetPath`/`WorkingDirectory` via COM, confirmed correct. This is the
-     exact bug class EXCALIBUR.md flags as a prior issue; confirmed fixed on
-     this real build.
-   - **Real test prompt -> real response: NOT completed.** `hermes status`
-     on this drive's `HERMES_HOME` shows no model, no provider, every API
-     key unset, no `.env` - and none of `EXCALIBUR.md`, `ADMIN_FIRST_TIME.txt`,
-     or `DEPLOY.md` mention configuring an inference provider anywhere in
-     the build sequence. Asked the owner how to proceed (their own
-     OpenRouter key, Nous Portal login, or defer); owner chose to defer as
-     a manual follow-up rather than supply credentials in-session. So this
-     specific verification item is **open**, not silently skipped - the
-     drive cannot answer anything, Kyocera-voiced or otherwise, until a
-     provider is configured.
-   - **Pinokio/admin-tooling visible to the teammate experience - found a
-     real violation, fixed it on this drive**: `hermes skills list` on the
-     freshly-provisioned profile showed `pinokio` as `enabled` alongside
-     the 17 legitimate Kyocera skills - directly reachable via `/pinokio` in
-     chat, contradicting `EXCALIBUR.md`'s own "Do not put on this stick:
-     Pinokio" and `PINOKIO-on-drive.md`'s "Do not put Pinokio on the 32 GB
-     manager-first stick." Root cause: the private-edition profile install
-     copies the entire `north-forge-hermes-edition` source tree (all 18
-     skills, `Advanced/deploy-console/*`, `PINOKIO-on-drive.md`, etc.) into
-     `profiles/kyocera/` with no stick-class-aware curation - there is
-     currently no mechanism anywhere in this pipeline to exclude a skill
-     from a specific build. Removed the installed `skills/pinokio/` and
-     `skills-source/shared/pinokio/` copies from this drive's profile
-     directly (data, not source - safely regenerable, nothing lost) and
-     re-verified: `hermes skills list` now shows exactly the 17 remaining
-     skills, all still enabled. **Not fixed at the source**: the underlying
-     gap (no way to exclude a skill per stick-class) still exists and will
-     recur on the next Excalibur build unless someone decides how it should
-     work - see "Uncertain," below. The admin-only scripts
-     (`Install-Pinokio-Lab.ps1`, `Remove-Pinokio-Lab.ps1`,
-     `pinokio_lab_target.py`) also landed in the profile folder on disk;
-     these are not skill/chat-reachable (not wired into any command), so
-     left in place rather than risk breaking a future `hermes update` that
-     may expect the full source tree - flagged, not removed.
+1. **`skills/fault-logging/SKILL.md`** (lines 39, 58) — the printed FORGE
+   FAULT REPORT / FORGE EVENT LOG template blocks both carried
+   `Package: North Forge - Kyocera Edition (Hermes)`, a literal `(Hermes)`
+   suffix leaking into every real fault/event report a technician
+   generates. Confirmed the exact replacement wording with Kenneth via an
+   in-session question before touching this Zone B file (per this repo's
+   own confirmed-mechanism rule) — he chose dropping the suffix entirely,
+   now reads `Package: North Forge - Kyocera Edition`. Applied identically
+   to this repo, the `north-forge-agent`-nested `private-editions/kyocera`
+   clone (fast-forwarded, not double-edited), and the live deployed profile
+   at `E:\north-forge-agent-data\profiles\kyocera\skills\fault-logging\
+   SKILL.md` (data, not source — matches the precedent set by the earlier
+   Pinokio-removal session). Commit `f40229c`. Everything else matching
+   "Hermes" in the deployed `skills/` tree is either the stock, globally-
+   shipped Hermes skill library (not North Forge content, out of scope) or
+   legitimate technical references to the engine's real native `/clear`
+   command by name inside agent-facing instructions (`menu`, `flush`,
+   `switch`, `hotline-ticket`) — factually correct, not a branding leak.
+
+## Part 3 — Web terminal (fixed in `north-forge-agent`, verified live)
+
+- **Discoverability**: added `north-forge-web.cmd` + `scripts/make-webui-
+  shortcut.ps1` (writes a self-healing "Open Web Terminal.lnk" at the drive
+  root, same pattern as the existing launcher/how-to-start shortcuts) to the
+  engine repo. Hardcodes `--isolated` (the real fix for the Part 1 finding)
+  and always launches via this checkout's own venv, never a bare `hermes`
+  on `PATH`. Verified with a real launch — `curl` against the served
+  dashboard returned real `HTTP 200`, three times across iterations.
+  Engine-repo commit `010af24`.
+- **Branding**: built a real `north-forge-kyocera` dashboard theme (schema
+  confirmed by reading `hermes_cli/web_server_dashboard.py`'s
+  `_normalise_theme_definition` directly, not guessed) reusing this repo's
+  own CLI skin's actual forge-gold-on-dark-iron palette
+  (`skins/north-forge.yaml`) so the CLI and web surfaces read as one
+  product, plus the already-tracked `assets/logo-kyocera-1024.png`
+  (inlined as a small base64 data URI). Set as the active theme via
+  `dashboard.theme: north-forge-kyocera` in the profile's own
+  `config.yaml`. **Real root cause found and worked around during
+  verification**: the theme/config that actually governs the dashboard is
+  the *per-profile* one (`E:\north-forge-agent-data\profiles\kyocera\
+  config.yaml` / `...\profiles\kyocera\dashboard-themes\`), not the
+  top-level `HERMES_HOME` — a top-level copy is inert. Verified live via
+  the dashboard's own `/api/dashboard/themes` endpoint after correcting
+  this: `"active":"north-forge-kyocera"`, full palette/asset definition
+  present. **Not yet persisted to source control** — this theme YAML and
+  the `config.yaml` line currently exist only as data on the physical `E:\`
+  drive (like the CLI skin copy step, or the earlier Pinokio removal), so a
+  future from-scratch Excalibur rebuild would not carry it forward. Flagged
+  rather than guessed at: it's unclear whether this belongs in this content
+  repo (alongside `skins/north-forge.yaml`, though that file actually ships
+  from the *engine* repo, not this one), the engine repo's own
+  `nf-setup.ps1` install path, or somewhere else — needs a decision before
+  the next Excalibur build.
+
+## Part 4 — Pocket Penny / Pine Barron Farms reachability (fixed in `north-forge-agent`, verified)
+
+Real investigation confirmed the task's own hypothesis: `hermes_cli/nf_tier.py`'s
+access-tier code has no mechanism for "allow exactly these N editions" — a
+Basic-tier drive's `allowed_editions()` is hardcoded to exactly one pin.
+Building a narrower allowlist would mean changing the access-tier schema and
+enforcement logic itself — the exact category the engine ledger's own
+"Agent conduct" rule says to escalate rather than self-fix. Presented this
+tradeoff to Kenneth directly (the Claude Code auto-mode classifier
+independently flagged the actual re-provisioning call as a permission-grant
+action and blocked the first attempt until confirmed) — he chose re-
+provisioning this drive full-tier. Re-signed `E:\`'s `provisioning.json`
+(`tier: full`, `pinned_edition` stays `kyocera` as the default landing
+profile — full-tier's own documented meaning keeps every edition
+switchable without changing what a normal launch lands on), then installed
+both `penny-pincher` and `pine-barron-farms` as real profiles (neither
+existed on this drive before tonight). Verified: `python -m
+hermes_cli.nf_tier show` reports `tier: full, locked: no`; `hermes -p
+penny-pincher --version` and `-p pine-barron-farms --version` both succeed
+with no tier error (previously both would have failed); `hermes doctor`
+afterward shows `kyocera: anthropic/claude-sonnet-5, no alias` completely
+unchanged. **Real, honest tradeoff**: full-tier removes the hard
+single-edition lock entirely on this physical drive — any installed edition
+becomes reachable, not only the two named. Acceptable here because this is
+Kenneth's own demo drive, not a Basic-tier teammate giveaway drive. Both new
+profiles show "missing config, no .env" in `hermes doctor` — expected,
+explicitly acceptable per the task's own framing ("rough" is fine) — neither
+has a model/API key configured, so an actual chat turn in either will fail
+with a provider-not-configured error until one is set. Full options/tradeoff
+record: `north-forge-agent`'s `logs/ledger/decisions/DECISION-LOG.md`,
+`DECISION-2026-09-13-001`.
 
 ## Zone B findings (not fixed - reported only)
 
-- Carried forward unchanged: the dead `#gateway-service-requirements`
-  anchor; `WELCOME.html`'s stale `launch-north-forge.bat`/`.sh` content
-  (now the actual target of the real, working "How To Start.lnk" on this
-  drive - so a teammate clicking it today gets instructions for the wrong
-  launcher); the `PINOKIO-on-drive.md` / `Advanced/PINOKIO.md` overlap.
+- Carried forward unchanged from the last audit: the dead
+  `#gateway-service-requirements` anchor; `WELCOME.html`'s stale
+  `launch-north-forge.bat`/`.sh` content; the `PINOKIO-on-drive.md` /
+  `Advanced/PINOKIO.md` overlap.
+- New this session: the dashboard-theme persistence gap described under
+  Part 3 above — needs a Blacksmith decision on where Kyocera dashboard
+  branding content should live for it to survive a fresh Excalibur build.
 
 ## Commits made this session
 
-- `87b513c` - Reconcile pinokio_lab_target.py with the Learning-class same-drive design
-- `e9b6ae9` - Fix Zero-Touch-Deploy.ps1: repair path for private edition + parse-breaking BOM gap
-- `d10992b` - Session audit (mid-session revision, superseded by this one)
-- `<pending - this file, immediately after this report is written>`
-
-(Deploy + profile fixes to `E:\` itself are not commits - they're the real
-drive build and a direct, data-only edit to that drive's installed profile,
-outside any git repo.)
+- `north-forge-hermes-edition`: `f40229c` (fault-logging branding fix),
+  `1922627` (`.gitignore` `/skills/` guard fix).
+- `north-forge-agent` (engine repo, most of tonight's actual fix work):
+  `525a261`, `dd7bc11` (ledger: `ERR-2026-09-13-002` + manifest for
+  checkpoint `RUN-2026-09-13-006`), `010af24` (web-terminal launcher +
+  shortcut), `492d61d` (ledger: `DECISION-2026-09-13-001`).
 
 ## Uncertain / flagged for primary GPT review
 
-1. **No stick-class-aware skill curation exists anywhere in the pipeline.**
-   The Pinokio-skill leak found and patched on `E:\` this session will
-   recur on every future Excalibur build unless one of these (or another
-   option) is decided: (a) a per-skill "tier"/"stick-class" metadata field
-   the profile installer reads and filters on, (b) a second, stripped
-   distribution variant of the private edition for Excalibur builds
-   specifically, or (c) a documented manual post-deploy cleanup step in
-   `EXCALIBUR.md` itself (lowest engineering cost, easiest to forget).
-2. **No inference provider is configured anywhere in the documented build
-   sequence.** A fresh Excalibur (or Learning) drive cannot answer anything
-   until one is set up - this needs to become an explicit, documented step
-   somewhere (`EXCALIBUR.md`, `ADMIN_FIRST_TIME.txt`, or `nf-setup.ps1`
-   itself), and someone needs to decide the actual mechanism (shared
-   OpenRouter key baked in at build time vs. Nous Portal login vs. each
-   teammate configuring their own).
-3. Carried forward: the Excalibur console-UI owner-label gap (no `-Label`
-   field in `Start-DeployConsole.ps1`'s web UI - worked around this session
-   by calling `Zero-Touch-Deploy.ps1` directly); `PINOKIO-on-drive.md` vs
-   `Advanced/PINOKIO.md` overlap.
+1. **Dashboard-theme persistence** (see Part 3) — needs a decision on where
+   Kyocera dashboard branding content should live so it survives future
+   Excalibur rebuilds, same open-question shape as the earlier
+   stick-class-aware-skill-curation gap.
+2. **`hermes update` run tonight against `NEXT_STEPS.md`'s standing
+   "don't run it" instruction** (Part 1, finding 3) — real owner action, not
+   investigated further this session; the underlying "4279 commits behind"
+   banner question from 2026-09-04 is still unexplained.
+3. Carried forward: the Excalibur console-UI owner-label gap (now actually
+   closed per `EXCALIBUR_WALKTHROUGH.md`/engine-repo commits found this
+   session — a volume-label field now exists in the deploy console UI; not
+   re-verified live this session, flagging that it should be re-confirmed
+   next build).
+4. Full-tier flip on `E:\` (Part 4) is a real, honest widening of this one
+   physical drive's reachable surface — flagged plainly, not silently
+   decided; Kenneth confirmed it in-session.
 
-## Addendum (2026-09-13) - inference provider configured, real response verified
+## Status
 
-The owner supplied a real Anthropic API key directly in-session (never
-written to any git-tracked file, ledger, or report - referenced here only
-masked, matching `hermes config show`'s own display convention) with
-explicit instruction: `E:\` runs on Kenneth's own Anthropic key by design,
-shared between him and Greg, distinct from the Full/Sales default.
+Needs primary GPT review — two new open items (dashboard-theme persistence,
+the `hermes update` standing-instruction conflict) plus the tier-flip
+tradeoff, all flagged above, none silently resolved.
 
-- Set via the CLI's own credential path, not a raw file edit:
-  `hermes config set ANTHROPIC_API_KEY <key>` (first attempt used a direct
-  Python import of `save_anthropic_api_key()` and landed the key at the
-  wrong path, `E:\north-forge-agent-data\.env` - `get_hermes_home()`'s
-  profile-scoping only activates through the real CLI entrypoint's own
-  startup, not a bypassed script; removed that stray file and redid it
-  through `hermes config set`, which resolved correctly). Real path:
-  `E:\north-forge-agent-data\profiles\kyocera\.env` - confirmed by content
-  (masked): `Anthropic  sk-a...7gAA`.
-- Model: `hermes config set model anthropic/claude-sonnet-5` ->
-  `E:\north-forge-agent-data\profiles\kyocera\config.yaml`.
-- **Persistence verified across a fresh process**, not just the setting
-  session: cleared `HERMES_HOME` and re-set it in a new shell, ran
-  `hermes config show` again - both the masked key and the model read back
-  correctly from disk.
-- **Real test prompt, verbatim** (via `hermes -z`, this drive's actual
-  configured provider/model, no mocking):
-
-  > A customer says their TASKalfa is showing a paper jam error but
-  > there's no paper visible anywhere. What should I check first?
-
-  Response:
-
-  > Give me the model number and the exact jam code/location on the panel
-  > (like "C6100" or "Jam - Rear Unit 1") - that changes where I send you.
-  > But here's the fast path while you get that:
-  >
-  > Most common cause of a "phantom" jam with no paper visible: a sensor
-  > isn't resetting, not an actual sheet stuck somewhere hidden.
-  >
-  > 1. Full power cycle - not just clearing the code. Power off, wait 30
-  >    seconds, power on. A flagged sensor sometimes just needs the reset.
-  > 2. Open every panel the jam message points to, even if you don't see
-  >    paper - actuator flags (the little plastic levers that trip the
-  >    sensor) can be flipped and stuck, or bent, giving a false jam with
-  >    nothing to pull out. Look at the flag itself, not just for paper.
-  > 3. Check duplex unit and rear covers specifically - small torn paper
-  >    corners hide there and are easy to miss on a quick look. Run a hand
-  >    along the paper path, not just a visual.
-  > 4. Cassette pull - fully remove each cassette, check corners and the
-  >    feed rollers area, reseat firmly. A cassette not fully seated can
-  >    trigger a jam sensor even with correct paper loaded.
-  > 5. If it clears and jams again immediately with no paper ever touching
-  >    the path, that points to a bad sensor or a broken/misaligned actuator
-  >    flag rather than an actual jam - that's a parts conversation, not a
-  >    clearing conversation.
-  >
-  > What's the model and what does the panel say exactly (unit number and
-  > any code)?
-
-  Genuine, in-voice Kyocera field-support response - asks for the
-  identifying details a real tech would need before committing to an
-  answer (matches `PHILOSOPHY.md`'s "know when it does not know"), not a
-  generic assistant reply and not an error.
-- **`/model` menu (queued, not this task) won't be locked out**: checked
-  `config.yaml` for any lock flag alongside `model:` - none exists. The
-  tier/pin "locked" state from provisioning (`provisioning.json`) governs
-  which *profile/edition* is reachable, a separate axis from which
-  model/provider the active profile uses. Plain `hermes config set model`
-  is the same mechanism any future `/model` menu would use.
-- **Re-verified the Pinokio-skill fix is still intact** after these config
-  changes: `hermes skills list` still shows exactly the 17 legitimate
-  Kyocera skills, no `pinokio`.
-
-Both real gaps from the prior revision of this report are now closed **for
-this specific drive**. The skill-curation architecture gap (no
-stick-class-aware exclusion mechanism at the source) is unchanged and will
-still need a decision before the *next* Excalibur build, per the
-"Uncertain" section above - not re-litigated here.
-
-## Status (revised)
-
-**Ready to hand to a person**, as far as this session can verify without
-physically handling the drive. Locked to Kyocera, both drive-root shortcuts
-correct, Pinokio not reachable, real Anthropic-backed response confirmed
-and persistent across a fresh process. Outstanding, forward-looking only
-(does not block handing over *this* drive): the skill-curation gap for
-future builds, and the deploy-console owner-label UI gap noted earlier.
-
-Handoff bundle: HANDOFF_2026-09-13_0014.zip (sha256: a8b775fcf0dcc06f8480d851b89b87d66c8ee24b989d275f5fb3e3137ee30f30) - created.
+Handoff bundle: HANDOFF_2026-09-13_1502.zip (sha256: ebc2338d3704f5cc78bd5f552864964aa6b4b292574524ae89882ce28e7d6f84) - created. (Same bundle as `north-forge-agent`'s own final report for this session — most of tonight's actual fix work happened in that repo; this file records this repo's own two commits and Part 2's findings.)
