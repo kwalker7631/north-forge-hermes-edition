@@ -126,17 +126,91 @@ outside any git repo.)
    by calling `Zero-Touch-Deploy.ps1` directly); `PINOKIO-on-drive.md` vs
    `Advanced/PINOKIO.md` overlap.
 
-## Status
+## Addendum (2026-09-13) - inference provider configured, real response verified
 
-**Not yet ready to hand to a person.** Mechanically, the drive deployed
-cleanly: locked to Kyocera, both drive-root shortcuts verified correct via
-a real launch (not assumed), the Pinokio skill leak found and removed from
-this specific drive. But two real gaps remain open, not silently passed
-over: (1) no inference provider configured, so it cannot produce any
-response yet - deferred by the owner as a manual follow-up rather than
-supply credentials in-session; (2) the skill-curation gap that let Pinokio
-leak through in the first place is fixed on this one drive only, not at the
-source, so it will recur on the next build without a decision from the
-items above.
+The owner supplied a real Anthropic API key directly in-session (never
+written to any git-tracked file, ledger, or report - referenced here only
+masked, matching `hermes config show`'s own display convention) with
+explicit instruction: `E:\` runs on Kenneth's own Anthropic key by design,
+shared between him and Greg, distinct from the Full/Sales default.
 
-Handoff bundle: HANDOFF_2026-09-12_2333.zip (sha256: 2d1148b5e5a949e9e546906ec3218df73191f89c64bdf07b961ad9e0f5fc95a2) - created.
+- Set via the CLI's own credential path, not a raw file edit:
+  `hermes config set ANTHROPIC_API_KEY <key>` (first attempt used a direct
+  Python import of `save_anthropic_api_key()` and landed the key at the
+  wrong path, `E:\north-forge-agent-data\.env` - `get_hermes_home()`'s
+  profile-scoping only activates through the real CLI entrypoint's own
+  startup, not a bypassed script; removed that stray file and redid it
+  through `hermes config set`, which resolved correctly). Real path:
+  `E:\north-forge-agent-data\profiles\kyocera\.env` - confirmed by content
+  (masked): `Anthropic  sk-a...7gAA`.
+- Model: `hermes config set model anthropic/claude-sonnet-5` ->
+  `E:\north-forge-agent-data\profiles\kyocera\config.yaml`.
+- **Persistence verified across a fresh process**, not just the setting
+  session: cleared `HERMES_HOME` and re-set it in a new shell, ran
+  `hermes config show` again - both the masked key and the model read back
+  correctly from disk.
+- **Real test prompt, verbatim** (via `hermes -z`, this drive's actual
+  configured provider/model, no mocking):
+
+  > A customer says their TASKalfa is showing a paper jam error but
+  > there's no paper visible anywhere. What should I check first?
+
+  Response:
+
+  > Give me the model number and the exact jam code/location on the panel
+  > (like "C6100" or "Jam - Rear Unit 1") - that changes where I send you.
+  > But here's the fast path while you get that:
+  >
+  > Most common cause of a "phantom" jam with no paper visible: a sensor
+  > isn't resetting, not an actual sheet stuck somewhere hidden.
+  >
+  > 1. Full power cycle - not just clearing the code. Power off, wait 30
+  >    seconds, power on. A flagged sensor sometimes just needs the reset.
+  > 2. Open every panel the jam message points to, even if you don't see
+  >    paper - actuator flags (the little plastic levers that trip the
+  >    sensor) can be flipped and stuck, or bent, giving a false jam with
+  >    nothing to pull out. Look at the flag itself, not just for paper.
+  > 3. Check duplex unit and rear covers specifically - small torn paper
+  >    corners hide there and are easy to miss on a quick look. Run a hand
+  >    along the paper path, not just a visual.
+  > 4. Cassette pull - fully remove each cassette, check corners and the
+  >    feed rollers area, reseat firmly. A cassette not fully seated can
+  >    trigger a jam sensor even with correct paper loaded.
+  > 5. If it clears and jams again immediately with no paper ever touching
+  >    the path, that points to a bad sensor or a broken/misaligned actuator
+  >    flag rather than an actual jam - that's a parts conversation, not a
+  >    clearing conversation.
+  >
+  > What's the model and what does the panel say exactly (unit number and
+  > any code)?
+
+  Genuine, in-voice Kyocera field-support response - asks for the
+  identifying details a real tech would need before committing to an
+  answer (matches `PHILOSOPHY.md`'s "know when it does not know"), not a
+  generic assistant reply and not an error.
+- **`/model` menu (queued, not this task) won't be locked out**: checked
+  `config.yaml` for any lock flag alongside `model:` - none exists. The
+  tier/pin "locked" state from provisioning (`provisioning.json`) governs
+  which *profile/edition* is reachable, a separate axis from which
+  model/provider the active profile uses. Plain `hermes config set model`
+  is the same mechanism any future `/model` menu would use.
+- **Re-verified the Pinokio-skill fix is still intact** after these config
+  changes: `hermes skills list` still shows exactly the 17 legitimate
+  Kyocera skills, no `pinokio`.
+
+Both real gaps from the prior revision of this report are now closed **for
+this specific drive**. The skill-curation architecture gap (no
+stick-class-aware exclusion mechanism at the source) is unchanged and will
+still need a decision before the *next* Excalibur build, per the
+"Uncertain" section above - not re-litigated here.
+
+## Status (revised)
+
+**Ready to hand to a person**, as far as this session can verify without
+physically handling the drive. Locked to Kyocera, both drive-root shortcuts
+correct, Pinokio not reachable, real Anthropic-backed response confirmed
+and persistent across a fresh process. Outstanding, forward-looking only
+(does not block handing over *this* drive): the skill-curation gap for
+future builds, and the deploy-console owner-label UI gap noted earlier.
+
+Handoff bundle: <pending - filled in with scripts/build-handoff-bundle.ps1>
