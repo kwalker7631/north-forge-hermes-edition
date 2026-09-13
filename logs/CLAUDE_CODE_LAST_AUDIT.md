@@ -178,3 +178,5 @@ carry forward unchanged. Part 1 and Part 3 placements are done and verified
 link-clean. Part 2 is a status report, not a completed build - Excalibur is
 not yet demo-ready until the owner-label question is resolved one way or
 the other.
+
+Handoff bundle: HANDOFF_2026-09-12_2054.zip (sha256: 676804cc3e3f35ca31f70618d5ff81cdce10b1c09ba32cbd42e7dfcd6ad59016) - created.
