@@ -213,4 +213,4 @@ and persistent across a fresh process. Outstanding, forward-looking only
 (does not block handing over *this* drive): the skill-curation gap for
 future builds, and the deploy-console owner-label UI gap noted earlier.
 
-Handoff bundle: <pending - filled in with scripts/build-handoff-bundle.ps1>
+Handoff bundle: HANDOFF_2026-09-13_0014.zip (sha256: a8b775fcf0dcc06f8480d851b89b87d66c8ee24b989d275f5fb3e3137ee30f30) - created.
