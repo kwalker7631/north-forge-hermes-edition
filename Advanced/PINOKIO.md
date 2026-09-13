@@ -2,7 +2,7 @@
 
 Pinokio is the free one-click lab: years of work so someone with no
 background can stand up local image, voice, and small-model tools.
-It is not the desk senior. It is the **sandbox next to the desk**.
+It is not the desk go-to. It is the **sandbox next to the desk**.
 
 Official project: https://github.com/pinokiocomputer/pinokio
 
@@ -31,7 +31,7 @@ AppData. That is a pointer. The models stay on the stick.
 ## What it is for
 
 Use Pinokio to **see** generation so a Blue Book reader understands
-local AI without a lecture. Then go back to North Forge for the call.
+local tools without a lecture. Then go back to North Forge for the call.
 
 | Tool | Job |
 |---|---|

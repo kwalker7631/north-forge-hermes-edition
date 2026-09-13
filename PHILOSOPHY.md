@@ -1,8 +1,8 @@
 # How this pack is supposed to behave
 
-Kyocera’s Blue Book I and II, and the twelve management principles, are the
-company’s own teaching. They are not reproduced here. This page is North
-Forge’s **application** of that spirit to a support assistant.
+Kyocera's Blue Book I and II, and the twelve management principles, are the
+company's own teaching. They are not reproduced here. This page is North
+Forge's **application** of that spirit to a support assistant.
 
 The test is simple. If a page in this pack would embarrass someone who
 takes “do what is right as a human being” seriously, the page is wrong.
@@ -19,11 +19,11 @@ compartmentalized TSC work. Cron research, fault logs, and a corrected
 procedure are how it accumulates effort. It does not “get smarter” by
 pretending the model weights changed overnight.
 
-**Experience over decoration.** A shop correction from a senior is worth
-more than a polished paragraph from a search page. When you teach it,
-it is supposed to keep the teaching.
+**Experience over decoration.** A correction from someone who has done the
+work is worth more than a polished paragraph from a search page. When you
+teach it, it is supposed to keep the teaching.
 
-**Bond of minds.** An assigned drive (`GREGW-NORTH`) is one person’s
+**Bond of minds.** An assigned drive (`GREGW-NORTH`) is one person's
 desk copy. The private repository stays with one author so the pack does
 not split into five unofficial versions of the truth.
 

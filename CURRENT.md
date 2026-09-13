@@ -14,8 +14,8 @@ MyQ, ticket, KB, escalation. The tech talks like a coworker. If the pack does
 not have the page, it is supposed to say so and keep the answer after someone
 supplies it.
 
-Built by Kenneth C. Walker Jr. as a pocket senior — learns from the shop,
-corrects when caught, does not sound like a brochure.
+Built by Kenneth C. Walker Jr. as a go-to in your pocket — learns from the
+shop, corrects when caught, does not sound like a brochure.
 
 Architecture since 2026-09-11: this repo is a profile pack that installs into
 the public North Forge checkout. FULL/SALES launchers in the long historical
@@ -49,6 +49,7 @@ README are history.
 | `manual` | `/manual` | In-session help |
 | `flush` | `/flush` | Clear generated scratch |
 | `switch` | `/switch` | Edition switch (open sticks only) |
+| `pinokio` | `/pinokio` | On-drive lab (256 GB stick), not the desk product |
 
 `readme` lives in both `skills-source/shared/readme/` and `skills/readme/` so a
 profile install sees it without depending on an unpublished chassis assembler.

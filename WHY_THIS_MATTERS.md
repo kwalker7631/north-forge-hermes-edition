@@ -13,7 +13,7 @@ failed handoff.
 
 1. Take the labeled drive.
 2. On the next real call — not a demo call — start North Forge.
-3. Talk the way you talk to a senior.
+3. Talk the way you talk to the person you actually call.
 4. When it is thin, say so. When it is wrong, correct it.
 5. Hand the correction back. That is how the pack accumulates effort.
 

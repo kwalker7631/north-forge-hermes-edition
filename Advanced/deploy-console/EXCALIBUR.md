@@ -37,10 +37,10 @@ Not “this is AI.” Not “this is Hermes.”
 Say:
 
 > This is a desk copy. Plug it in. Start North Forge. Talk like you
-> would to a senior. If it does not know, it is supposed to say so.
-> If you teach it, it is supposed to keep that. I built it on the side
-> of the job because the books ask for earnest effort, and a search
-> box is not that.
+> would to the go-to on the desk. If it does not know, it is supposed
+> to say so. If you teach it, it is supposed to keep that. I built it
+> on the side of the job because the books ask for earnest effort, and
+> a search box is not that.
 
 Then stop talking. Let them use it.
 
