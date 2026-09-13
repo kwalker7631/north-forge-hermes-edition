@@ -1,14 +1,14 @@
 ---
 name: flush
-description: Drop this ticket and stay in the same job. Aliases /clr /flush. Not /clear.
+description: Drop this ticket and stay in the same job. Aliases /fl /flush /clr. Not /clear.
 ---
 # Flush Skill
 
-Trigger: /flush, /clr, or the word "flush" or "clr" typed alone.
+Trigger: /fl, /flush, /clr, or the word "flush" or "clr" typed alone.
 
 `/clear` and `/reset` are native Hermes commands. They wipe the whole
 session. They are not this skill. If the tech typed `/clear` meaning
-"next ticket," say that was an engine wipe and that `/clr` is the desk
+"next ticket," say that was an engine wipe and that `/fl` is the desk
 shortcut next time. Do not silently treat `/clear` as flush — the engine
 already ate the chat.
 

@@ -14,18 +14,18 @@ Type the short or the long form. Same job.
 | `/menu` | `/help` | Command list |
 | `/train` | `/t` | New-hire path |
 | `/web` | `/links` | Official pages |
-| `/flush` | `/clr` | Drop this ticket, **stay** in the same job |
+| `/fl` | `/flush` `/clr` | Drop this ticket, **stay** in the same job |
 | `/switch` | | Drop this ticket **and** go back to the menu |
 
 ## Do not confuse these two
 
 | You type | What actually happens |
 |---|---|
-| `/clr` or `/flush` | Our reset. This call is gone. You stay in `/hl` or `/assist`. |
+| `/fl` `/flush` `/clr` | Our reset. This call is gone. You stay in `/hl` or `/assist`. |
 | `/clear` or `/reset` | **Hermes native.** Wipes the whole chat. Not our ticket flush. |
 
 If someone types `/clear` and they meant the next hotline call, say so:
-that was an engine wipe. Next time use `/clr` or `/flush`.
+that was an engine wipe. Next time use `/fl` or `/clr`.
 
 Hermes only registers one official slash `name` per skill (`hl`, `kb`,
 `audit`, `flush`…). The long forms work because the skill text and this
