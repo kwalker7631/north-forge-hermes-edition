@@ -65,12 +65,16 @@ node_modules/
 # git config to exclude it
 .claude/
 
-# Legacy wrong folder name from an early build. The correct project-skills
-# directory is .hermes/skills/ (see above) - a bare root-level skills/ was the
-# mistaken name, confirmed wrong by reading Hermes's own source. Ignore it so a
-# stray old build artifact by that name can never be committed by accident.
-# Root-anchored so it does not touch skills-source/ (tracked source content).
-/skills/
+# REMOVED 2026-09-13 (Zone A fix): the /skills/ guard here was written when
+# skills-source/ was the real tracked source dir and a stray root-level
+# skills/ was a wrong-named build artifact. d4b0abc (2026-09-11) flattened
+# skills-source/ INTO skills/ - skills/ is now the real, intentional tracked
+# source dir. The old guard had started silently shadowing it: existing
+# tracked files stayed tracked (gitignore does not retroactively untrack),
+# but any NEW file added under skills/ since 2026-09-11 would be silently
+# dropped by a plain git add, no error. Found while fixing the fault-logging
+# branding leak this session (git add warned the path was ignored).
+# git status --ignored confirmed nothing was actually lost under skills/.
 
 # Drive-local Hermes installer runtime state written by scripts/ensure-hermes.ps1
 # / scripts/ensure-hermes.sh. Per-drive, generated at install time, never source.
