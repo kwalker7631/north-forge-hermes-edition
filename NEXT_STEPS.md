@@ -1,5 +1,31 @@
 # Build Status
 
+## 2026-09-13 session (later, Claude Code) - post-use audit + branding + web terminal + editions
+
+Full detail in `logs/CLAUDE_CODE_LAST_AUDIT.md`. Kenneth used the real
+deployed `E:\` Excalibur drive tonight and found real issues. Fixed:
+`skills/fault-logging/SKILL.md`'s printed reports no longer say
+"(Hermes)"; `.gitignore`'s stale `/skills/` guard (was silently shadowing
+the real tracked source dir since the 2026-09-11 flatten) removed. Most of
+tonight's actual fix work (web-terminal discoverability + a real, verified
+Kyocera dashboard theme; a tier flip so Pocket Penny / Pine Barron Farms
+are reachable on that drive) happened in the `north-forge-agent` engine
+repo - see its own ledger for the full record.
+
+**New open items, not yet resolved:**
+- The new Kyocera dashboard theme (item 1, below) currently exists only as
+  data on `E:\`'s physical drive - it will not survive a fresh Excalibur
+  rebuild until someone decides where this content should live in source
+  control.
+- Real filesystem finding: `E:\` is exFAT (deliberate, for cross-platform
+  portability), and the web dashboard's `npm install --workspace web` step
+  requires directory symlinks/junctions, which exFAT cannot provide on any
+  Windows machine - confirmed via a failed `mklink /J` ("Local NTFS volumes
+  are required"), not a permissions gap. The dashboard UI can never be
+  built directly on a fresh Excalibur drive; it must be built once on an
+  NTFS location and its output copied over (worked around once, by hand,
+  this session - not fixed at the source).
+
 ## 2026-09-11 session (Claude Code) - retired standalone launcher, adopted as a Hermes profile distribution
 
 Full detail in `CHANGELOG.md` and `logs/CLAUDE_CODE_LAST_AUDIT.md`. Summary:

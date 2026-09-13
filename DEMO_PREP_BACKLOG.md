@@ -3,7 +3,21 @@
 Running list of things flagged for the Greg demo and beyond. Add to this as
 things come up - doesn't need to be exhaustive in one pass.
 
-## 1. Visual interface / branding for the demo (OPEN)
+## 1. Visual interface / branding for the demo (PARTIALLY BUILT 2026-09-13 - persistence still open)
+
+A real, working `north-forge-kyocera` dashboard theme now exists and is
+verified live on `E:\` (forge-gold-on-dark-iron palette matching the CLI's
+own `skins/north-forge.yaml`, Kyocera logo, `layoutVariant: standard` -
+deliberately not the "cockpit" HUD reskin described below, which is still
+a separate, larger, not-yet-designed decision). Full detail in
+`north-forge-agent`'s ledger and `logs/CLAUDE_CODE_LAST_AUDIT.md`. **Not
+yet persisted to source control** - only exists as data on `E:\`'s
+physical drive right now, so a fresh Excalibur rebuild would not carry it
+forward. Needs a decision on where this content should live (this repo,
+alongside `skins/`? the engine repo's install path? somewhere else?)
+before the next rebuild.
+
+Original open item, unchanged below:
 
 Current state: CLI only, with the `north-forge.yaml` skin (colors, agent
 name, welcome text). Functional, but not what Kenneth wants to show Greg -
