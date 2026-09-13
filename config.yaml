@@ -1,0 +1,16 @@
+# North Forge - Kyocera Edition — distribution-seeded config defaults.
+#
+# Copied into a profile's config.yaml only on a FRESH `hermes profile install`
+# (an existing profile's config.yaml is preserved on `hermes profile update`
+# unless --force-config is passed — see hermes_cli/profile_distribution.py's
+# _copy_dist_payload). This is the distribution's default, not runtime state;
+# per-machine live config lives at <HERMES_HOME>/profiles/kyocera/config.yaml
+# outside this repo entirely.
+#
+# Added post-use finding: the web dashboard shipped with no theme set, so a
+# fresh install showed stock Hermes branding instead of the CLI's already-
+# branded North Forge/Kyocera identity. See dashboard-themes/north-forge-
+# kyocera.yaml for the theme definition this line activates.
+
+dashboard:
+  theme: north-forge-kyocera

@@ -38,7 +38,16 @@ AGENTS.override.md
 # not per-machine state, memory, sessions, or logs
 # Complete per-drive engine installation and runtime state (root-anchored).
 /.hermes-home/
+# Bare (unanchored) rule so any RUNTIME config.yaml nested somewhere under
+# this checkout (e.g. a stray .hermes-home/ copy) stays ignored. The
+# repo-ROOT config.yaml is different: since the 2026-09-11 restructuring to
+# a plain Hermes profile distribution, this repo is never itself a live
+# HERMES_HOME (that's <HERMES_HOME>/profiles/kyocera/, outside the repo
+# entirely) - so root config.yaml is distribution-seed content (defaults
+# copied into a profile only on a FRESH `hermes profile install`, see
+# profile_distribution.py), not runtime state. Un-ignore just that one path.
 config.yaml
+!/config.yaml
 state.db
 state.db-*
 sessions/
