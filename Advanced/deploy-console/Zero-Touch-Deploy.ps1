@@ -43,7 +43,9 @@ param(
     [string]$AgentRepoUrl = 'https://github.com/kwalker7631/north-forge-agent.git',
     [string]$EditionRepoUrl = 'https://github.com/kwalker7631/north-forge-hermes-edition.git',
     [string]$Pin = 'kyocera',
-    [string[]]$ExcludeSkills = $(if ($Tier -eq 'basic') { @('pinokio') } else { @() })
+    [string[]]$ExcludeSkills = $(if ($Tier -eq 'basic') { @('pinokio') } else { @() }),
+    [double]$MinCapacityGb = 8,
+    [double]$RecommendedCapacityGb = 32
 )
 
 $ErrorActionPreference = 'Stop'
@@ -115,6 +117,25 @@ if (-not $vol) {
 
 $capGb = if ($vol.Capacity) { [math]::Round($vol.Capacity / 1GB, 2) } else { '?' }
 Write-Host ("Target : {0}:  label={1}  {2} GB  fs={3}" -f $letter, $vol.Label, $capGb, $vol.FileSystem)
+
+# Capacity gate - checked BEFORE formatting, not after. Without this a too-small
+# drive would format successfully (fast, looks fine) then fail hard partway through
+# cloning both repos + building a venv (needs far more than a couple GB), wiping
+# real data on the way to a dead end. EXCALIBUR.md's own "32 GB or larger ... 8 GB
+# is the floor" is the source of these defaults - this just enforces what that doc
+# already documents but nothing previously checked.
+if ($capGb -is [double] -and $capGb -lt $MinCapacityGb) {
+    $msg = "Target is {0} GB - below the {1} GB floor. Refusing to format or provision " -f $capGb, $MinCapacityGb
+    $msg += "this drive (see EXCALIBUR.md). Pass -MinCapacityGb to override if you really mean it."
+    Write-Fail $msg
+    exit 1
+}
+if ($capGb -is [double] -and $capGb -lt $RecommendedCapacityGb) {
+    $msg = "Target is {0} GB - above the {1} GB floor but below the {2} GB EXCALIBUR.md recommends " -f `
+        $capGb, $MinCapacityGb, $RecommendedCapacityGb
+    $msg += "(give the first viewer room). Continuing."
+    Write-WarnLine $msg
+}
 
 if (-not $SkipFormat) {
     if ($ConfirmFormat -cne 'FORMAT') {
