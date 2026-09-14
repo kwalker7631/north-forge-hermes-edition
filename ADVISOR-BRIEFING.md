@@ -2,7 +2,7 @@
 
 *Paste this whole file into any AI tool (Grok, ChatGPT, Gemini, etc.) to get
 useful analysis or suggestions with no other context needed. Last updated
-2026-09-12 — kept current at the end of significant sessions.*
+2026-09-14 — kept current at the end of significant sessions.*
 
 ## What this is
 
@@ -18,12 +18,31 @@ venv, and provisions a pinned edition onto a drive.
 
 - **Working:** the full deploy path — clone, bootstrap, provision, pin an
   edition, install its skills — is live-verified end to end as of today.
+  The admin/designer's own drive is real and provisioned Full-tier
+  ("Excalibur" as of the 2026-09-14 rename — the locked teammate-handoff
+  drive this project previously called that is now "Round Table"; nothing
+  about either drive changed, only the names).
 - **Open, needs a human decision, not urgent:** 9 of 12 tests in this repo
   fail (`FileNotFoundError`) because they still check for a standalone
   launcher that was intentionally retired; a few admin-facing docs
   (`USER_MANUAL.md`, `FIRST_TIME_README.txt`, `WELCOME.html`,
   `skills/menu/SKILL.md`) still describe that retired install path and need
-  an author's rewrite, not a code fix.
+  an author's rewrite, not a code fix. Also open: `CLAUDE.md`'s own Zone A
+  file list still names several launcher-era files by their old root-level
+  paths (`launch-north-forge.bat/.sh`, `toggle-mode.bat/.sh`,
+  `machine-reset.bat`, `provision-new-drive.ps1`, `full-drive-reset.bat/.sh`)
+  that no longer exist there — most were archived under
+  `archive/legacy-standalone-launcher/`, and `machine-reset.bat` now lives
+  at `Advanced/machine-reset.bat` — but `CLAUDE.md` is Zone B (author-only),
+  so Claude Code can flag this, not fix it.
+- **New this week, still settling:** the admin/designer drive moved to a
+  genuinely new machine (not just a re-lettering) — provisioning survived
+  the move intact and is independently re-verified, but a re-provisioning
+  passcode fix that came out of that move is committed and reviewed, not yet
+  confirmed working against a real drive (a Claude Code safety classifier
+  has blocked the live test twice). Full detail in the sibling
+  `north-forge-agent` repo's own audit log, cross-referenced from this
+  repo's `CHANGELOG.md`.
 - **Do not worry about:** a known, accepted, time-boxed secret-exposure risk
   in the public chassis repo (owner-decided, already mitigated, intentionally
   left as-is); ~30 historical session reports lost in an unrelated drive

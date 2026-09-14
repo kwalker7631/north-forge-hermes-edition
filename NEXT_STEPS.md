@@ -1,5 +1,25 @@
 # Build Status
 
+## 2026-09-14 session (later the same week - genuinely new machine, not just a re-letter)
+
+**Correction to the entry directly below**: that entry's "prior sessions' `D:\logs\...`
+references point at a drive letter that is now a different, unrelated volume" note is now
+itself stale in the opposite direction - the drive has moved AGAIN, to an actually new
+machine (host `BLACKSMITHFORGE` -> host `KWALKER`), and `D:\` is now genuinely this same
+physical `MAIN-NORTH` drive again. **Current live status, verified this session**:
+`nf_tier show` / `verify` on `D:\north-forge-agent` both report `state: active, tier: full`,
+exit 0 - the provisioning record survived the move intact (its signature covers content
+only, never a path). Two real fixes landed in `north-forge-agent` this week - full detail
+in that repo's `logs/NEW_MACHINE_DRIVE_AUDIT_D_2026-09-14.md` and this file's own
+`CHANGELOG.md` entry for today:
+- `nf-setup.ps1`: a re-provision request identical to what's already active no longer
+  needs the admin passcode (was blocking a harmless re-confirmation after this exact kind
+  of move) - **not yet confirmed working live**, blocked twice by Claude Code's own safety
+  classifier.
+- Venv self-heal (`bootstrap-north-forge.ps1`): tries a lightweight, no-deletion path
+  repair before a full rebuild on a stale-path fault - **confirmed working live**,
+  reproduced and verified this session.
+
 ## 2026-09-14 session (drive-letter migration cleanup, Claude Code)
 
 Kenneth elevated this checkout to `F:\`, relabeled `MAIN-NORTH` (a fixed 2TB exFAT

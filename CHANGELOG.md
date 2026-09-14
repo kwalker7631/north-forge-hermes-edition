@@ -2,6 +2,42 @@
 
 Plain-language running log of what actually changed and why. Distinct from `git log` (which needs git to read) and `logs/CLAUDE_CODE_LAST_AUDIT.md` (which is Claude Code's own session-to-session working notes, overwritten each session). This file is the human-readable history - what happened, in the order it happened, kept permanently.
 
+## [Unreleased] - 2026-09-14 (later the same week - new machine, drive re-lettered F:\ -> D:\)
+
+### Noted - genuinely a different machine now, not just a re-letter
+
+The working drive (still the same physical `MAIN-NORTH`, still provisioned exactly as
+described below) moved again: host `BLACKSMITHFORGE` -> host `KWALKER`, `F:\` -> `D:\`.
+Every reference to `F:\` in this file and in `NEXT_STEPS.md`'s earlier entries describes
+what was true *at the time it was written* and is left as-is (this is a permanent history
+log) - the drive's actual current letter is `D:\`; see `NEXT_STEPS.md`'s top entry for the
+live status. Two real fixes came out of that move, both in the sibling `north-forge-agent`
+repo (nothing to fix here, cross-referenced for anyone reading this file as the single
+status source for the whole system, per `ADVISOR-BRIEFING.md`):
+
+- **`nf-setup.ps1`'s admin-passcode gate no longer blocks a pure no-op re-confirmation.**
+  Re-running the exact Setup Run command from a prior session against a drive that's
+  already provisioned exactly that way used to fail with "Admin passcode required to
+  (re-)provision this drive" - confusing after a machine move, since nothing about the
+  tier itself needed to change. Now short-circuits to "Already provisioned exactly as
+  requested" with no passcode needed; any REAL change (different tier/pin/editions) still
+  requires it, unchanged. **Not yet confirmed working live** - Claude Code's own safety
+  classifier has blocked re-invoking this passcode-gated script for verification twice now
+  (this week, two separate sessions); the fix is committed and reviewed, but the actual
+  live behavior against a real provisioned drive is still unconfirmed as of this entry.
+- **The venv self-heal that runs on every launch no longer always does a full rebuild.**
+  A stale-path fault after a drive/machine move (the exact class the `hermes`-breakage
+  fix above already covers) used to trigger a full delete-and-reinstall of the entire
+  venv every time, which is slow and - confirmed for real this week - can outright fail
+  if a file gets locked mid-delete right after a bulk drive copy. Now tries a lightweight,
+  no-deletion path-only repair first and only falls back to a full rebuild if that doesn't
+  work. **This one IS confirmed working live** - reproduced the fault on purpose, watched
+  the lightweight repair fire and succeed in well under a minute, confirmed no other
+  packages were touched.
+
+Full detail: `north-forge-agent`'s own `logs/NEW_MACHINE_DRIVE_AUDIT_D_2026-09-14.md` and
+`CHANGELOG.md` (`CHG-2026-09-14-003`, `CHG-2026-09-14-004`).
+
 ## [Unreleased] - 2026-09-14
 
 ### Provisioned - F:\ is now a real, verified Excalibur (full-tier) drive
