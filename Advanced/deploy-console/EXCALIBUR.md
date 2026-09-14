@@ -38,36 +38,44 @@ Concretely, an Excalibur drive has:
 
 ## Current status of `F:\` (MAIN-NORTH)
 
-As of 2026-09-14: **unprovisioned** (confirmed via
-`python -m hermes_cli.nf_tier show` from the drive's own venv — no
-`provisioning.json` record exists yet). It has been a working dev checkout
-all along, which is why it's been usable without any tier record, but it has
-not yet gone through a real `nf-setup.ps1 -Tier full` Setup Run.
+**Provisioned and verified 2026-09-14** — `state: active`, `tier: full`,
+`locked: no — editions are switchable`, signature verified via
+`python -m hermes_cli.nf_tier verify` (exit 0 — the same check
+`north-forge.cmd` runs before every launch). Four editions installed and
+switchable: `kyocera`, `field-service`, `penny-pincher`, `pine-barron-farms`.
+Admin passcode set (hash only, per the mechanism above — not stored in
+plaintext once configured).
 
-To provision it as a real Excalibur (full-tier) drive:
+The process, confirmed working on this checkout's specific layout (the
+private Kyocera edition is a **sibling** checkout at the drive root, not
+nested under `north-forge-agent\private-editions\` the way a
+`Zero-Touch-Deploy.ps1` build produces it — `nf-setup.ps1`'s automatic
+install-from-`editions\`/`private-editions\` fallback doesn't reach a
+sibling checkout, so the edition needs installing as a profile explicitly
+first):
 
 ```powershell
-# From F:\north-forge-agent, with the drive's own venv:
-F:\north-forge-agent-venv\Scripts\python.exe -m hermes_cli.nf_tier show   # confirm current state first
+# From F:\north-forge-agent, with the drive's own venv, HERMES_HOME pointed
+# at the drive-local data dir:
+$env:HERMES_HOME = 'F:\north-forge-agent-data'
 
-.\scripts\nf-setup.ps1 -Tier full -Pin <default-edition> -Installed <edition1,edition2,...> -SetPasscode -Passcode <your-passcode>
+# Install each edition as a profile first (repeat per edition; only needed
+# once per edition, or again after -Force re-provisioning if data was reset):
+F:\north-forge-agent-venv\Scripts\hermes.exe profile install F:\north-forge-hermes-edition -y
+F:\north-forge-agent-venv\Scripts\hermes.exe profile install F:\north-forge-agent\editions\field-service -y
+F:\north-forge-agent-venv\Scripts\hermes.exe profile install F:\north-forge-agent\editions\penny-pincher -y
+F:\north-forge-agent-venv\Scripts\hermes.exe profile install F:\north-forge-agent\editions\pine-barron-farms -y
+
+# Then provision, with -SkipEditionInstall since profiles are already installed:
+.\scripts\nf-setup.ps1 -Tier full -Pin default -Installed kyocera,field-service,penny-pincher,pine-barron-farms -SetPasscode -Passcode <your-passcode> -NonInteractive -SkipEditionInstall
+
+# Verify:
+python -m hermes_cli.nf_tier verify   # should print "state: active", exit 0
 ```
 
-**Not yet verified end-to-end on this specific checkout layout** — flagging
-honestly rather than asserting it's been tested: `nf-setup.ps1` auto-installs
-an edition as a Hermes profile from `editions\<name>\` (public) or
-`private-editions\<name>\` (gitignored, admin-cloned) *inside the
-`north-forge-agent` checkout*. On `F:\`, the private Kyocera edition
-(`north-forge-hermes-edition`) is a **sibling** checkout at the drive root,
-not nested under either of those paths — which is a different layout than a
-Zero-Touch-Deploy.ps1 build produces (that script clones it *into*
-`private-editions\kyocera\` directly). It may need `hermes profile install
-F:\north-forge-hermes-edition` run first, with `-SkipEditionInstall` on the
-`nf-setup.ps1` call, rather than relying on its automatic install fallback.
-Confirm this together with Kenneth before treating it as documented fact —
-do not copy this command block into a Round Table build's instructions, and
-do not assume it works unmodified until someone has actually run it once
-against this exact layout.
+`-Pin default` lands on the generic North Forge chassis rather than any one
+edition, since full tier makes every installed edition switchable anyway —
+there's no single "home" edition the way a locked Round Table build has one.
 
 ## Building a *second* Excalibur drive (a new admin/designer machine)
 

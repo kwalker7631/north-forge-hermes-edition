@@ -4,6 +4,30 @@ Plain-language running log of what actually changed and why. Distinct from `git 
 
 ## [Unreleased] - 2026-09-14
 
+### Provisioned - F:\ is now a real, verified Excalibur (full-tier) drive
+
+`F:\` (MAIN-NORTH) had been a working dev checkout the whole time but had
+never gone through a real Setup Run - `nf_tier show` reported `unprovisioned`
+with no record at all. Installed all four available editions as profiles
+(`kyocera` from the sibling `north-forge-hermes-edition` checkout,
+`field-service`, `penny-pincher`, `pine-barron-farms` from
+`north-forge-agent\editions\`), then ran `nf-setup.ps1 -Tier full -Pin
+default -Installed <all four> -SetPasscode`. Independently verified after
+(not just trusted the command's own printed output): `nf_tier show` reports
+`state: active, tier: full, locked: no`, and `nf_tier verify` - the same
+signature check `north-forge.cmd` runs before every launch - exits 0. Admin
+passcode is Kenneth's own choice, stored as a hash only (`.nf-admin`), per
+his explicit instruction not to leave it in plaintext anywhere once
+configured - not written in this file or any committed doc. Full working
+command sequence (confirmed against this checkout's actual sibling-repo
+layout, not just theorized) now lives in `EXCALIBUR.md`.
+
+Also decided the same session (Kenneth, not yet actioned - no second drive
+attached to build against): Greg W. will get a second Excalibur-tier drive,
+same standing as this one - "king and knight, equals." Delegation of lower
+(Round Table / Sales / Technical) tiers to anyone else is a joint call
+between Kenneth and Greg going forward, not a unilateral one.
+
 ### Renamed (Kenneth's direct decision, later the same day) - Excalibur / Round Table
 
 **"Excalibur" now means the admin/designer's own elevated drive** (full tier,

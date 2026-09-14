@@ -7,6 +7,21 @@ drive, not removable - this is now the permanent working drive, not another rota
 test letter). Full detail in `logs/CLAUDE_CODE_LAST_AUDIT.md` and this file's
 `CHANGELOG.md` entry for today.
 
+- **`F:\` is now a real, verified Excalibur (full-tier) admin drive** - `nf_tier
+  verify` exits 0, `state: active`, all four editions (kyocera, field-service,
+  penny-pincher, pine-barron-farms) installed and switchable. See `CHANGELOG.md`
+  for the exact command sequence (confirmed working against this checkout's
+  actual layout, not theorized) and `EXCALIBUR.md` for the standing doc.
+- **"Excalibur" was renamed** (Kenneth's decision) to mean the admin/designer drive
+  itself - `F:\` is the current one. The locked teammate-handoff drive this project
+  used to call "Excalibur" is now "Round Table" - see `CHANGELOG.md`'s rename entry
+  and `ROUND-TABLE.md` (formerly `EXCALIBUR.md`).
+- **Greg W. will get a second Excalibur-tier drive** (Kenneth's decision, not yet
+  built - no second drive attached this session). Delegation of lower tiers to
+  anyone else is a joint Kenneth+Greg call going forward.
+- **Open, Kenneth's own follow-up**: a possible further rename - "SALES" tier to
+  "TECHNICAL" and/or a "HERMES Level" - mentioned but not yet a clear enough
+  instruction to act on; flagged, not implemented, this session.
 - **Root cause of "no scripts work" today**: `north-forge-agent`'s editable pip install
   was still pointing at `D:\north-forge-agent` (stale from before the move to `F:`) -
   broke `hermes` completely, independent of this repo. Fixed (venv-local, not a repo
