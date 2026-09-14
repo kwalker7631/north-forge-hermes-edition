@@ -1,4 +1,8 @@
-# Building an Excalibur Drive - The Real Walkthrough
+# Building a Round Table Drive - The Real Walkthrough
+
+Called **Excalibur** before 2026-09-14 (see [EXCALIBUR.md](EXCALIBUR.md) for
+what that name means now — the admin/designer's own drive, not this one).
+Nothing about the build process below changed in the rename, only the name.
 
 This is the actual, twice-verified process - built and confirmed working
 on real hardware (Greg's original drive, then a full clean rebuild that
@@ -19,12 +23,15 @@ away from home base with nothing but a terminal).
      convention: `<FirstName><LastInitial>-NORTH` (e.g. `GREGW-NORTH`
      for Greg Warhol).
    - **Tier**: `basic` (this is what "locked to Kyocera" actually means
-     under the hood - Excalibur is always basic-tier).
+     under the hood - a Round Table build is always basic-tier).
    - **Pin**: `kyocera`.
    - **Passcode**: your admin passcode (one field in the actual console
      UI, not two - checked against the real form).
 5. Confirm format. Wait - full deploy takes a few minutes (clone, venv
    bootstrap, provisioning). You'll see "DEPLOYMENT COMPLETE" when done.
+   Since 2026-09-14, a drive under 8 GB is refused before formatting even
+   starts, rather than failing partway through the clone once it's already
+   wiped - if you see that refusal, the target is too small; use 32 GB+.
 6. **Pinokio is now excluded automatically** - you don't need to check
    for or remove it by hand anymore. That used to be a manual step;
    it's fixed at the source now.
@@ -54,9 +61,11 @@ needed, it's the default now for `-Tier basic`.
 
 ## Step 3 (either path) - Configure the AI model
 
-This step only applies to an **Excalibur** build specifically (your own
-elevated key). A standard Full/Sales drive skips this entirely - it uses
-the free tier automatically, no key needed.
+This step only applies to a **Round Table** build specifically (`-Tier
+basic` — real technicians need real model quality). A `-Tier full` build
+(what's now called an **Excalibur** build - your own admin/designer drive)
+typically skips this and uses the free Nous Portal tier instead - no key
+needed unless you specifically want one configured there too.
 
 ```powershell
 hermes config set ANTHROPIC_API_KEY <your real key>
@@ -106,6 +115,6 @@ nothing extra.
 
 ## That's the whole thing
 
-Format → clone → bootstrap → deploy → configure the model (Excalibur
+Format → clone → bootstrap → deploy → configure the model (Round Table
 only) → launch → verify. Every step above is exactly what happened on
 the real, twice-confirmed drive - nothing here is theoretical.

@@ -1,82 +1,95 @@
-# Excalibur drive — first viewer (manager)
+# Excalibur drive — the admin/designer drive
 
-This is the handoff stick. Not a lab clone. Not Pinokio. Not a terabyte
-of models. One prepared Kyocera drive that a Blue Book reader can
-judge in ten minutes.
+Renamed 2026-09-14. Before this date, "Excalibur" meant the locked,
+teammate-handoff stick — that drive class is now called **Round Table** (see
+[ROUND-TABLE.md](ROUND-TABLE.md)). "Excalibur" means this instead: the
+admin/designer's own elevated working drive — full tier, unlocked, everything
+reachable. The king wields Excalibur; everyone he builds a drive for sits at
+the Round Table.
 
-For the full walk-through with both the console and manual-command paths,
-real verification steps, and real example prompts — see
-[EXCALIBUR_WALKTHROUGH.md](EXCALIBUR_WALKTHROUGH.md). This page stays the
-short checklist; that one is the teaching/reference version.
+`F:\` (labeled **MAIN-NORTH**) is the current, real Excalibur drive — the
+primary admin drive going forward, not a rotating test letter.
 
-## What “Excalibur” means here
+## What "Excalibur" means here
 
-- Locked to the Kyocera pack
-- Volume label **FIRSTL-NORTH** for the person who will hold it
-- Admin passcode set (hash only)
-- An inference provider actually configured (see step 7a below) — without
-  this, the drive cannot answer anything at all
-- **Start North Forge** at the root
-- HOW_TO_START.txt and ASSIGNED_TO.txt on the root
-- Public chassis + private edition already pinned
-- No FULL/SALES toggle, no Git on the teammate path
+Per `north-forge-agent`'s own `scripts\nf-setup.ps1` (the thing that actually
+writes this distinction to disk):
 
-If any of that is missing, it is not ready for the first viewer.
+> `full` — the pin is only the default landing edition; every switch path
+> stays open (`hermes profile use` / the dashboard / `/edition`). Admin +
+> trusted engineers.
 
-## Build it (admin PC, once)
+Concretely, an Excalibur drive has:
 
-Follow the real guide, in this order. Do not invent a second path.
+- **`-Tier full`** provisioning (see below) — no single edition lock; every
+  installed profile stays reachable and switchable.
+- **Git present** and usable directly — both `north-forge-agent` and
+  `north-forge-hermes-edition` (and any other editions) as real, working
+  checkouts you can pull/commit/push in, not a stripped teammate copy.
+- **Pinokio allowed** (per `Advanced/PINOKIO.md`) — the admin/lab case,
+  distinct from Round Table, which never gets Pinokio.
+- No forced single-Pin lock — you can hold every edition you're actively
+  building or supporting (`field-service`, `penny-pincher`,
+  `pine-barron-farms`, the private Kyocera edition, etc.) and switch between
+  them, not just the one a teammate stick is locked to.
+- An admin passcode still gates *re*-provisioning (changing tier/pin later),
+  same mechanism as Round Table — this isn't a security-off mode, just an
+  unlocked-switching one.
 
-1. [ADMIN_FIRST_TIME.txt](ADMIN_FIRST_TIME.txt) — Git, GitHub CLI, Python if asked, `gh auth login` once.
-2. [DEPLOY.md](DEPLOY.md) — Run `Launch-Deploy-Console.cmd` **as administrator**.
-3. USB or SSD, **32 GB or larger** for this stick (8 GB is the floor; give the first viewer room).
-4. Assigned to: the manager's first and last name → label `GREGW-NORTH` style.
-5. Agent name: leave **North Forge** unless they asked for a nickname.
-6. Tier: **Locked**. Pin: **Kyocera**.
-7. Type `FORMAT`. Type the passcode (one field in the console).
-7a. **Configure the inference provider now — not documented anywhere
-    before this, and the drive cannot answer anything without it.** From
-    the checkout root (`<drive>\north-forge-agent`), with
-    `HERMES_HOME=<drive>\north-forge-agent-data`:
-    ```
-    hermes config set ANTHROPIC_API_KEY <the real key>
-    hermes config set model anthropic/claude-sonnet-5
-    ```
-    Confirm with `hermes config show` — `Anthropic` should show a masked
-    key, `Model:` should read `anthropic/claude-sonnet-5`. Run a real
-    prompt (`hermes -z "..."`) before handing the drive over; a
-    "No inference provider configured" error means this step was skipped
-    or failed.
-8. Wait until HOW_TO_START.txt is on the root.
-9. On a **second** PC if you have one, plug it in and do the four teammate steps yourself before you hand it over.
+## Current status of `F:\` (MAIN-NORTH)
 
-## What you say when you hand it over
+As of 2026-09-14: **unprovisioned** (confirmed via
+`python -m hermes_cli.nf_tier show` from the drive's own venv — no
+`provisioning.json` record exists yet). It has been a working dev checkout
+all along, which is why it's been usable without any tier record, but it has
+not yet gone through a real `nf-setup.ps1 -Tier full` Setup Run.
 
-Not “this is AI.” Not “this is Hermes.”
+To provision it as a real Excalibur (full-tier) drive:
 
-Say:
+```powershell
+# From F:\north-forge-agent, with the drive's own venv:
+F:\north-forge-agent-venv\Scripts\python.exe -m hermes_cli.nf_tier show   # confirm current state first
 
-> This is a desk copy. Plug it in. Start North Forge. Talk like you
-> would to the go-to on the desk. If it does not know, it is supposed
-> to say so. If you teach it, it is supposed to keep that. I built it
-> on the side of the job because the books ask for earnest effort, and
-> a search box is not that.
+.\scripts\nf-setup.ps1 -Tier full -Pin <default-edition> -Installed <edition1,edition2,...> -SetPasscode -Passcode <your-passcode>
+```
 
-Then stop talking. Let them use it.
+**Not yet verified end-to-end on this specific checkout layout** — flagging
+honestly rather than asserting it's been tested: `nf-setup.ps1` auto-installs
+an edition as a Hermes profile from `editions\<name>\` (public) or
+`private-editions\<name>\` (gitignored, admin-cloned) *inside the
+`north-forge-agent` checkout*. On `F:\`, the private Kyocera edition
+(`north-forge-hermes-edition`) is a **sibling** checkout at the drive root,
+not nested under either of those paths — which is a different layout than a
+Zero-Touch-Deploy.ps1 build produces (that script clones it *into*
+`private-editions\kyocera\` directly). It may need `hermes profile install
+F:\north-forge-hermes-edition` run first, with `-SkipEditionInstall` on the
+`nf-setup.ps1` call, rather than relying on its automatic install fallback.
+Confirm this together with Kenneth before treating it as documented fact —
+do not copy this command block into a Round Table build's instructions, and
+do not assume it works unmodified until someone has actually run it once
+against this exact layout.
 
-## Ten-minute first look
+## Building a *second* Excalibur drive (a new admin/designer machine)
 
-1. Plug in. Confirm the volume name is theirs.
-2. Double-click **Start North Forge**. First boot on a new PC can be slow.
-3. Type a real morning problem in ordinary English.
-4. `/menu` if lost. `/readme kyocera` for the map.
-5. Ctrl+C when done.
+Same pipeline as Round Table, different tier:
 
-## Do not put on this stick
+```powershell
+Zero-Touch-Deploy.ps1 -DriveLetter E -ConfirmFormat FORMAT -Tier full -Pin <default-edition> -Passcode <your-passcode> -Label <whatever>
+```
 
-Pinokio, local model zoos, AppData installs, the research archive.
-Those bury the sale.
+`-Tier full` also changes `Zero-Touch-Deploy.ps1`'s own default: Pinokio is
+**not** excluded automatically (that default only applies to `-Tier basic` /
+Round Table builds) — pass `-ExcludeSkills @('pinokio')` explicitly if you
+want it off anyway.
 
-## After they use it
+## Excalibur vs. Round Table, side by side
 
-Write down what they corrected. That note is the next commit.
+| | **Excalibur** (admin) | **Round Table** (teammate) |
+| --- | --- | --- |
+| Tier | `full` | `basic` |
+| Git | present, usable | none on the teammate path |
+| Pinokio | allowed | never |
+| Editions reachable | every installed one, switchable | one, locked |
+| Who | you, trusted engineers | everyone else |
+| API key | your real key, your call | real key configured by you before handoff |
+| Built via | organic dev checkout, or `Zero-Touch-Deploy.ps1 -Tier full` | always `Zero-Touch-Deploy.ps1 -Tier basic` |

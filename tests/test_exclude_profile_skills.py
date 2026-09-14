@@ -1,6 +1,6 @@
 """Tests for Advanced/deploy-console/exclude-profile-skills.ps1 - the tool
 for stopping a specific skill (e.g. `pinokio`) from leaking onto a specific
-build (e.g. an Excalibur-class drive) without a manual rm -rf after the
+build (e.g. a Round-Table-class drive) without a manual rm -rf after the
 fact. See the script's own header for the incident this fixes.
 """
 from __future__ import annotations

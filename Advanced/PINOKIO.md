@@ -12,8 +12,8 @@ Official project: https://github.com/pinokiocomputer/pinokio
 ## Same-drive layout (256 GB learning stick)
 
 Format this class of stick **NTFS**. Pinokio's own notes want NTFS,
-no spaces in the home path. The small teammate Excalibur stick can stay
-exFAT **without** Pinokio.
+no spaces in the home path. The small teammate Round Table stick (called
+Excalibur before 2026-09-14) can stay exFAT **without** Pinokio.
 
 ```
 E:\                                volume GREGW-NORTH

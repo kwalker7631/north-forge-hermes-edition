@@ -36,7 +36,7 @@ pretend the stick contains a GPU.
 ## Guardrails
 
 - 256 GB stick: one or two Pinokio apps, then stop.
-- Manager Excalibur (32 GB): Pinokio is not on that stick.
+- Round Table (32 GB, was called Excalibur): Pinokio is not on that stick.
 - Customer data does not go into a generator for fun.
 - Credit Pinokio. It is free and it is not ours.
 

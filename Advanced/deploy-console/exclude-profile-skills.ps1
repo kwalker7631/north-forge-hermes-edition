@@ -10,8 +10,9 @@
   WHY THIS EXISTS
     The private-edition profile install currently ships every skill in the
     edition's source tree to every drive, with no stick-class-aware curation.
-    A real Excalibur build found `pinokio` installed and chat-reachable on a
-    locked, teammate-facing drive - a direct violation of EXCALIBUR.md's own
+    A real Round Table build (called Excalibur at the time; see
+    ROUND-TABLE.md) found `pinokio` installed and chat-reachable on a
+    locked, teammate-facing drive - a direct violation of ROUND-TABLE.md's own
     "Do not put on this stick: Pinokio." This does not decide the underlying
     policy (should exclusion be automatic, a distribution split, etc. - still
     open, see logs\CLAUDE_CODE_LAST_AUDIT.md) - it just makes "exclude this

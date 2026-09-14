@@ -4,6 +4,53 @@ Plain-language running log of what actually changed and why. Distinct from `git 
 
 ## [Unreleased] - 2026-09-14
 
+### Renamed (Kenneth's direct decision, later the same day) - Excalibur / Round Table
+
+**"Excalibur" now means the admin/designer's own elevated drive** (full tier,
+Git, Pinokio, every edition switchable) - `F:\` (MAIN-NORTH) is the current
+one. **The locked, teammate-handoff drive this project previously called
+"Excalibur" is now "Round Table"** - nothing about what that drive *is*
+changed, only its name. "The king wields Excalibur; everyone he hands a
+build to sits at the Round Table."
+
+- `Advanced/deploy-console/EXCALIBUR.md` / `EXCALIBUR_WALKTHROUGH.md` ->
+  `git mv`'d to `ROUND-TABLE.md` / `ROUND-TABLE_WALKTHROUGH.md` (content
+  unchanged in substance, terminology updated). A **new** `EXCALIBUR.md` was
+  written describing the admin drive - what it is, `F:\`'s current
+  (unprovisioned) status, and how to provision one via `nf-setup.ps1 -Tier
+  full`, with an explicit, un-hedged note that the exact provisioning command
+  for this checkout's specific sibling-repo layout has **not** been verified
+  end-to-end yet.
+- Renamed throughout: `scripts/pinokio_lab_target.py`'s `--excalibur-max-gb`
+  CLI flag, `DEFAULT_EXCALIBUR_MAX_GB` constant, and all "Excalibur-class"
+  language -> `--round-table-max-gb` / `DEFAULT_ROUND_TABLE_MAX_GB` /
+  "Round-Table-class" (functional rename, not just prose - re-ran
+  `tests/test_pinokio_lab_target.py` after: 14/15 pass, the 1 failure is a
+  pre-existing environment-dependent flake unrelated to this change, assumes
+  drive `Z:` exists on the test-running machine). Matching updates in
+  `Zero-Touch-Deploy.ps1`, `exclude-profile-skills.ps1`,
+  `Install-Pinokio-Lab.ps1`, `Advanced/PINOKIO.md`, both `pinokio/SKILL.md`
+  copies (`skills/` and `skills-source/shared/`), and
+  `tests/test_exclude_profile_skills.py`.
+- Also fixed in the same pass: my own capacity-gate error/warn messages
+  (added earlier today, see below) referenced `EXCALIBUR.md` for the 8/32 GB
+  sizing guidance - now correctly point at `ROUND-TABLE.md`, since that
+  guidance is about the teammate stick, not the admin drive.
+- **Not touched**: genuinely historical entries elsewhere in this file and in
+  `NEXT_STEPS.md` that narrate a specific past session's events using
+  "Excalibur" in its old sense (e.g. "Kenneth used the real deployed `E:\`
+  Excalibur drive tonight") - those describe what was true and named that way
+  at the time, not the current system, and rewriting them would be
+  revisionist. Only forward-facing docs/code, plus this session's own
+  same-day entries, were updated.
+- **Source of the original confusion, found while doing this rename**:
+  `EXCALIBUR_WALKTHROUGH.md`'s old Step 3 called the real Anthropic API key
+  "your own elevated key" in the context of the *locked teammate* build - a
+  genuinely ambiguous phrase ("elevated" reads naturally as "admin-tier",
+  not "a real/paid key tier") that plausibly caused exactly this mix-up.
+  Reworded in the new walkthrough content to avoid the word "elevated"
+  entirely in that context.
+
 ### Fixed (drive-letter migration cleanup - this checkout elevated to F:\ MAIN-NORTH)
 
 - **`hermes` was completely broken on this machine** (`ModuleNotFoundError: No module
@@ -59,9 +106,10 @@ Plain-language running log of what actually changed and why. Distinct from `git 
   `launch-north-forge.bat`/`.sh` (archived 2026-09-11) and now also `toggle-mode.bat`
   (archived above) among its markers. The check is match-any across 9 markers and the
   other 6 (`north-forge.cmd`, `HOW_TO_START.txt`, `ASSIGNED_TO.txt`, `machine-reset.bat`,
-  etc.) still resolve on a real Excalibur drive per `EXCALIBUR.md`'s own build checklist,
-  so this isn't believed to be a live false-negative - flagged rather than touched given
-  it backs a safety check that gates drive wipes.
+  etc.) still resolve on a real Round Table drive (called Excalibur at the time this was
+  written; renamed later the same day - see the entry below) per `ROUND-TABLE.md`'s own
+  build checklist, so this isn't believed to be a live false-negative - flagged rather
+  than touched given it backs a safety check that gates drive wipes.
 
 ## [Unreleased] - 2026-09-12
 

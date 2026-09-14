@@ -12,7 +12,8 @@ deliberately not the "cockpit" HUD reskin described below, which is still
 a separate, larger, not-yet-designed decision). Full detail in
 `north-forge-agent`'s ledger and `logs/CLAUDE_CODE_LAST_AUDIT.md`. **Not
 yet persisted to source control** - only exists as data on `E:\`'s
-physical drive right now, so a fresh Excalibur rebuild would not carry it
+physical drive right now, so a fresh Round Table rebuild (called an
+Excalibur rebuild when this was written) would not carry it
 forward. Needs a decision on where this content should live (this repo,
 alongside `skins/`? the engine repo's install path? somewhere else?)
 before the next rebuild.

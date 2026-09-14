@@ -4,10 +4,10 @@
   at a large, SEPARATE data disk - never the North Forge teammate/handoff drive.
 
 .DESCRIPTION
-  Pinokio is deliberately kept off the North Forge stick. See
-  Advanced/deploy-console/EXCALIBUR.md ("Do not put on this stick: Pinokio,
+  Pinokio is deliberately kept off the North Forge teammate stick. See
+  Advanced/deploy-console/ROUND-TABLE.md ("Do not put on this stick: Pinokio,
   local model zoos, AppData installs, the research archive. Those bury the
-  sale.") and Advanced/PINOKIO.md ("Same 32 GB Excalibur stick as North
+  sale.") and Advanced/PINOKIO.md ("Same 32 GB Round Table stick as North
   Forge: No. PINOKIO_HOME on a data SSD (500 GB-2 TB): the real design.").
 
   This script does NOT install Pinokio itself - it does not download or

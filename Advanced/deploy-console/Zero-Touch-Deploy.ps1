@@ -8,9 +8,11 @@
   before "DEPLOYMENT COMPLETE" prints.
 
   Defaults to  @('pinokio')  when -Tier is 'basic' (locked - a
-  teammate-facing drive, which is what Excalibur always is per
-  EXCALIBUR.md's own "Tier: Locked. Pin: Kyocera"), and to  @()  when
-  -Tier is 'full' (the switcher stays open - the admin/lab case, where
+  teammate-facing drive, what this pipeline now calls Round Table (was
+  called Excalibur before 2026-09-14 - see ROUND-TABLE.md's own
+  "Tier: Locked. Pin: Kyocera")), and to  @()  when -Tier is 'full' (the
+  switcher stays open - the admin/designer case, what this pipeline now
+  calls Excalibur - your own elevated drive, e.g. F:\ MAIN-NORTH - where
   Pinokio belongs per Advanced/PINOKIO.md). Pass -ExcludeSkills explicitly
   (including  -ExcludeSkills @()  to keep Pinokio on a basic-tier build)
   to override either default.
@@ -18,16 +20,17 @@
   WHY THIS EXISTS: the private-edition profile install currently ships
   every skill in the edition's source tree to every drive, with no
   stick-class-aware curation (flagged, not solved at the source, in
-  logs\CLAUDE_CODE_LAST_AUDIT.md, 2026-09-12/13). A real Excalibur build
-  found `pinokio` installed and chat-reachable on a locked, teammate-facing
-  drive - a direct violation of EXCALIBUR.md's own "Do not put on this
-  stick: Pinokio." Tying the default to -Tier (rather than requiring a
-  flag anyone has to remember) means the common Excalibur case is safe
-  by default, using a distinction ("locked" vs "switcher stays open")
-  this pipeline already makes for an unrelated reason - it does NOT
-  invent a new "stick class" concept. Still not the full policy answer
-  (a distribution-level split, or per-skill tier metadata, remain open),
-  but the common case no longer depends on someone remembering a flag.
+  logs\CLAUDE_CODE_LAST_AUDIT.md, 2026-09-12/13). A real Round Table build
+  (called an Excalibur build at the time) found `pinokio` installed and
+  chat-reachable on a locked, teammate-facing drive - a direct violation of
+  ROUND-TABLE.md's own "Do not put on this stick: Pinokio." Tying the
+  default to -Tier (rather than requiring a flag anyone has to remember)
+  means the common Round Table case is safe by default, using a
+  distinction ("locked" vs "switcher stays open") this pipeline already
+  makes for an unrelated reason - it does NOT invent a new "stick class"
+  concept. Still not the full policy answer (a distribution-level split, or
+  per-skill tier metadata, remain open), but the common case no longer
+  depends on someone remembering a flag.
 #>
 [CmdletBinding()]
 param(
@@ -121,17 +124,21 @@ Write-Host ("Target : {0}:  label={1}  {2} GB  fs={3}" -f $letter, $vol.Label, $
 # Capacity gate - checked BEFORE formatting, not after. Without this a too-small
 # drive would format successfully (fast, looks fine) then fail hard partway through
 # cloning both repos + building a venv (needs far more than a couple GB), wiping
-# real data on the way to a dead end. EXCALIBUR.md's own "32 GB or larger ... 8 GB
-# is the floor" is the source of these defaults - this just enforces what that doc
-# already documents but nothing previously checked.
+# real data on the way to a dead end. ROUND-TABLE.md's own "32 GB or larger ... 8 GB
+# is the floor" (that doc's teammate-stick sizing guidance, unchanged by the
+# 2026-09-14 Excalibur/Round Table rename) is the source of these defaults - this
+# just enforces what that doc already documents but nothing previously checked.
+# Applies to both tiers here (not just Round Table/-Tier basic): an admin/Excalibur
+# build (-Tier full) needs real room too, just without a documented floor of its
+# own yet - reusing these same defaults for both until one exists.
 if ($capGb -is [double] -and $capGb -lt $MinCapacityGb) {
     $msg = "Target is {0} GB - below the {1} GB floor. Refusing to format or provision " -f $capGb, $MinCapacityGb
-    $msg += "this drive (see EXCALIBUR.md). Pass -MinCapacityGb to override if you really mean it."
+    $msg += "this drive (see ROUND-TABLE.md). Pass -MinCapacityGb to override if you really mean it."
     Write-Fail $msg
     exit 1
 }
 if ($capGb -is [double] -and $capGb -lt $RecommendedCapacityGb) {
-    $msg = "Target is {0} GB - above the {1} GB floor but below the {2} GB EXCALIBUR.md recommends " -f `
+    $msg = "Target is {0} GB - above the {1} GB floor but below the {2} GB ROUND-TABLE.md recommends " -f `
         $capGb, $MinCapacityGb, $RecommendedCapacityGb
     $msg += "(give the first viewer room). Continuing."
     Write-WarnLine $msg

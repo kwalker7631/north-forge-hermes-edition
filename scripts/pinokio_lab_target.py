@@ -2,10 +2,10 @@
 """Validate a candidate target directory for an optional Pinokio lab install.
 
 Two documented North-Forge-bearing stick classes exist (`Advanced/PINOKIO.md`,
-`PINOKIO-on-drive.md`, `Advanced/deploy-console/EXCALIBUR.md`):
+`PINOKIO-on-drive.md`, `Advanced/deploy-console/ROUND-TABLE.md`):
 
-- **Excalibur** - the small (32 GB+) teammate/handoff stick. Pinokio is
-  deliberately kept OFF it, unconditionally - see EXCALIBUR.md ("Do not put
+- **Round Table** - the small (32 GB+) teammate/handoff stick. Pinokio is
+  deliberately kept OFF it, unconditionally - see ROUND-TABLE.md ("Do not put
   on this stick: Pinokio, local model zoos, AppData installs, the research
   archive. Those bury the sale.").
 - **Learning** - a much larger (256 GB+ NTFS) stick where Pinokio lives
@@ -17,7 +17,7 @@ This module is the mechanical half of enforcing that: given a candidate
 directory, it reports whether the drive it lives on (a) looks like a North
 Forge volume (any teammate-path marker file found from the nearest existing
 ancestor up to the filesystem/drive root), and if so, whether that volume is
-small enough to be Excalibur-class (block, no exceptions) or large enough to
+small enough to be Round-Table-class (block, no exceptions) or large enough to
 be Learning-class or bigger (don't block on the marker alone - fall through
 to the same free-space floor every candidate gets), and (b) has enough free
 space to be a plausible Pinokio lab disk either way. It makes no changes to
@@ -34,11 +34,17 @@ validator stick classes apart) rather than option 1 (retire it to a third,
 separate-disk-only tier) or option 3 (keep it separate-disk-only and treat
 Learning-class as a distinct, unvalidated path).
 
+Renamed 2026-09-14: "Excalibur" (the small teammate/handoff stick) became
+"Round Table" when "Excalibur" was reassigned to mean the admin/designer
+drive itself (see `Advanced/deploy-console/EXCALIBUR.md`, rewritten the same
+day). Purely a naming change - the size thresholds, verdicts, and detection
+logic below are unchanged from before the rename.
+
 Verdicts:
 - "blocked_missing_path"        - no existing ancestor directory at all.
 - "blocked_north_forge_volume"  - a North Forge marker file was found on a
-                                   volume at or under --excalibur-max-gb
-                                   total size (Excalibur-class); refuse
+                                   volume at or under --round-table-max-gb
+                                   total size (Round-Table-class); refuse
                                    regardless of free space.
 - "blocked_too_small"           - free space is below --min-free-gb (default
                                    200 GB - well above any teammate stick,
@@ -48,7 +54,7 @@ Verdicts:
                                    but PINOKIO.md's "real design" floor.
 - "ok"                          - free space is at or above --warn-free-gb.
 
-A marker found on a volume **larger** than --excalibur-max-gb (Learning-class
+A marker found on a volume **larger** than --round-table-max-gb (Learning-class
 or bigger) does not by itself block anything - it is reported in
 `north_forge_markers_found` for transparency, and the verdict falls through
 to the same free-space rules as any other candidate.
@@ -65,7 +71,7 @@ from typing import Callable, List, Optional
 
 # Case-insensitive filenames whose presence anywhere from the nearest existing
 # ancestor up to the drive root marks a volume as a North Forge teammate
-# drive. Sourced from EXCALIBUR.md's own description of what a prepared
+# drive. Sourced from ROUND-TABLE.md's own description of what a prepared
 # stick looks like ("Start North Forge at the root", "HOW_TO_START.txt and
 # ASSIGNED_TO.txt on the root") plus the launcher/toggle scripts every North
 # Forge checkout carries.
@@ -83,12 +89,12 @@ NORTH_FORGE_MARKERS = {
 
 DEFAULT_MIN_FREE_GB = 200.0
 DEFAULT_WARN_FREE_GB = 500.0
-# Excalibur is documented as "32 GB+"; the Learning stick as "256 GB" NTFS.
+# Round Table is documented as "32 GB+"; the Learning stick as "256 GB" NTFS.
 # 100 GB sits cleanly between the two with headroom on both sides - well
-# above any real Excalibur build, well below the smallest plausible Learning
+# above any real Round Table build, well below the smallest plausible Learning
 # stick - so ordinary size variance on either class can't cross it by
 # accident.
-DEFAULT_EXCALIBUR_MAX_GB = 100.0
+DEFAULT_ROUND_TABLE_MAX_GB = 100.0
 GB = 1024 ** 3
 
 DiskUsageFn = Callable[[str], "shutil._ntuple_diskusage"]
@@ -128,7 +134,7 @@ def validate_target(
     path: Path,
     min_free_gb: float = DEFAULT_MIN_FREE_GB,
     warn_free_gb: float = DEFAULT_WARN_FREE_GB,
-    excalibur_max_gb: float = DEFAULT_EXCALIBUR_MAX_GB,
+    round_table_max_gb: float = DEFAULT_ROUND_TABLE_MAX_GB,
     disk_usage: DiskUsageFn = shutil.disk_usage,
 ) -> dict:
     path = Path(path)
@@ -145,7 +151,7 @@ def validate_target(
     free_gb = usage.free / GB
     total_gb = usage.total / GB
 
-    if markers and total_gb <= excalibur_max_gb:
+    if markers and total_gb <= round_table_max_gb:
         return {
             "path": str(path),
             "checked_from": str(ancestor),
@@ -153,17 +159,17 @@ def validate_target(
             "north_forge_markers_found": markers,
             "total_gb": round(total_gb, 1),
             "message": (
-                f"This looks like an Excalibur-class North Forge stick ({total_gb:.1f} "
-                f"GB total, at or under the {excalibur_max_gb:.0f} GB Excalibur "
+                f"This looks like a Round-Table-class North Forge stick ({total_gb:.1f} "
+                f"GB total, at or under the {round_table_max_gb:.0f} GB Round Table "
                 f"ceiling): found {', '.join(markers)}. Pinokio is deliberately kept "
-                "off that stick - see EXCALIBUR.md. A Learning-class stick (bigger, "
+                "off that stick - see ROUND-TABLE.md. A Learning-class stick (bigger, "
                 "same-drive-by-design per PINOKIO.md / PINOKIO-on-drive.md) is not "
                 "blocked by this rule alone - choose one of those, or a separate lab "
                 "disk, instead."
             ),
         }
 
-    # Either no marker, or a marker on a volume above the Excalibur ceiling -
+    # Either no marker, or a marker on a volume above the Round Table ceiling -
     # Learning-class or a genuinely separate lab disk, where North Forge and
     # Pinokio sharing a drive is the documented design, not a contradiction.
     # `markers` (possibly empty) is still reported for transparency; it no
@@ -210,12 +216,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--min-free-gb", type=float, default=DEFAULT_MIN_FREE_GB)
     parser.add_argument("--warn-free-gb", type=float, default=DEFAULT_WARN_FREE_GB)
     parser.add_argument(
-        "--excalibur-max-gb",
+        "--round-table-max-gb",
         type=float,
-        default=DEFAULT_EXCALIBUR_MAX_GB,
+        default=DEFAULT_ROUND_TABLE_MAX_GB,
         help=(
             "Total drive size at/under which a North Forge marker hard-blocks "
-            "(Excalibur-class). Above it, a marker no longer blocks by itself "
+            "(Round-Table-class). Above it, a marker no longer blocks by itself "
             "(Learning-class, same-drive-by-design)."
         ),
     )
@@ -225,7 +231,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         Path(args.path),
         min_free_gb=args.min_free_gb,
         warn_free_gb=args.warn_free_gb,
-        excalibur_max_gb=args.excalibur_max_gb,
+        round_table_max_gb=args.round_table_max_gb,
     )
     print(json.dumps(result, indent=2))
     return 2 if result["verdict"] in BLOCKED_VERDICTS else 0
