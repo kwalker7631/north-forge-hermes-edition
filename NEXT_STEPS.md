@@ -1,5 +1,32 @@
 # Build Status
 
+## 2026-09-14 session (drive-letter migration cleanup, Claude Code)
+
+Kenneth elevated this checkout to `F:\`, relabeled `MAIN-NORTH` (a fixed 2TB exFAT
+drive, not removable - this is now the permanent working drive, not another rotating
+test letter). Full detail in `logs/CLAUDE_CODE_LAST_AUDIT.md` and this file's
+`CHANGELOG.md` entry for today.
+
+- **Root cause of "no scripts work" today**: `north-forge-agent`'s editable pip install
+  was still pointing at `D:\north-forge-agent` (stale from before the move to `F:`) -
+  broke `hermes` completely, independent of this repo. Fixed (venv-local, not a repo
+  change) - see `CHANGELOG.md`.
+- **Fixed in this repo**: `Advanced/machine-reset.bat` was unconditionally broken
+  (missing dependency, collateral damage from the 2026-09-11 launcher retirement) -
+  restored. Its own test suite had a separate, pre-existing bug (`Console.Out.WriteLine`
+  vs PowerShell capture) - fixed, now 8/8. `Advanced/toggle-mode.bat` archived to match
+  its already-retired `.sh` twin and the mode system it drove. Two dead `D:`/`E:` entries
+  removed from the Windows User `PATH`.
+- **Open, needs Kenneth/Blacksmith**: `CLAUDE.md`'s Zone A file list still names several
+  files quarantined into `archive/` on 2026-09-11 (not edited - Zone B). See
+  `CHANGELOG.md`'s "Known, not fixed this session" for the full list including
+  `README.md`/`USER_MANUAL.md` drift and the Pinokio lab-target marker set.
+- **Note**: prior sessions' `D:\logs\...` and `D:\HANDOFF_...zip` references (e.g. the
+  entry directly below) point at a drive letter that is now a different, unrelated
+  volume - that content is not recoverable from this machine's current `D:`. Going
+  forward, cross-repo logs/handoffs should live under `F:\` (this drive) or be zipped and
+  attached directly, not path-referenced by drive letter.
+
 ## 2026-09-13 session (consolidated theme/exFAT/workflow/Documents task, Claude Code)
 
 Full detail in `logs/CLAUDE_CODE_LAST_AUDIT.md` (this repo) and

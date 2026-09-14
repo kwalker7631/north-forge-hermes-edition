@@ -39,10 +39,24 @@ becomes a live profile.
 | `launch-north-forge.bat` / `.sh` | Drive launcher — write-probe, `.hermes-home` setup trigger, mode selection, hand-off to the Hermes CLI. |
 | `scripts/ensure-hermes.ps1` / `.sh` | Installed (or validated) the drive-local Hermes engine under `.hermes-home/`. |
 | `scripts/hermes-drive.ps1` / `.sh` | Runtime wrapper staged into `.hermes-home/bin` after install. |
-| `scripts/machine-reset-safety.ps1` | Guardrails around resetting a drive's Hermes install without touching shared machine state. |
 | `Advanced/provision-new-drive.ps1` | Fresh-drive provisioning flow. |
 | `Advanced/full-drive-reset.sh` | Full wipe-and-reprovision of a drive's `.hermes-home`. |
-| `Advanced/toggle-mode.sh` | Switched a drive between FULL and SALES mode (see below). |
+| `Advanced/toggle-mode.sh` / `.bat` | Switched a drive between FULL and SALES mode (see below). The `.bat` twin was missed in the original retirement pass (2026-09-11) and stayed live at `Advanced/toggle-mode.bat`, silently pointless since its only remaining effect - writing `.forge-mode` - has had no reader since `assemble-skills.ps1` was archived in the same pass; archived here 2026-09-14 to match its `.sh` twin. |
+
+**Not archived, despite being swept in here on 2026-09-11: `scripts/machine-reset-safety.ps1`.** Restored to
+`scripts/` on 2026-09-14 - it's a generic path-safety validator with no dependency on the
+retired drive-launcher or FULL/SALES mode system, and it's the sole dependency of
+`Advanced/machine-reset.bat` (a *live*, non-archived script, kept for host-machine
+credential/full resets - see that file's own header for why it's distinct from
+`toggle-mode.bat`). Archiving it alongside the launcher broke `machine-reset.bat` outright
+(`ModuleNotFoundError`-equivalent: PowerShell "cannot find the file" on every call) with no
+compensating benefit - a collateral-damage regression from the original sweep rather than an
+intended retirement. Its test file (`tests/machine-reset-safety.Tests.ps1`) was restored
+alongside it and one pre-existing bug in it was fixed in the same session: the script's
+`Validate` action wrote its result via `[Console]::Out.WriteLine`, which a `cmd.exe "> file"`
+redirect (how `machine-reset.bat` reads it) sees fine but PowerShell's own `$x = & script`
+capture (how the test suite reads it) does not - so the test's own positive-path case always
+saw `$null` and failed. Switched to `Write-Output`; both callers verified.
 | `tests/*` (the ones moved alongside this README) | The dedicated test suite for all of the above — drive isolation, install/reset integrity, launcher behavior, skill assembly. |
 | `tests/test_cron_registration.py`, `tests/test_drive_hermes_contract.py`, `tests/test_launcher_hermes_home.py` | Moved here 2026-09-12 (left behind at the first retirement pass, still exercising `launch-north-forge.sh`/`.bat` and failing on every run since those files moved). Cron self-scheduling for the currently shipping edition is now `north-forge-agent`'s `scripts/nf_sync_cron.py`, covered by that repo's own test suite — see this repo's `CHANGELOG.md`. |
 

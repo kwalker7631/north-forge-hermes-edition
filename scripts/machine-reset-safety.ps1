@@ -99,7 +99,14 @@ if (-not $PSBoundParameters.ContainsKey('Candidate')) {
 $validated = Get-CanonicalHermesHome $Candidate
 
 if ($Action -eq 'Validate') {
-    [Console]::Out.WriteLine($validated)
+    # Write-Output (not [Console]::Out.WriteLine): the latter writes straight to
+    # the OS console handle, which cmd.exe's "> file" redirection still catches,
+    # but which PowerShell's own success-stream capture ($x = & script) does
+    # NOT see - it silently receives $null instead. That broke this script's own
+    # positive-path test (machine-reset-safety.Tests.ps1's "valid Hermes fixture"
+    # case), which captures Validate's output via `&` to build -ExpectedCanonical
+    # for the follow-up Purge call.
+    Write-Output $validated
     exit 0
 }
 if (-not $PSBoundParameters.ContainsKey('ExpectedCanonical')) { $ExpectedCanonical = $env:VALIDATED_HERMES_HOME }

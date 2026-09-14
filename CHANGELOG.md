@@ -2,6 +2,67 @@
 
 Plain-language running log of what actually changed and why. Distinct from `git log` (which needs git to read) and `logs/CLAUDE_CODE_LAST_AUDIT.md` (which is Claude Code's own session-to-session working notes, overwritten each session). This file is the human-readable history - what happened, in the order it happened, kept permanently.
 
+## [Unreleased] - 2026-09-14
+
+### Fixed (drive-letter migration cleanup - this checkout elevated to F:\ MAIN-NORTH)
+
+- **`hermes` was completely broken on this machine** (`ModuleNotFoundError: No module
+  named 'hermes_cli'` on every invocation) - root cause was in `north-forge-agent`, not
+  this repo: its editable pip install's generated finder
+  (`__editable___hermes_agent_0_21_0_finder.py` inside the `hermes-dev` venv) had every
+  package path hardcoded to `D:\north-forge-agent\...` from before the checkout moved to
+  `F:\` and was relabeled `MAIN-NORTH`. Fixed by reinstalling editable from the current
+  path (`uv pip install -e . --no-deps --python <hermes-dev venv>\Scripts\python.exe`).
+  Not a repo file change (venv-local), noted here since it's the reason "no scripts
+  worked" today and affects both repos identically.
+- **`Advanced/machine-reset.bat` was unconditionally broken** - its sole dependency,
+  `scripts/machine-reset-safety.ps1`, had been swept into
+  `archive/legacy-standalone-launcher/` by the 2026-09-11 launcher retirement (commit
+  `d4b0abc`) even though the `.ps1` has no dependency on the retired launcher/mode system
+  and `machine-reset.bat` itself was deliberately kept live. Restored
+  `scripts/machine-reset-safety.ps1` and its test (`tests/machine-reset-safety.Tests.ps1`)
+  from the archive. See `archive/legacy-standalone-launcher/README.md` for the full
+  writeup.
+- **`machine-reset-safety.ps1`'s own positive-path test was silently broken** (found while
+  re-running the restored suite): the script's `Validate` action wrote its result via
+  `[Console]::Out.WriteLine`, invisible to PowerShell's own `$x = & script` capture (the
+  test's own capture method) even though it's fine for `machine-reset.bat`'s `cmd.exe
+  "> file"` redirect. Switched to `Write-Output`. Full suite now 8/8 (was 7/8 - "valid
+  isolated Hermes fixture was removed" previously threw).
+- **`Advanced/toggle-mode.bat` archived** - its `.sh` twin, and the FULL/SALES mode system
+  it drove (`assemble-skills.ps1`, `mode-blocks/`), were archived in the 2026-09-11
+  retirement; the `.bat` was missed and sat live but functionally inert (nothing has read
+  `.forge-mode` since). `Advanced/deploy-console/README.md` already told operators "Do not
+  use `toggle-mode.bat`" - this makes that true structurally, not just by instruction.
+- **Cleared two dead entries from the Windows User `PATH`**:
+  `D:\north-forge-hermes-edition\.hermes-install-staging\bin` and
+  `E:\north-forge-hermes-edition\.hermes-install-staging\bin`, both leftover from earlier
+  drive-letter incarnations of this checkout (`D:` is now a fully unrelated volume;
+  `E:` isn't currently mounted at all).
+
+### Known, not fixed this session (flagged for Kenneth / Blacksmith review)
+
+- `CLAUDE.md`'s own Zone A file list (root-level `launch-north-forge.bat/.sh`,
+  `toggle-mode.bat/.sh`, `machine-reset.bat`, `provision-new-drive.ps1`,
+  `full-drive-reset.bat/.sh`) still names files that were quarantined into `archive/` on
+  2026-09-11 and don't exist at those paths any more. Zone B (this file), not edited.
+- `README.md`'s file-tree/`provision-new-drive.ps1` example and `USER_MANUAL.md`'s
+  `toggle-mode.bat`/`full-drive-reset.bat`/`machine-reset.bat` instructions were already
+  flagged stale in the 2026-09-12 entry below; `toggle-mode.bat`'s archival above makes
+  `USER_MANUAL.md`'s reference to it fully dead now, not just path-stale.
+- `Advanced/full-drive-reset.bat` still targets this drive's own (now-retired)
+  `.hermes-home` concept. Its dependency (`scripts/drive-reset-safety.py`) is intact so it
+  isn't concretely broken the way `machine-reset.bat` was - left as-is pending a call on
+  whether it should archive alongside its `.sh` twin.
+- `scripts/pinokio_lab_target.py`'s `NORTH_FORGE_MARKERS` set (used to detect "is this
+  drive a North Forge teammate stick" before a lab install/wipe) still lists
+  `launch-north-forge.bat`/`.sh` (archived 2026-09-11) and now also `toggle-mode.bat`
+  (archived above) among its markers. The check is match-any across 9 markers and the
+  other 6 (`north-forge.cmd`, `HOW_TO_START.txt`, `ASSIGNED_TO.txt`, `machine-reset.bat`,
+  etc.) still resolve on a real Excalibur drive per `EXCALIBUR.md`'s own build checklist,
+  so this isn't believed to be a live false-negative - flagged rather than touched given
+  it backs a safety check that gates drive wipes.
+
 ## [Unreleased] - 2026-09-12
 
 ### Added (later session, Perplexity Computer - optional Pinokio lab install, admin-only)
