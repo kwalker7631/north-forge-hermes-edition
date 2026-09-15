@@ -131,17 +131,13 @@ Write-Host ("Target : {0}:  label={1}  {2} GB  fs={3}" -f $letter, $vol.Label, $
 # Applies to both tiers here (not just Round Table/-Tier basic): an admin/Excalibur
 # build (-Tier full) needs real room too, just without a documented floor of its
 # own yet - reusing these same defaults for both until one exists.
-if ($capGb -is [double] -and $capGb -lt $MinCapacityGb) {
-    $msg = "Target is {0} GB - below the {1} GB floor. Refusing to format or provision " -f $capGb, $MinCapacityGb
-    $msg += "this drive (see ROUND-TABLE.md). Pass -MinCapacityGb to override if you really mean it."
-    Write-Fail $msg
-    exit 1
-}
-if ($capGb -is [double] -and $capGb -lt $RecommendedCapacityGb) {
-    $msg = "Target is {0} GB - above the {1} GB floor but below the {2} GB ROUND-TABLE.md recommends " -f `
-        $capGb, $MinCapacityGb, $RecommendedCapacityGb
-    $msg += "(give the first viewer room). Continuing."
-    Write-WarnLine $msg
+if ($capGb -is [double]) {
+    if ($capGb -lt $MinCapacityGb) {
+        Write-Fail ("Target is {0} GB - below the {1} GB floor. Refusing to format or provision this drive (see ROUND-TABLE.md). Pass -MinCapacityGb to override if you really mean it." -f $capGb, $MinCapacityGb)
+        exit 1
+    } elseif ($capGb -lt $RecommendedCapacityGb) {
+        Write-WarnLine ("Target is {0} GB - above the {1} GB floor but below the {2} GB ROUND-TABLE.md recommends (give the first viewer room). Continuing." -f $capGb, $MinCapacityGb, $RecommendedCapacityGb)
+    }
 }
 
 if (-not $SkipFormat) {
