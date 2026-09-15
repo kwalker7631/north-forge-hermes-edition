@@ -14,6 +14,20 @@ Deploy Console is authorized drive *creation*. Hermes dashboard is day-to-day
 *configuration*. We customize the live Hermes repo for the second. We do not
 rebuild it inside the first.
 
+## Volume labels (current rule)
+
+See DRIVE_LABELS.txt. Short form:
+
+| Class | Label |
+|---|---|
+| Master / Prime | `BLACK-NORTH` |
+| Excalibur (supervisor) | `NOR-EX` (Greg's stick). Not `GREGW-NORTH`. |
+| Standard private | `FirstnameLastinitial-NORTH` e.g. `SARAHM-NORTH` |
+| Basic | `BASIC-NORTH` |
+
+Older docs that say `GREGW-NORTH` or `EXCAL-NOR01` for Greg are stale.
+Greg is Excalibur → `NOR-EX`.
+
 ## Drive classes (production intent)
 
 **BLACK-NORTH — master / Prime / superdrive**
@@ -24,50 +38,42 @@ others. This is the only drive that is allowed to spawn the rest.
 
 **Public North Forge**
 What a stranger can clone. Stock Hermes + North Forge branding. No Kyocera
-private pack, no locksmith, no Excalibur numbering. Knowledge pool is
+private pack, no locksmith, no Excalibur label. Knowledge pool is
 whatever the public chassis ships.
 
 **Private North Forge Hermes Edition**
-The Kyocera pack on a stick. Isolated Hermes home on that volume. Extra
-features the public tree does not get: edition lock, drive-class stamp,
-Excalibur numbering (`EXCAL-NOR01`–`12`), locksmith / admin passcode,
-desk modes. Built only from BLACK-NORTH + GitHub auth on the admin PC.
+The Kyocera pack on a stick. Isolated Hermes home on that volume.
+Locksmith / admin passcode, desk modes, drive-class stamp. Built only
+from BLACK-NORTH + GitHub auth on the admin PC.
 
-**Greg W. (first supervisor stick)**
-Label pattern `GREGW-NORTH`. One production instance besides the master.
-Same private pack, not the 2 TB library. He double-clicks Terminal.
-He does not see Advanced or etc.
+**Greg W. (first Excalibur in production)**
+Label `NOR-EX`. One production instance besides the master. Same private
+pack, not the 2 TB library. He double-clicks Terminal. He does not see
+Advanced or etc.
 
-Until more sticks exist, production is: BLACK-NORTH + Greg. That is the
-whole fleet. Do not write docs as if there are twelve Excaliburs already.
+Until more sticks exist, production is: BLACK-NORTH + NOR-EX. That is the
+whole fleet.
 
 ## Shared knowledge pool
 
-Every *private* stick is supposed to drink from the same well:
-
-- Kyocera faults, fixes, and "what actually worked"
-- Hotline / KB drafts
-- Research the cron agents pull from public sources
-
-The well lives with the pack (profile + skills + research-log + kb-drafts),
-not as a second cloud product. Sync story later. Today: build from the
-master so the pack is identical, then each stick learns locally.
+Every *private* stick drinks from the same well: Kyocera faults, fixes,
+hotline / KB drafts, research the cron agents pull. The well lives with
+the pack. Sync across sticks later. Today: clone from the master.
 
 ## Isolated on purpose
 
-Each stick has its own `north-forge-agent-venv` and
-`north-forge-agent-data`. It must not adopt or wipe a Hermes install that
-already lives on the host PC. First plug-in on a new PC may repair the
-venv once. That is isolation working, not a failed install.
+Each stick has its own venv and `north-forge-agent-data`. It must not
+adopt or wipe a Hermes install already on the host PC. First plug-in on
+a new PC may repair the venv once.
 
 ## What an intimidated admin actually does
 
-1. On the admin PC: GitHub login once (`gh auth login`).
-2. Open Deploy Console as administrator.
+1. GitHub login once on the admin PC.
+2. Deploy Console as administrator.
 3. Pick the USB (letter or RAW Disk N).
-4. Choose class / tier. Label the person (`GREGW-NORTH`).
+4. Label from the table above (`NOR-EX`, `SARAHM-NORTH`, `BASIC-NORTH`).
 5. FORMAT + passcode + deploy. Walk away.
-6. When it says complete: Hermes dashboard or Set-Inference for the key.
-7. Hand the person HOW_TO_START — two buttons, Terminal and Web.
+6. Hermes dashboard or Set-Inference for the key.
+7. HOW_TO_START — Terminal and Web only.
 
 They never type `hermes`. They never edit PATH.

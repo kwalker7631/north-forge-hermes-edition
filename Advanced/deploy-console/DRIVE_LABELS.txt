@@ -1,0 +1,12 @@
+VOLUME LABELS (Windows 32-char, letters/numbers/hyphen)
+
+BLACK-NORTH     Master / Prime. Kenneth only. The 2TB-class superdrive.
+NOR-EX          Excalibur. Supervisor / admin-capable, not master.
+                Greg Warhol's stick uses this, not GREGW-NORTH.
+                Further Excaliburs: NOR-EX2, NOR-EX3 … if you need them.
+NAMEI-NORTH     Standard private stick. First name + last initial + NORTH.
+                Example: SARAHM-NORTH, MIKEB-NORTH.
+BASIC-NORTH     Basic / locked teammate stick. No personal name on the volume.
+
+Do not put a person's name on an Excalibur. NOR-EX is how you see it
+across the room and know it is not a standard stick.
