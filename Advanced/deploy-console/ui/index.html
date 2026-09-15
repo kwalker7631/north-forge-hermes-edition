@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>North Forge · Deploy Console</title>
   <style>
-    :root { --bg:#0b1220; --panel:#121a2b; --ink:#e8eefc; --muted:#93a0bb; --line:#243049; --accent:#3b82f6; --good:#34d399; --warn:#fbbf24; --bad:#f87171; }
+    :root { --bg:#0b1220; --panel:#121a2b; --ink:#e8eefc; --muted:#93a0bb; --line:#243049; --accent:#3b82f6; --good:#34d399; --bad:#f87171; }
     * { box-sizing: border-box; }
-    body { margin:0; font:15px/1.45 "Segoe UI", system-ui, sans-serif; background: radial-gradient(1200px 500px at 10% -10%, #1e3a8a33, transparent), var(--bg); color: var(--ink); }
+    body { margin:0; font:15px/1.45 "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); }
     header { padding:28px 28px 8px; border-bottom:1px solid var(--line); }
     header h1 { margin:0 0 6px; font-size:22px; }
     header p { margin:0; color:var(--muted); }
@@ -31,7 +31,7 @@
 <body>
   <header>
     <h1>North Forge Deploy Console</h1>
-    <p>Admin only. Formats a USB stick, clones the public engine + private Kyocera edition, bootstraps, pins, and locks with a passcode.</p>
+    <p>Admin only. Sees formatted USB letters and RAW disks with no partition.</p>
   </header>
   <main>
     <section>
@@ -39,34 +39,19 @@
       <div id="prereq" class="status">Checking…</div>
       <button class="ghost" type="button" onclick="refreshAll()">Refresh USB + status</button>
       <h2 style="margin-top:22px">Target drive</h2>
-      <div class="row"><label for="drive">Removable volumes</label><select id="drive"></select></div>
+      <div class="row"><label for="drive">Removable volumes and RAW USB disks</label><select id="drive"></select></div>
+      <div class="row"><label for="browse">Browse — letter (F) or Disk N if the list missed it</label><input id="browse" placeholder="F  or  3  or  Disk 3" autocomplete="off"></div>
       <div class="row"><label for="tier">Tier</label>
         <select id="tier">
-          <option value="full" selected>full — pin kyocera, switcher stays open</option>
-          <option value="basic">basic — locked to kyocera only</option>
+          <option value="full" selected>full — switcher stays open</option>
+          <option value="basic">basic — locked to kyocera</option>
         </select>
       </div>
-      <div class="row" style="font-size:12px; color:var(--muted); line-height:1.5">
-        <strong style="color:var(--ink)">Four drive classes</strong> (naming/caps
-        live in <code>nf-setup.ps1</code>'s <code>-DriveClass</code>, north-forge-agent —
-        this form's Tier control above maps to <code>full</code>/<code>basic</code> only):
-        <br><strong>Prime</strong> (<code>BLACK-NORTH</code>) — Kenneth's drive only.
-        Every edition, every skill, Pinokio included. The only drive that can
-        build/provision any other tier.
-        <br><strong>Excalibur</strong> (<code>EXCAL-NOR01</code>–<code>12</code>) —
-        admin-capable, not prime. Kyocera + Pine Barron Farms + Pocket Penny plus
-        a curated skill set, no Pinokio. Capped at 12 ("Knights of the Round Table").
-        <br><strong>Sales</strong> (<code>&lt;NameInitial&gt;-NORSA</code>) — fully
-        functional but deliberately narrow: sales-relevant skills only, zero
-        service/troubleshooting content, zero network/code-access tools.
-        <br><strong>North-Forge</strong> (<code>NORTH-FORGE</code>) — the plain
-        public download, unprovisioned, no private editions.
-      </div>
-      <div class="row"><label for="label">Volume label — assigned to (e.g. GREGW-NORTH)</label><input id="label" placeholder="GREGW-NORTH" autocomplete="off"></div>
-      <div class="row"><label><input type="checkbox" id="skipFormat" style="width:auto"> Skip format (reuse existing stick)</label></div>
+      <div class="row"><label for="label">Volume label assigned at format (GREGW-NORTH)</label><input id="label" placeholder="GREGW-NORTH" autocomplete="off"></div>
+      <div class="row"><label><input type="checkbox" id="skipFormat" style="width:auto"> Skip format (not valid for RAW)</label></div>
       <div class="row"><label for="confirm">Type FORMAT to allow wipe</label><input id="confirm" placeholder="FORMAT" autocomplete="off"></div>
-      <div class="row"><label for="pass">Admin passcode (min 6). Stored as hash on the stick only.</label><input id="pass" type="password" minlength="6" autocomplete="new-password"></div>
-      <div class="warnbox">This erases the selected USB when format is enabled. System drive is blocked. Private repo clone needs <code>gh auth login</code> as kwalker7631.</div>
+      <div class="row"><label for="pass">Admin passcode (min 6)</label><input id="pass" type="password" minlength="6" autocomplete="new-password"></div>
+      <div class="warnbox">Wipe is real. System drive is blocked. RAW Disk N has no letter until format. Scan log: %TEMP%\north-forge-deploy\console.log</div>
       <button id="go" type="button" onclick="deploy()">Format + deploy</button>
     </section>
     <section>
@@ -90,18 +75,24 @@
       const sel = document.getElementById('drive');
       sel.innerHTML = '';
       if (!data.drives.length) {
-        const o = document.createElement('option'); o.value=''; o.textContent='No removable USB found'; sel.appendChild(o); return;
+        const o = document.createElement('option'); o.value=''; o.textContent='No USB or RAW disk found — use Browse'; sel.appendChild(o); return;
       }
       data.drives.forEach(d => {
         const o = document.createElement('option');
-        o.value = d.letter;
-        o.textContent = `${d.letter}:  ${d.label || '(no label)'}  ${d.gb} GB  ${d.fs || ''}`;
+        o.value = JSON.stringify({ letter: d.letter || '', diskNumber: d.diskNumber, raw: !!d.raw });
+        o.textContent = d.caption || ((d.letter || 'RAW') + ': ' + (d.gb||'') + ' GB');
         sel.appendChild(o);
       });
     }
     async function refreshAll() { await Promise.all([refreshStatus(), refreshDrives()]); }
     async function deploy() {
-      const letter = document.getElementById('drive').value;
+      const rawVal = document.getElementById('drive').value;
+      let letter = '', diskNumber = null;
+      if (rawVal) {
+        try { const p = JSON.parse(rawVal); letter = p.letter || ''; diskNumber = p.diskNumber; }
+        catch (e) { letter = rawVal; }
+      }
+      const browse = document.getElementById('browse').value;
       const skipFormat = document.getElementById('skipFormat').checked;
       const confirm = document.getElementById('confirm').value;
       const pass = document.getElementById('pass').value;
@@ -110,10 +101,10 @@
       const log = document.getElementById('log');
       const go = document.getElementById('go');
       go.disabled = true;
-      log.value = 'Starting deploy…\n';
+      log.value = 'Starting deploy\u2026\n';
       const r = await fetch('/api/deploy', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ letter, confirm, passcode: pass, tier, skipFormat, label })
+        body: JSON.stringify({ letter, diskNumber, browse, confirm, passcode: pass, tier, skipFormat, label })
       });
       const body = await r.json();
       if (!body.ok) { log.value += 'ERROR: ' + (body.error || r.status) + '\n'; go.disabled = false; return; }
