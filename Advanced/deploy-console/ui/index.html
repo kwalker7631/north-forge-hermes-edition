@@ -46,6 +46,22 @@
           <option value="basic">basic — locked to kyocera only</option>
         </select>
       </div>
+      <div class="row" style="font-size:12px; color:var(--muted); line-height:1.5">
+        <strong style="color:var(--ink)">Four drive classes</strong> (naming/caps
+        live in <code>nf-setup.ps1</code>'s <code>-DriveClass</code>, north-forge-agent —
+        this form's Tier control above maps to <code>full</code>/<code>basic</code> only):
+        <br><strong>Prime</strong> (<code>BLACK-NORTH</code>) — Kenneth's drive only.
+        Every edition, every skill, Pinokio included. The only drive that can
+        build/provision any other tier.
+        <br><strong>Excalibur</strong> (<code>EXCAL-NOR01</code>–<code>12</code>) —
+        admin-capable, not prime. Kyocera + Pine Barron Farms + Pocket Penny plus
+        a curated skill set, no Pinokio. Capped at 12 ("Knights of the Round Table").
+        <br><strong>Sales</strong> (<code>&lt;NameInitial&gt;-NORSA</code>) — fully
+        functional but deliberately narrow: sales-relevant skills only, zero
+        service/troubleshooting content, zero network/code-access tools.
+        <br><strong>North-Forge</strong> (<code>NORTH-FORGE</code>) — the plain
+        public download, unprovisioned, no private editions.
+      </div>
       <div class="row"><label for="label">Volume label — assigned to (e.g. GREGW-NORTH)</label><input id="label" placeholder="GREGW-NORTH" autocomplete="off"></div>
       <div class="row"><label><input type="checkbox" id="skipFormat" style="width:auto"> Skip format (reuse existing stick)</label></div>
       <div class="row"><label for="confirm">Type FORMAT to allow wipe</label><input id="confirm" placeholder="FORMAT" autocomplete="off"></div>
