@@ -1,0 +1,9 @@
+{
+  "name": "north-forge-attribution",
+  "label": "North Forge Attribution",
+  "description": "Credits Hermes Agent as the underlying engine, beside the dashboard's own Hermes brand mark.",
+  "version": "1.0.0",
+  "tab": { "hidden": true },
+  "slots": ["header-left"],
+  "entry": "dist/index.js"
+}
