@@ -93,3 +93,10 @@ node_modules/
 /.hermes-install-incomplete
 /.hermes-install-staging/
 /install-logs/
+
+# kb-builder's draft output (skills/kb-builder, Zone B - the write location itself
+# isn't scripted, so it can't be redirected here). Ignoring the folder is the Zone A
+# fix available: real technician use was writing drafts into this tracked working
+# tree, polluting `git status` on every session. Untracked-but-ignored here either
+# way - a draft is working output, never source to commit.
+/kb-drafts/
