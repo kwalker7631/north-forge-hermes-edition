@@ -2,6 +2,39 @@
 
 Plain-language running log of what actually changed and why. Distinct from `git log` (which needs git to read) and `logs/CLAUDE_CODE_LAST_AUDIT.md` (which is Claude Code's own session-to-session working notes, overwritten each session). This file is the human-readable history - what happened, in the order it happened, kept permanently.
 
+## [Unreleased] - 2026-09-14 (later still - fix pass on RUN-2026-09-14-004's findings)
+
+Fixes for three of the real bugs `SANDBOX_TEST_ARCHIVE_RESYNC_2026-09-14.md`'s
+real-invocation testing pass found, plus a `/simplify` cleanup pass on this
+session's own earlier code:
+
+- **`kb-builder`'s draft output no longer pollutes `git status`.** It has no
+  script (Zone B prose only), so the write location itself can't be
+  redirected here - but `kb-drafts/` had never been tracked, so `.gitignore`
+  now excludes it outright. Commit `56b43be`.
+- **Dashboard now credits Hermes Agent beside its own brand mark.** The
+  "Hermes / Agent" wordmark in the web dashboard is hardcoded text (not an
+  image), sitting next to a documented `header-left` plugin slot. Added a
+  minimal, hidden-tab plugin (`plugins/north-forge-attribution/`) that
+  registers a small "In association with Hermes Agent" caption into that
+  slot via the standard Plugin SDK - the wordmark itself is untouched.
+  Verified via `hermes_cli.web_server_dashboard._discover_dashboard_plugins()`
+  against the live kyocera profile (found, parsed, registered); not yet
+  visually confirmed in a running browser. Commit `966708b`.
+- **`Zero-Touch-Deploy.ps1`'s capacity gate simplified** - no behavior
+  change, just collapsing two sequential type-guarded `if`s into one
+  `if`/`elseif` and matching the file's existing single-line
+  `Write-Fail`/`Write-WarnLine` convention. Commit `6376858`.
+
+Not done here - see `north-forge-agent`'s own `logs/ledger/CHANGELOG.md`
+(`CHG-2026-09-14-005`) for the `/clr` `/fl` alias-routing fix (root cause
+fixed at the engine level; activating it for these two specific aliases
+still needs `aliases:` added to `skills/flush/SKILL.md` and
+`skills/switch/SKILL.md` - Zone B, flagged, not done), and
+`logs/NEW_MACHINE_DRIVE_AUDIT_D_2026-09-14.md`'s already-carried-forward
+cron-registration and passcode/skill-ordering findings, both now confirmed/
+resolved separately (see `D:\logs\` session report for this pass).
+
 ## [Unreleased] - 2026-09-14 (later the same week - new machine, drive re-lettered F:\ -> D:\)
 
 ### Noted - genuinely a different machine now, not just a re-letter
