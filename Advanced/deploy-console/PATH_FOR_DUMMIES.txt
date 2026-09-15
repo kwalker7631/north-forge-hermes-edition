@@ -1,0 +1,115 @@
+NORTH FORGE — PATH, FOR THE PERSON STANDING AT THE PC
+If Kenneth is not here, read this whole page. Do not improvise.
+
+--------------------------------
+What "path" means here
+--------------------------------
+Windows has a list of folders it searches when someone types a program
+name. That list is called PATH.
+
+This stick carries its own copy of the program (hermes.exe) inside:
+
+    <this drive>\north-forge-agent-venv\Scripts\hermes.exe
+
+Example: F:\north-forge-agent-venv\Scripts\hermes.exe
+
+The teammate is NOT supposed to type hermes.
+They double-click "Start North Forge" on the stick.
+That shortcut already knows the folder above. PATH does not matter
+for them.
+
+PATH only matters if someone opens PowerShell and types the word hermes.
+
+--------------------------------
+How to check (one minute)
+--------------------------------
+1. Plug the stick in. Note the letter (D: or F: — it can change).
+2. Open the private-repo folder on the admin PC:
+      Advanced\deploy-console\
+3. Right-click Check-HermesPath.ps1 → Run with PowerShell
+   (if Windows blocks it: right-click → Properties → Unblock → OK,
+    then run again).
+
+You want to see:
+  Start file: found
+  Stick exe : found
+  Data home : found
+  FOR THE PERSON USING THE STICK: ... You are fine.
+
+If it says MISSING, the stick was not finished. Do not edit PATH.
+Run the Deploy Console again, or double-click Start North Forge once
+and wait until the log says result=ready.
+
+--------------------------------
+How to read the "typed hermes" line
+--------------------------------
+GOOD:
+  Typed hermes would run: F:\north-forge-agent-venv\Scripts\hermes.exe
+  (same drive letter as the stick)
+
+ALSO FINE:
+  Typed hermes would run: (nothing on PATH)
+  Teammates still use Start North Forge.
+
+BAD (only for people who type hermes):
+  Typed hermes would run: C:\Users\something\.local\bin\hermes.exe
+  or any path that is NOT on the stick.
+  Start North Forge still works. Terminal hermes does not.
+
+--------------------------------
+How to set it up if it is wrong
+--------------------------------
+For a teammate / dummy setup: do NOTHING to PATH.
+Give them the stick. Tell them: plug in, open the drive, double-click
+Start North Forge. That is the whole job.
+
+For an admin who insists on typing hermes in a terminal:
+
+A. Easiest — don't. Use the full path:
+
+   F:\north-forge-agent-venv\Scripts\hermes.exe
+
+   Change F: to whatever letter Windows gave the stick today.
+
+B. This Windows login only (does not need admin):
+   In PowerShell, from Advanced\deploy-console:
+
+     .\Check-HermesPath.ps1 -FixUserPath
+
+   Close that window. Open a NEW PowerShell. Check again.
+
+C. Whole PC (needs admin — only if B was not enough):
+   Windows Settings → System → About → Advanced system settings
+   → Environment Variables → the lower box "System variables" → Path
+   → Edit → New → paste:
+
+     F:\north-forge-agent-venv\Scripts
+
+   Use the REAL letter. Move that line to the top.
+   OK all the way out. Open a NEW terminal.
+
+   Warning: the letter changes when you plug the stick into another
+   PC, or even this PC if another disk took F:. A System PATH line
+   with a dead letter is how this broke before. Prefer A or B.
+
+--------------------------------
+Portable device rules (write these on the envelope)
+--------------------------------
+- The letter will change. That is normal.
+- First plug-in on a NEW computer may repair itself once.
+  Wait. Do not format again just because it said repair.
+- Never copy an old north-forge-agent-venv folder from another stick.
+- Never type hermes unless Check-HermesPath said the paths match.
+- The secret key lives in north-forge-agent-data on the stick.
+  If answers are empty after a good launch, run Set-Inference.ps1
+  (same folder). That is a key problem, not a PATH problem.
+
+--------------------------------
+If you are lost
+--------------------------------
+1. Start North Forge on the stick. Did a window open?
+   Yes → PATH is not your problem.
+   No  → run Check-HermesPath.ps1 and read the MISSING lines.
+2. Did the window open but refuse to answer?
+   → Set-Inference.ps1  (key), not PATH.
+3. Still stuck → do not edit System Path. Call Kenneth.
