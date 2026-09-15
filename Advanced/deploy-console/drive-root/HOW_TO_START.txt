@@ -1,0 +1,10 @@
+NORTH FORGE — two buttons
+
+1. Terminal.lnk     — the desk. Double-click this.
+2. Web Interface.lnk — browser dashboard (optional).
+
+If the window opens but does not answer, that is the key, not Path.
+Ask the admin for Set-Inference.ps1.
+
+Do not type the word hermes.
+Do not open Advanced or etc.
