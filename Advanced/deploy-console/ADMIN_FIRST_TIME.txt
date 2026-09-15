@@ -31,64 +31,28 @@ ONCE on this computer (not every stick)
 --------------------------------
 EVERY stick after that
 --------------------------------
-1. Plug in a blank USB, 8 GB or larger.
+1. Plug in a blank USB, 8 GB or larger. exFAT is correct for a teammate stick.
 2. Right-click Launch-Deploy-Console.cmd
    → Run as administrator
 3. A page opens. If it does not, look at the black window for the error.
-4. Pick the USB.
+4. Pick the USB (RAW Disk N is fine — no letter required).
 5. Locked stick = teammate. Open stick = you.
-6. What it opens as:
-      North Forge / Kyocera     ← support team (priority)
-      Pocket Penny              ← budget helper
-      Pine Barron Farms         ← studio, still growing
-      Field Service              ← technician/sales-rep voice overlay (4th
-                                    edition; part of a Prime/BLACK-NORTH
-                                    build, not part of the standard
-                                    Excalibur curated set - see EXCALIBUR.md)
-7. Type FORMAT
-8. Type the admin passcode (one field in the console)
-9. Click Format + deploy
-10. Wait. First stick can take a long time. Leave it alone.
-11. When it says DEPLOYMENT COMPLETE, do not eject yet.
-12. Configure the inference provider — the drive cannot answer anything
-    without this, and the console does not do it for you yet. Open
-    PowerShell in the stick's checkout folder (<drive>\north-forge-agent)
-    and type:
+6. Type FORMAT. Type the admin passcode. Click Format + deploy.
+7. Wait. First stick can take a long time. Leave it alone.
+8. When it says DEPLOYMENT COMPLETE, do not eject yet.
+9. Set the model key with the helper — do NOT type a bare hermes command:
 
-      $env:HERMES_HOME = "<drive>\north-forge-agent-data"
-      hermes config set ANTHROPIC_API_KEY <the real key>
-      hermes config set model anthropic/claude-sonnet-5
+     powershell -ExecutionPolicy Bypass -File Set-Inference.ps1 -Provider anthropic -Key "YOUR_KEY"
 
-    Check it worked: hermes config show — Anthropic should show a masked
-    key, Model should read anthropic/claude-sonnet-5. Then run a real
-    test question with: hermes -z "..." — a real answer, not an error,
-    means it's ready.
-13. Eject the stick.
+   That file lives in this same folder. It calls
+   <drive>:\north-forge-agent-venv\Scripts\hermes.exe with
+   HERMES_HOME=<drive>:\north-forge-agent-data.
+10. Double-click Start North Forge on the stick. One real question.
+    If the first launch on a NEW PC says bootstrap-repair, wait until the
+    log says result=ready. That is expected. Then ask again.
+11. Eject the stick.
 
 Hand the stick to the teammate with HOW_TO_START.txt
 They double-click "Start North Forge". They never see this folder.
 
---------------------------------
-What "sales" vs "full" means now
---------------------------------
-The old runtime FULL / SALES toggle on the Kyocera drive (`toggle-mode.bat`)
-was retired 2026-09-11. As of the 2026-09-14 four-drive-class redesign,
-"Sales" is back, but as a build-time drive CLASS stamped by nf-setup.ps1 /
-hermes_cli.nf_tier at provisioning, not a runtime toggle - see the deploy
-console UI's own current description (Advanced/deploy-console/ui/index.html):
-a Sales-class drive (label pattern <NameInitial>-NORSA) is fully functional
-but deliberately narrow - sales-relevant skills only, zero service/
-troubleshooting content, zero network/code-access tools. That is a different,
-narrower thing than "Locked + Kyocera" below, which is still accurate for
-the Tier full/basic (Open stick/Locked stick) distinction this section
-otherwise describes:
-
-  Locked stick  = one project only (safe for the team)
-  Open stick    = you can switch projects (Kyocera, Penny, Pine Barron,
-                  Field Service)
-
-Kyocera content is one profile. There is not a separate "sales-only Kyocera"
-skill pack yet. A sales-rep stick today is: Locked + Kyocera, or Locked +
-field-service voice - or, if a true Sales-class drive-class build is wanted,
-the newer drive-class mechanism above, not this toggle. Do not promise a
-stripped sales edition until that profile exists.
+See MASTER_REBUILD.md in this folder before wiping a working stick.
