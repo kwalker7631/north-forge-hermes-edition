@@ -1,75 +1,65 @@
-# Pinokio on the same drive as North Forge
+# Pinokio — the model lab next to the desk
 
-Pinokio is the free one-click lab: years of work so someone with no
-background can stand up local image, voice, and small-model tools.
-It is not the desk senior. It is the **sandbox next to the desk**.
+Pinokio is the engine bay for adding, testing, and removing local models
+through a real web UI. That install is **required on BLACK-NORTH**. It is
+not required on Greg or a BASIC stick.
 
-We run it from the **same thumb drive** as North Forge. Home is on the
-stick. We do not lock the zoo to one PC's AppData.
+North Forge remains the desk. Pinokio remains the lab. We do not rebuild
+Pinokio. We point it at a folder on the stick (or on a bigger disk).
 
 Official project: https://github.com/pinokiocomputer/pinokio
 
-## Same-drive layout (256 GB learning stick)
+## Where it lives
 
-Format this class of stick **NTFS**. Pinokio's own notes want NTFS,
-no spaces in the home path. The small teammate Round Table stick (called
-Excalibur before 2026-09-14) can stay exFAT **without** Pinokio.
+| Place | Pinokio |
+|---|---|
+| `BLACK-NORTH` (master, large / up to ~2 TB) | Yes. Full lab. |
+| `GREGW-NOREX` and other Excalibur | Optional, small. |
+| `FIRSTL-NORTH` / `BASIC-NORTH` | No. |
+| Public clone | No. |
+
+Home folder name has no spaces: `pinokio-home` at the volume root.
+Format that volume **NTFS** if Pinokio will live there. Teammate sticks
+stay exFAT without it.
 
 ```
-E:\                                volume GREGW-NORTH
+<DRIVE>:\
   Start North Forge.lnk
-  Start Pinokio Lab.cmd            ← this page
-  HOW_TO_START.txt
+  Start Pinokio Lab.cmd
+  pinokio-home\          PINOKIO_HOME
+  pinokio-app\Pinokio.exe
   north-forge-agent\
   north-forge-agent-venv\
   north-forge-agent-data\
-  pinokio-home\                    ← PINOKIO_HOME  (no spaces)
-    api\
-    bin\
-    cache\
-    drive\
-    logs\
-  pinokio-app\                     ← unpacked Electron / installed files
-    Pinokio.exe
 ```
 
-First Pinokio launch: Settings → Home → `E:\pinokio-home` (the letter
-will change on the next PC; the folder name must stay `pinokio-home`
-at the drive root).
+First launch: Settings → Home → `<DRIVE>:\pinokio-home`.
+A tiny pointer may sit in the current user's AppData. The models stay
+in `pinokio-home`. Delete the pointer on a dirty host; the stick still
+holds the lab.
 
-A few bytes of "where is home?" may still land under the current
-user's AppData. That is a pointer, not the product. The models and
-binaries stay on the stick. If a host is dirty, delete that pointer;
-the stick still holds the lab.
+## Thumb drive rules (absolute)
 
-## What it is for (the sale)
+Storage does not stretch.
 
-Use Pinokio to **see** generation — image, voice, a small local
-model — so a Blue Book reader understands what "local AI" is without
-a lecture.
+- Keep **one or two** models active on a USB stick.
+- Offload anything you are not demonstrating this week. Delete or move
+  the model folder out of `pinokio-home` through Pinokio's own UI
+  (add / test / remove). Do not leave cold weights on a 256 GB stick.
+- Need more models? Use a **larger drive**, or offload `pinokio-home`
+  to another external disk and retarget Home. Do not pack the lab onto
+  Greg's stick.
+- Installing Pinokio on the **local PC** is optional. Prefer the stick
+  or a second external so the lab travels. If someone wants it on C:,
+  that is their disk, not the fleet standard.
 
-Then go back to North Forge for the call.
+## Deploy (master only)
 
-| | |
-|---|---|
-| North Forge | The desk. Procedures. Honesty. The pack. |
-| Pinokio | The lab. Click, install, watch something generate. Learning. |
-
-Do not generate a customer's problem in Pinokio and call it a KB.
-Do not put Pinokio on the 32 GB manager-first stick.
-
-## Deploy (admin, same console family)
-
-1. Build North Forge first (`ADMIN_FIRST_TIME` → `DEPLOY.md`).
-2. On a **256 GB NTFS** stick, create `pinokio-home` at the root.
-3. Install or unpack Pinokio into `pinokio-app` on that same root.
-4. First run, set Home to `.\pinokio-home` on that drive.
-5. Install **one** Discover app you will actually demo. Stop.
-6. Drop `Start Pinokio Lab.cmd` at the root (below).
-7. Smoke-test on a second PC. Expect a slower first launch. GPU apps
-   only run if that PC has the GPU. CPU apps still teach.
-
-## Start Pinokio Lab.cmd
+1. North Forge on BLACK-NORTH first. Prove Terminal answers.
+2. NTFS. Create `pinokio-home` and `pinokio-app` at the root.
+3. First run, set Home. Discover **one** app. Stop.
+4. Second model only if the free space still looks honest.
+5. `Start Pinokio Lab.cmd` at the root.
 
 ```bat
 @echo off
@@ -84,26 +74,15 @@ if exist "%ROOT%pinokio-app\Pinokio.exe" (
 )
 ```
 
-Drive letter will be D: or E: or F:. `%~d0` follows the stick.
+`%~d0` follows the letter. Do not hardcode D: or F:.
 
-## Skills (in-session)
+## Hard limits
 
-`/pinokio` — what the lab is, what to install, when to stop.
-`/readme` — still the map. Pinokio is a chapter, not the cover.
-
-## Hard limits (say them out loud)
-
-- The **host GPU** is still the host GPU. The stick does not carry a
-  video card.
-- USB 3 is slower than an internal SSD. First model download is a
-  coffee break.
-- 256 GB = North Forge + Pinokio + **one or two** apps. Not a zoo.
-- Some installers want admin once. After that, the home folder is
-  the portable piece.
-- Path must not contain spaces. `pinokio-home`, not `Pinokio Home`.
+- The host GPU stays in the host. The stick is not a video card.
+- USB is slower than an internal SSD. First download is a coffee break.
+- Path must not contain spaces.
+- Some installers want admin once.
 
 ## Credit
 
-Pinokio is MIT, built in public for years by cocktailpeanut and the
-Factory reviewers. Completely free. We wrap it. We do not pretend we
-wrote it.
+Pinokio is MIT (cocktailpeanut / Factory). We wrap it. We did not write it.
