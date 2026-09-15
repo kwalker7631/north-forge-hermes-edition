@@ -206,10 +206,19 @@ exit /b %ERRORLEVEL%
 :admin_gate
 rem Arg 1 = action name for the prompt and log. Returns errorlevel 0 on
 rem correct password, 1 on wrong. Never logs the entered value.
+rem
+rem Retired 2026-09-14: the old hardcoded 'RumpleStiltskin' literal-string
+rem comparison (and its "Hint: Brothers Grimm" tell) is gone. It now checks
+rem a real, rotatable, PBKDF2-hashed passcode via machine-reset-admin.ps1 -
+rem a separate, host-level credential (this script never uses HERMES_HOME,
+rem so it must not depend on any drive's own admin passcode either). That
+rem helper FAILS CLOSED when no passcode is configured yet, so this gate
+rem refuses everyone - never silently opens - until Kenneth sets a real one
+rem himself: scripts\machine-reset-admin.ps1 -Action Set -Passcode <value>
 set "PW="
 set /p PW="Admin password required for %~1: "
 set /a ADMIN_ATTEMPTS+=1
-powershell.exe -NoLogo -NoProfile -NonInteractive -Command "if ($env:PW -ceq 'RumpleStiltskin') { exit 0 } else { exit 1 }"
+powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& '%~dp0..\scripts\machine-reset-admin.ps1' -Action Test -Passcode $env:PW"
 set "PW="
 if not errorlevel 1 (
     >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: PASS ^(%~1^)
@@ -217,7 +226,6 @@ if not errorlevel 1 (
 )
 >> "forge-events.log" echo [%DATE% %TIME%] [INFO] [admin-gate]: FAIL (%~1)
 echo Wrong password - %~1 cancelled.
-if %ADMIN_ATTEMPTS% GEQ 3 echo Hint: Brothers Grimm
 set "EXIT_CODE=1"
 exit /b 1
 
