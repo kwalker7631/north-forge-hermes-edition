@@ -18,8 +18,15 @@ Everything below exists so you can ALSO drive it directly when you want to.
 ## 1. How to start
 
 1. Plug in the drive.
-2. Double-click `launch-north-forge.bat` (Windows) or run
-   `./launch-north-forge.sh` (Mac/Linux).
+2. Double-click `Start North Forge.lnk` at the drive root (Windows) — this
+   calls `north-forge.cmd`, the current double-click launcher, which also
+   self-heals the venv/data setup on every launch. `launch-north-forge.bat`
+   is retired (archived under `archive/legacy-standalone-launcher/`).
+   [FLAG FOR BLACKSMITH: no confirmed current Mac/Linux launch entrypoint
+   was found to replace the retired `launch-north-forge.sh` — only
+   `setup-hermes.sh` (a setup/bootstrap script, not a launcher) exists at
+   the repo root. Confirm the real Mac/Linux path before publishing this
+   line.]
 3. Wait for the prompt. You are now talking to North Forge.
 4. Type what you need. Press Enter.
 
@@ -172,13 +179,17 @@ you which one you have.
                 /assist and /kb are intentionally absent, not broken. For
                 repair issues, use the normal TSC channel.
 
-To change a drive's mode: exit the session, run `toggle-mode.bat` (or
-`.sh`), pick FULL or SALES, then relaunch. The third option, RESET, is a
-fast onboarding/content reset: after you type `YES`, it removes the API-key file,
-mode and provider choices, drive and assistant names, welcome marker, and
-generated Hermes context/skills so that first-use setup runs again. It checks
-that all eight targets were removed and reports an error if the reset is
-incomplete. Any response other than `YES` cancels without deleting them.
+[FLAG FOR BLACKSMITH: `toggle-mode.bat`/`.sh` and the runtime FULL/SALES
+toggle it drove were retired 2026-09-11 (per `ADMIN_FIRST_TIME.txt`). A
+drive's tier/class is now fixed at provisioning time via `nf-setup.ps1` /
+`hermes_cli.nf_tier` (the four-drive-class system added 2026-09-14: Prime,
+Excalibur, Sales, North-Forge — see `EXCALIBUR.md`), not toggled after the
+fact by the end user. This section's RESET step (API-key file, mode/provider
+choices, drive/assistant names, welcome marker, generated context/skills)
+may still exist under a different current command, but that was not
+confirmed during this pass — do not publish the old `toggle-mode.bat`
+instructions as current until the actual current reset command is
+verified.]
 
 RESET is **not** a privacy or history wipe. `forge-events.log` is intentionally
 retained as an accountability record and can contain names entered by prior
@@ -274,8 +285,8 @@ Step 3. Below the block, write the instructions in plain English: when it
         of an existing SKILL.md - `skills-source/shared/flush/SKILL.md` is
         the shortest example.
 
-Step 4. Relaunch the drive (`launch-north-forge.bat` / `.sh`). The
-        launcher copies it in and trusts it.
+Step 4. Relaunch the drive (`Start North Forge.lnk` / `north-forge.cmd`).
+        The launcher copies it in and trusts it.
 
 Step 5. Verify: type `hermes skills list --source local` - your skill
         should appear, enabled. Then try the command.

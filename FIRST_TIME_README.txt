@@ -15,11 +15,12 @@ helps - the same way you'd ask a knowledgeable coworker.
 HOW TO OPEN IT
 --------------------
 
-Windows: double-click "launch-north-forge.bat" in this folder.
+Windows: double-click "Start North Forge.lnk" at the root of this drive.
 
-Mac/Linux: the first time only, open Terminal and drag
-"launch-north-forge.sh" into the window, then press Enter. After that
-first time, use the icon it creates on your Desktop.
+Mac/Linux: [FLAG FOR BLACKSMITH - the old "launch-north-forge.sh" this
+paragraph described is retired/archived, and no confirmed current Mac/Linux
+equivalent was found during this pass. Confirm the real current step before
+handing this file to a teammate on a non-Windows machine.]
 
 The first time you open this physical drive, it may take a minute or two
 to install - that's normal, just wait for it to finish. Each drive carries

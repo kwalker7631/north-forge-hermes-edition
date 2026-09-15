@@ -41,6 +41,10 @@ EVERY stick after that
       North Forge / Kyocera     ← support team (priority)
       Pocket Penny              ← budget helper
       Pine Barron Farms         ← studio, still growing
+      Field Service              ← technician/sales-rep voice overlay (4th
+                                    edition; part of a Prime/BLACK-NORTH
+                                    build, not part of the standard
+                                    Excalibur curated set - see EXCALIBUR.md)
 7. Type FORMAT
 8. Type the admin passcode (one field in the console)
 9. Click Format + deploy
@@ -67,13 +71,24 @@ They double-click "Start North Forge". They never see this folder.
 --------------------------------
 What "sales" vs "full" means now
 --------------------------------
-The old FULL / SALES toggle on the Kyocera drive was retired 2026-09-11.
-Today:
+The old runtime FULL / SALES toggle on the Kyocera drive (`toggle-mode.bat`)
+was retired 2026-09-11. As of the 2026-09-14 four-drive-class redesign,
+"Sales" is back, but as a build-time drive CLASS stamped by nf-setup.ps1 /
+hermes_cli.nf_tier at provisioning, not a runtime toggle - see the deploy
+console UI's own current description (Advanced/deploy-console/ui/index.html):
+a Sales-class drive (label pattern <NameInitial>-NORSA) is fully functional
+but deliberately narrow - sales-relevant skills only, zero service/
+troubleshooting content, zero network/code-access tools. That is a different,
+narrower thing than "Locked + Kyocera" below, which is still accurate for
+the Tier full/basic (Open stick/Locked stick) distinction this section
+otherwise describes:
 
   Locked stick  = one project only (safe for the team)
-  Open stick    = you can switch projects (Kyocera, Penny, Pine Barron)
+  Open stick    = you can switch projects (Kyocera, Penny, Pine Barron,
+                  Field Service)
 
 Kyocera content is one profile. There is not a separate "sales-only Kyocera"
 skill pack yet. A sales-rep stick today is: Locked + Kyocera, or Locked +
-field-service voice. Do not promise a stripped sales edition until that
-profile exists.
+field-service voice - or, if a true Sales-class drive-class build is wanted,
+the newer drive-class mechanism above, not this toggle. Do not promise a
+stripped sales edition until that profile exists.

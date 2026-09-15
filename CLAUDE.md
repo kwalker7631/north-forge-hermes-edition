@@ -34,12 +34,26 @@ refers to this file rather than keeping its own copy.
 ## Zone A - Infrastructure / plumbing (Claude Code MAY fix directly)
 
 Files:
-- `launch-north-forge.bat`
-- `launch-north-forge.sh`
-- `toggle-mode.bat`
-- `toggle-mode.sh`
-- `machine-reset.bat`
-- `provision-new-drive.ps1`
+
+**[CORRECTED 2026-09-15, Blacksmith-directed - verified against the actual
+current tree, not assumed]** `launch-north-forge.bat`, `launch-north-forge.sh`,
+`toggle-mode.bat`, `toggle-mode.sh`, and `provision-new-drive.ps1` are no
+longer live Zone A files - all five are retired and now live under
+`archive/legacy-standalone-launcher/` (some directly, some under its own
+`Advanced/` subfolder), which is explicitly out of this list's scope per
+this file's own "archive/" rule below. Removed from the active list.
+`machine-reset.bat` and `full-drive-reset.bat` both relocated to `Advanced/`
+(paths corrected below); `full-drive-reset.sh` did NOT move with its `.bat`
+counterpart - it was retired to the same archive folder as the launch/toggle
+scripts, an asymmetry worth knowing about rather than assuming the pair
+moved together. Also found and worth a separate Blacksmith decision (not
+changed here since only the Zone A list was in scope this pass): the Zone B
+list below still names `KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html` as a
+bare root-level filename, but it now actually lives at
+`skills/kb-builder/assets/KYO_KB_TITAN_v12_11_CONTACT_BLOCK_LOCKED.html`.
+
+- `Advanced/machine-reset.bat`
+- `Advanced/full-drive-reset.bat`
 - `.env.example`
 - `skins/north-forge.yaml`
 - `logs/CLAUDE_CODE_LAST_AUDIT.md`
@@ -51,8 +65,6 @@ Files:
 - `scripts/*.py`
 - `tests/*.sh`
 - `tests/*.py`
-- `full-drive-reset.sh`
-- `full-drive-reset.bat`
 - `Advanced/deploy-console/*.ps1`
 - `Advanced/deploy-console/*.cmd`
 - `Advanced/deploy-console/ui/*.html`
@@ -321,7 +333,7 @@ state:
 
 ```text
 NORTH FORGE HERMES EDITION - CLAUDE CODE WORKING RULES ACTIVE
-Zone A (infrastructure, may fix + commit + push automatically): launch scripts, toggle scripts, machine-reset.bat, setup script, provision-new-drive.ps1, .env.example, skins/north-forge.yaml, this audit report, .gitignore, Advanced/deploy-console/ scripts+UI (not its README/DEPLOY docs)
+Zone A (infrastructure, may fix + commit + push automatically): scripts/*.sh/.ps1/.py, tests/*.sh/.py, Advanced/machine-reset.bat, Advanced/full-drive-reset.bat, .env.example, skins/north-forge.yaml, this audit report, .gitignore, AGENTS.md, Advanced/deploy-console/ scripts+UI (not its README/DEPLOY docs). NOT the old launch-north-forge/toggle-mode/provision-new-drive scripts or full-drive-reset.sh - retired to archive/, out of scope (corrected 2026-09-15).
 Zone B (authored content, read-only, including this file): .hermes.template.md, mode-blocks/, skills/*/SKILL.md, skills-source/, fallback/, KYO_KB_TITAN template, README.md, ATTRIBUTION.md, FIRST_TIME_README.txt, USER_MANUAL.md, CLAUDE.md
 Zone C (operational docs, may update + commit freely): NEXT_STEPS.md, DEMO_PREP_BACKLOG.md, CHANGELOG.md
 Git: git pull automatically at session start; auto-commit/push for Zone A fixes, Zone C updates, and placing pre-approved Zone B handoffs; never author or edit Zone B content myself
