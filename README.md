@@ -7,7 +7,7 @@
 
 This is not a demo. This is the private manufacturer edition — the procedures,
 the skills, the deploy path — loaded onto the public chassis so a technician
-has a go-to on the desk with them.
+can work like they have a senior sitting with them.
 
 <br>
 
@@ -30,7 +30,7 @@ has a go-to on the desk with them.
 |---|---|
 | **[CURRENT.md](CURRENT.md)** | Architecture and skill catalog |
 | **[PHILOSOPHY.md](PHILOSOPHY.md)** | How this pack is supposed to behave — Blue Book spirit, our words |
-| **[WHY_THIS_MATTERS.md](WHY_THIS_MATTERS.md)** | Why pick the drive up |
+| **[CAPABILITIES via public chassis](https://github.com/kwalker7631/north-forge-agent/blob/main/CAPABILITIES.md)** | What the running system can do |
 | **[DEPLOY.md](Advanced/deploy-console/DEPLOY.md)** | Build a drive without asking a tech to learn Git |
 | **`/readme kyocera`** | In-session map |
 
@@ -38,7 +38,7 @@ has a go-to on the desk with them.
 
 ## Why this exists
 
-Kyocera's house is built on doing what is right as a human being, putting the
+Kyocera’s house is built on doing what is right as a human being, putting the
 customer first, and accumulating the kind of effort nobody applauds. The desk
 is that house in miniature. A call is not a search query. It is a person, a
 machine, and a clock.
@@ -68,7 +68,7 @@ That is commitment. Not a slogan. A rule you can catch it breaking.
 | Fault history | `/log` `/fault` — so the next person is not starting from zero |
 | New-hire path | `/train` — the workflow, not the entire industry |
 | Sales assist | when the call is still a conversation about the product |
-| Official pages only | vendor hops to public pages, not rumor treated as fact |
+| Official pages only | `/web` hops to public vendor pages, not rumor treated as fact |
 | Nightly public watch | research / brief jobs on an admin PC that stays on |
 | Documentation map | `/readme` `/readme kyocera` `/readme north-forge-agent` |
 
