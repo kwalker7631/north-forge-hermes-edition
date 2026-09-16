@@ -1,7 +1,17 @@
 @echo off
 setlocal
-set "AGENT=%~dp0"
-if /I "%AGENT:~-1%"=="\" set "AGENT=%AGENT:~0,-1%"
+set "HERE=%~dp0"
+if /I "%HERE:~-1%"=="\" set "HERE=%HERE:~0,-1%"
+
+rem Works from engine folder OR volume-root "Start North Forge.cmd"
+if exist "%HERE%\pyproject.toml" (
+  set "AGENT=%HERE%"
+) else if exist "%HERE%\north-forge-agent\pyproject.toml" (
+  set "AGENT=%HERE%\north-forge-agent"
+) else (
+  set "AGENT=%HERE%"
+)
+
 for %%I in ("%AGENT%") do set "PARENT=%%~dpI"
 if /I "%PARENT:~-1%"=="\" set "PARENT=%PARENT:~0,-1%"
 for %%I in ("%AGENT%") do set "LEAF=%%~nxI"
@@ -21,5 +31,6 @@ if exist "%HERMES_HOME%\bin\hermes.exe" (
   exit /b %ERRORLEVEL%
 )
 echo North Forge: hermes.exe not found. Run Deploy Console again, or repair the venv.
+echo AGENT=%AGENT%
 echo HERMES_HOME=%HERMES_HOME%
 exit /b 1
