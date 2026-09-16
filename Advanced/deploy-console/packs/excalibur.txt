@@ -1,4 +1,4 @@
-# GREGW-NOREX / FIRSTL-NOREX — copy these, not the workshop
+# GREGW-NOREX / knights — field only
 assist-intake
 hotline-ticket
 kb-builder
@@ -18,4 +18,5 @@ humanizer
 wac-web
 kyocera-research
 daily-brief
-# not here: pinokio, sales-assist (unless sales job), penny, pbf, author extras
+# later, when real files exist: expense-tally, site-nav
+# never: pinokio, sales-assist, games, chess, truth-or-dare, penny, pbf
