@@ -6,9 +6,11 @@
     return React.createElement(
       "span",
       {
-        className: "text-xs text-muted-foreground whitespace-nowrap mr-2",
+        className: "text-xs whitespace-nowrap mr-2",
+        style: { color: "#FFC64B", letterSpacing: "0.04em" },
+        title: "North Forge is the field agent. Hermes Agent is the engine.",
       },
-      "In association with Hermes Agent",
+      "North Forge \u00b7 in cooperation with Hermes Agent",
     );
   }
 
