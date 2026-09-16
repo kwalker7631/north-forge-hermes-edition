@@ -1,33 +1,17 @@
-# North Forge - Kyocera Edition dashboard theme.
-#
-# Added 2026-09-13 (post-use finding): the web dashboard/terminal showed stock
-# Hermes branding with no North Forge/Kyocera identity applied - a real "tear
-# off the facade" risk for a teammate who trusts the CLI's already-branded
-# North Forge identity (skins/north-forge.yaml) then opens the web view and
-# sees a different, unbranded product. This reuses that same CLI skin's
-# actual forge-gold-on-dark-iron palette (see skins/north-forge.yaml's own
-# comments / CHG-2026-09-07-021) rather than inventing a new look, so the CLI
-# and web surfaces read as one product. Real schema, confirmed against
-# hermes_cli/web_server_dashboard.py's _normalise_theme_definition - not
-# guessed. layoutVariant is "standard" deliberately: a "cockpit" HUD-style
-# reskin is a real, separate, larger design decision (see
-# DEMO_PREP_BACKLOG.md item 1 in north-forge-hermes-edition), not something
-# to default into as a side effect of this fix.
-#
-# Lives at <HERMES_HOME>/dashboard-themes/ (the dashboard's actual "process
-# launch home", not literally the OS user profile) - confirmed by reading
-# _discover_user_themes() directly, not assumed from the backlog note.
+# North Forge - Kyocera dashboard theme.
+# 2026-09-15: lifted off near-black. noiseOpacity 1.0 + #041c1c made Env/Models
+# unreadable until OS contrast was cranked. Forge gold stays. Not a new product.
 
 name: north-forge-kyocera
 label: "North Forge - Kyocera Edition"
-description: "Forge-gold on dark iron, matching the CLI's own North Forge skin (skins/north-forge.yaml)."
+description: "Readable charcoal + forge gold. Matches the desk, not a blackout."
 
 palette:
-  background: "#041c1c"
-  midground: "#1A1410"
-  foreground: "#F3E6D0"
-  warmGlow: "rgba(255, 140, 26, 0.35)"
-  noiseOpacity: 1.0
+  background: "#1C1914"
+  midground: "#2A241C"
+  foreground: "#F7EFE0"
+  warmGlow: "rgba(255, 140, 26, 0.18)"
+  noiseOpacity: 0.15
 
 layout:
   radius: "0.5rem"
@@ -37,12 +21,9 @@ layoutVariant: standard
 
 colorOverrides:
   primary: "#FF8C1A"
-  secondary: "#B87333"
+  secondary: "#C4A36A"
   accent: "#FFC64B"
   destructive: "#E4572E"
   success: "#5FB55F"
   warning: "#E8A33D"
-  border: "#7A5C33"
-
-assets:
-  logo: "data:image/png;base64,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"
+  border: "#8A7349"
