@@ -14,7 +14,8 @@ Those two are different on purpose.
 | `/draft` | `/email` | Customer / callback wording |
 | `/menu` | `/help` | Command list |
 | `/train` | `/t` | New-hire path |
-| `/web` | `/links` | Official pages |
+| `/web` | `/links` | Official vendor pages (not the dashboard) |
+| `/dash` | `/ui` `WAC web` | Hermes dashboard — keys, models, credits |
 | `/clr` | `/flush` | Drop **this ticket only**. Mode stays (`/hl` stays `/hl`). |
 | `/fl` | `/switch` | Reset the **whole North Forge skill session**. Default mode + menu. |
 

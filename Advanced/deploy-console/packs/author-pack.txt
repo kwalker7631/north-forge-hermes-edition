@@ -1,0 +1,24 @@
+# BLACK-NORTH workshop — name the rest as you promote them
+# Start from every skill in this edition, minus nothing:
+assist-intake
+hotline-ticket
+kb-builder
+forge-audit
+draft-writer
+escalation-packet
+fault-logging
+document-search
+flush
+switch
+menu
+manual
+readme
+training-guide
+web-navigator
+humanizer
+wac-web
+kyocera-research
+daily-brief
+sales-assist
+pinokio
+# hermes-extra: empty until you add a name

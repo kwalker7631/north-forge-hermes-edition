@@ -1,0 +1,21 @@
+# GREGW-NOREX / FIRSTL-NOREX — copy these, not the workshop
+assist-intake
+hotline-ticket
+kb-builder
+forge-audit
+draft-writer
+escalation-packet
+fault-logging
+document-search
+flush
+switch
+menu
+manual
+readme
+training-guide
+web-navigator
+humanizer
+wac-web
+kyocera-research
+daily-brief
+# not here: pinokio, sales-assist (unless sales job), penny, pbf, author extras
