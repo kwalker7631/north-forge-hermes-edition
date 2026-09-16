@@ -6,74 +6,40 @@ TSE of the desk. Same **admin privileges** as BLACK-NORTH (he may change
 engine, keys, and models in the Hermes web UI at any time). The *build*
 is still technical-support, not the workshop.
 
-On his stick:
+On his stick: desk, humanizer, Well Three.
+Off unless the job needs them: workshop, Pinokio, Penny, Pine Barron.
 
-- Desk (TSC / hotline voice)
-- Humanizer
-- Well Three (the three North Forge + Hermes tools)
+Production faces: **BLACK-NORTH**, **GREGW-NOREX**. "Norax" = `-NOREX`.
 
-Off his stick unless the job is those businesses:
+## Keys — disposable, 30 days
 
-- Workshop / task-builder catalog
-- Pinokio
-- Pocket Penny
-- Pine Barron Farms
-
-Record the two production faces: **BLACK-NORTH**, **GREGW-NOREX**.
-"Norax" in speech = the `-NOREX` Excalibur suffix. Name is `NOREX`,
-not a separate product.
-
-## Keys
-
-Both of those sticks ship with an application key already set for the
-**Anthropic** engine (Hermes Env / `hermes config set ANTHROPIC_API_KEY`).
+The paid engine key is a burner. Thirty days or until the balance hits
+zero, whichever comes first. Then it is dead. No romance. Treat it like
+a disposable phone: when the minutes are gone, the line is gone.
 
 | Who | Key |
 |---|---|
-| Corporation | Corporate Anthropic key |
-| Kenneth demos | Private Anthropic key, about $25 credit |
+| Corporation | Corporate Anthropic key on Greg's working stick |
+| Kenneth demos | Private ~$25 / 30-day key on the stick that leaves the bag |
 
-Do not put the private demo key on a stick that leaves your bag unless
-you mean to burn that $25. Corp key on Greg's production stick. Demo
-key on the stick you carry into a room.
+When the demo key dies, the stick still opens. Free models in the
+Hermes list are enough to experiment. Paid Grok / ChatGPT / Anthropic
+come back when a new key is pasted in Env. That is the whole renew
+story. No auto-bill in this program.
 
-Greg can change engine in the web UI whenever he wants. That is the
-privilege. Default at setup is still Anthropic until he picks another.
+Performance of every model on the list has **not** been scored. Do not
+promise a ranking. Offer Anthropic first on production, free default
+for explore, and let them pick. The chassis already shows a large
+catalog (you counted 56 versions plus chat connectors). That catalog
+is Hermes. We do not rebuild it.
 
-Kenneth also keeps five or six other agents' keys and switches by hand
-when a balance dies. Auto-switch between providers is a **later plugin**,
-not this build.
+Five or six other keys you keep yourself: switch by hand when a
+balance dies. Auto-switch plugin is later.
 
-## Models at setup
+If you have vendor PDFs on the 56 / connectors, drop them next to this
+file. They help the Models page conversation. They do not change deploy.
 
-- **BASIC / standard:** the interface already lists a large catalog
-  (60+). We do not curate that list down in code this week.
-- **Kenneth / elevated:** also offer **recommended free** models so
-  someone can explore with no bill and no cap panic.
-- Default for a first-run BASIC or explore path: **best available free
-  model** (confirm the exact slug at setup; "Noir" / "NOS" name is
-  not locked — pick one free default and write the slug on the stick
-  envelope).
-- BLACK-NORTH and GREGW-NOREX production: Anthropic first, free list
-  still visible in Models so they can step down if the bill should stop.
+## Two rooms
 
-## Two rooms, both first-class
-
-At launch the person chooses **Terminal** or **Web**. Both are correct.
-They switch when the job changes.
-
-| From | To | How |
-|---|---|---|
-| Root | Terminal | Start North Forge / Terminal.lnk |
-| Root | Web | Web Interface / `Start-Web-Interface.cmd` |
-| Terminal | Web | `WAC web` (or `/web`) — opens the dashboard for engine, credits, models |
-| Web | Terminal | A control that launches the desk CLI (link or button labeled Terminal) |
-
-`WAC web` is the old task that already meant "open the web terminal for
-reconfig and credit." Keep that name in the desk pack so muscle memory
-lives. Wiring `/web` → `hermes dashboard` is a small skill on tsc-core;
-do not invent a third UI.
-
-If the web control to spawn Terminal is missing in stock Hermes, that is
-a plugin slot — same class as the gold caption. Recommend it; do not
-fork `web/src` until the two sticks answer.
+Terminal or Web at launch. `WAC web` / `/web` opens dashboard for
+engine and credits. Web should offer Terminal back. Same muscle memory.
