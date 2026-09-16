@@ -160,6 +160,9 @@ function Install-ChassisIntoEngine([string]$Agent, [string]$PackDir) {
     Copy-Item (Join-Path $src 'bootstrap-north-forge.ps1') (Join-Path $scripts 'bootstrap-north-forge.ps1') -Force
     Copy-Item (Join-Path $src 'nf-setup.ps1') (Join-Path $scripts 'nf-setup.ps1') -Force
     Copy-Item (Join-Path $src 'north-forge.cmd') (Join-Path $Agent 'north-forge.cmd') -Force
+    if (Test-Path -LiteralPath (Join-Path $src 'install.cmd')) {
+        Copy-Item (Join-Path $src 'install.cmd') (Join-Path $scripts 'install.cmd') -Force
+    }
 }
 
 if (-not $SkipBootstrap) {
