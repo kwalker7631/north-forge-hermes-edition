@@ -1,36 +1,6 @@
-﻿<#
+<#
 .SYNOPSIS
   Zero-touch USB deploy for North Forge + private Kyocera (Hermes) edition.
-
-.PARAMETER ExcludeSkills
-  Skill names (as installed under profiles\<Pin>\skills\<name> and
-  profiles\<Pin>\skills-source\shared\<name>) to remove after provisioning,
-  before "DEPLOYMENT COMPLETE" prints.
-
-  Defaults to  @('pinokio')  when -Tier is 'basic' (locked - a
-  teammate-facing drive, what this pipeline now calls Round Table (was
-  called Excalibur before 2026-09-14 - see ROUND-TABLE.md's own
-  "Tier: Locked. Pin: Kyocera")), and to  @()  when -Tier is 'full' (the
-  switcher stays open - the admin/designer case, what this pipeline now
-  calls Excalibur - your own elevated drive, e.g. F:\ MAIN-NORTH - where
-  Pinokio belongs per Advanced/PINOKIO.md). Pass -ExcludeSkills explicitly
-  (including  -ExcludeSkills @()  to keep Pinokio on a basic-tier build)
-  to override either default.
-
-  WHY THIS EXISTS: the private-edition profile install currently ships
-  every skill in the edition's source tree to every drive, with no
-  stick-class-aware curation (flagged, not solved at the source, in
-  logs\CLAUDE_CODE_LAST_AUDIT.md, 2026-09-12/13). A real Round Table build
-  (called an Excalibur build at the time) found `pinokio` installed and
-  chat-reachable on a locked, teammate-facing drive - a direct violation of
-  ROUND-TABLE.md's own "Do not put on this stick: Pinokio." Tying the
-  default to -Tier (rather than requiring a flag anyone has to remember)
-  means the common Round Table case is safe by default, using a
-  distinction ("locked" vs "switcher stays open") this pipeline already
-  makes for an unrelated reason - it does NOT invent a new "stick class"
-  concept. Still not the full policy answer (a distribution-level split, or
-  per-skill tier metadata, remain open), but the common case no longer
-  depends on someone remembering a flag.
 #>
 [CmdletBinding()]
 param(
@@ -75,11 +45,28 @@ function Test-IsSystemLetter([string]$Letter) {
     return ($Letter -eq 'C' -or $Letter -eq $sys)
 }
 
-function Get-RemovableVolume([string]$Letter) {
-    $vol = Get-CimInstance Win32_Volume -Filter "DriveType=2" |
+function Test-UsbAttachedVolume([string]$Letter) {
+    try {
+        $part = Get-Partition -DriveLetter $Letter -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $part) { return $false }
+        $disk = Get-Disk -Number $part.DiskNumber -ErrorAction SilentlyContinue
+        if (-not $disk -or $disk.IsBoot -or $disk.IsSystem) { return $false }
+        $bus = [string]$disk.BusType
+        if ($bus -eq 'USB' -or $bus -eq 'USBSTOR' -or $bus -eq 'SD' -or $bus -eq 'Multi-Media') { return $true }
+        if ([string]$disk.FriendlyName -match 'USB|Flash|Foxconn|Enclosure|SanDisk|Kingston') { return $true }
+    } catch { }
+    return $false
+}
+
+function Get-TargetVolume([string]$Letter) {
+    $vol = Get-CimInstance Win32_Volume |
         Where-Object { $_.DriveLetter -and $_.DriveLetter.TrimEnd(':').ToUpperInvariant() -eq $Letter } |
         Select-Object -First 1
-    return $vol
+    if (-not $vol) { return $null }
+    $dt = 0; try { $dt = [int]$vol.DriveType } catch { }
+    if ($dt -eq 2) { return $vol }
+    if (Test-UsbAttachedVolume $Letter) { return $vol }
+    return $null
 }
 
 function Test-CommandOnPath([string]$Name) {
@@ -107,36 +94,28 @@ Write-Host "====================================================" -ForegroundCol
 $letter = Get-LetterOnly $DriveLetter
 $root = "${letter}:\"
 
+if ([string]::IsNullOrWhiteSpace($Passcode)) { $Passcode = [string]$env:NF_ADMIN_PASSCODE }
+
 if (Test-IsSystemLetter $letter) {
     Write-Fail "Refusing to touch system drive $letter`:"
     exit 1
 }
 
-$vol = Get-RemovableVolume $letter
+$vol = Get-TargetVolume $letter
 if (-not $vol) {
-    Write-Fail "No removable USB volume found at ${letter}:  (Win32_Volume DriveType=2)."
+    Write-Fail "No USB volume at ${letter}: (need DriveType=2 thumb OR USB-attached disk such as a Foxconn enclosure)."
     exit 1
 }
 
 $capGb = if ($vol.Capacity) { [math]::Round($vol.Capacity / 1GB, 2) } else { '?' }
 Write-Host ("Target : {0}:  label={1}  {2} GB  fs={3}" -f $letter, $vol.Label, $capGb, $vol.FileSystem)
 
-# Capacity gate - checked BEFORE formatting, not after. Without this a too-small
-# drive would format successfully (fast, looks fine) then fail hard partway through
-# cloning both repos + building a venv (needs far more than a couple GB), wiping
-# real data on the way to a dead end. ROUND-TABLE.md's own "32 GB or larger ... 8 GB
-# is the floor" (that doc's teammate-stick sizing guidance, unchanged by the
-# 2026-09-14 Excalibur/Round Table rename) is the source of these defaults - this
-# just enforces what that doc already documents but nothing previously checked.
-# Applies to both tiers here (not just Round Table/-Tier basic): an admin/Excalibur
-# build (-Tier full) needs real room too, just without a documented floor of its
-# own yet - reusing these same defaults for both until one exists.
 if ($capGb -is [double]) {
     if ($capGb -lt $MinCapacityGb) {
-        Write-Fail ("Target is {0} GB - below the {1} GB floor. Refusing to format or provision this drive (see ROUND-TABLE.md). Pass -MinCapacityGb to override if you really mean it." -f $capGb, $MinCapacityGb)
+        Write-Fail ("Target is {0} GB - below the {1} GB floor. Refusing. Pass -MinCapacityGb to override." -f $capGb, $MinCapacityGb)
         exit 1
     } elseif ($capGb -lt $RecommendedCapacityGb) {
-        Write-WarnLine ("Target is {0} GB - above the {1} GB floor but below the {2} GB ROUND-TABLE.md recommends (give the first viewer room). Continuing." -f $capGb, $MinCapacityGb, $RecommendedCapacityGb)
+        Write-WarnLine ("Target is {0} GB - above the {1} GB floor but below the {2} GB recommend. Continuing." -f $capGb, $MinCapacityGb, $RecommendedCapacityGb)
     }
 }
 
@@ -152,7 +131,7 @@ $hasGh = Test-CommandOnPath 'gh'
 if (-not $hasGh) { Write-WarnLine "GitHub CLI (gh) not on PATH." }
 
 if ([string]::IsNullOrWhiteSpace($Passcode) -or $Passcode.Length -lt 6) {
-    Write-Fail "Admin passcode is required and must be at least 6 characters (-Passcode)."
+    Write-Fail "Admin passcode is required and must be at least 6 characters (-Passcode or NF_ADMIN_PASSCODE)."
     exit 1
 }
 
@@ -170,6 +149,18 @@ else {
 
 $agentDir = Join-Path $root 'north-forge-agent'
 $editionDir = Join-Path $agentDir 'private-editions\kyocera'
+$chassisDir = Join-Path $PSScriptRoot 'chassis'
+
+function Install-ChassisIntoEngine([string]$Agent, [string]$PackDir) {
+    $src = Join-Path $PackDir 'Advanced\deploy-console\chassis'
+    if (-not (Test-Path -LiteralPath $src)) { $src = $chassisDir }
+    if (-not (Test-Path -LiteralPath $src)) { throw "Chassis scripts missing (expected $src)" }
+    $scripts = Join-Path $Agent 'scripts'
+    New-Item -ItemType Directory -Force -Path $scripts | Out-Null
+    Copy-Item (Join-Path $src 'bootstrap-north-forge.ps1') (Join-Path $scripts 'bootstrap-north-forge.ps1') -Force
+    Copy-Item (Join-Path $src 'nf-setup.ps1') (Join-Path $scripts 'nf-setup.ps1') -Force
+    Copy-Item (Join-Path $src 'north-forge.cmd') (Join-Path $Agent 'north-forge.cmd') -Force
+}
 
 if (-not $SkipBootstrap) {
     Write-Step "Cloning public engine (shallow) → $agentDir"
@@ -187,15 +178,6 @@ if (-not $SkipBootstrap) {
     Write-Step "Cloning private Kyocera edition → private-editions\kyocera"
     New-Item -ItemType Directory -Force -Path (Join-Path $agentDir 'private-editions') | Out-Null
     if (Test-Path -LiteralPath (Join-Path $editionDir '.git')) {
-        # Force-checkout, same repair pattern as the agent checkout above - not a
-        # plain `pull --ff-only`. A repair pass on a drive where "someone messed
-        # where they shouldn't" tampered with tracked files needs to actually fix
-        # them, not just refuse to move when history has diverged. This only
-        # discards local changes inside private-editions\kyocera\ itself - the
-        # sibling venv/data folders (and the admin passcode inside them) are
-        # untouched either way, and the private edition's own CLAUDE.md already
-        # says only the Blacksmith commits there, so no legitimate uncommitted
-        # work should ever be sitting in a deployed drive's checkout to lose.
         Write-WarnLine "Private edition already present. Fetching latest main (depth 1) and repairing any local tampering."
         Invoke-LoggedNative { git -C $editionDir fetch --depth 1 origin main } "private edition fetch failed"
         Invoke-LoggedNative { git -C $editionDir checkout --force FETCH_HEAD } "private edition checkout failed"
@@ -223,37 +205,39 @@ if (-not $SkipBootstrap) {
     }
     Write-Ok "Private edition ready."
 
+    Write-Step "Installing chassis scripts into the engine checkout (upstream Hermes has none)"
+    Install-ChassisIntoEngine -Agent $agentDir -PackDir $editionDir
+    Write-Ok "Chassis copied (bootstrap-north-forge.ps1, nf-setup.ps1, north-forge.cmd)."
+
     $bootstrap = Join-Path $agentDir 'scripts\bootstrap-north-forge.ps1'
-    if (-not (Test-Path -LiteralPath $bootstrap)) { throw "Missing $bootstrap" }
-    Write-Step "Bootstrapping venv + HERMES_HOME (siblings of the checkout)"
-    & $bootstrap
+    Write-Step "Bootstrapping venv + HERMES_HOME (official install.ps1, HERMES_HOME sibling *-data)"
+    & $bootstrap -AgentDir $agentDir
     if ($LASTEXITCODE -ne 0) { throw "bootstrap-north-forge.ps1 failed (exit $LASTEXITCODE)." }
     Write-Ok "Bootstrap finished."
 }
 else {
     Write-Step "Skip clone/bootstrap" 'Yellow'
     if (-not (Test-Path -LiteralPath (Join-Path $agentDir 'scripts\nf-setup.ps1'))) {
-        throw "SkipBootstrap set but $agentDir is not a North Forge checkout."
+        if (Test-Path -LiteralPath $editionDir) { Install-ChassisIntoEngine -Agent $agentDir -PackDir $editionDir }
+        else { throw "SkipBootstrap set but chassis is not on $agentDir" }
     }
 }
 
 $setup = Join-Path $agentDir 'scripts\nf-setup.ps1'
 Write-Step "Provisioning tier=$Tier pin=$Pin and setting admin passcode"
-& $setup -NonInteractive -Tier $Tier -Pin $Pin -Installed $Pin -SetPasscode -Passcode $Passcode
+& $setup -NonInteractive -Tier $Tier -Pin $Pin -Installed $Pin -SetPasscode -Passcode $Passcode -AgentDir $agentDir
 if ($LASTEXITCODE -ne 0) { throw "nf-setup.ps1 failed (exit $LASTEXITCODE)." }
 Write-Ok "Drive provisioned and locked."
 
 if ($ExcludeSkills.Count -gt 0) {
-    # Same sibling-folder naming nf-setup.ps1 itself derives DataDir from
-    # (parent-of-checkout\<checkout-leaf>-data) - not re-parameterized here,
-    # just replicated, so this always agrees with where nf-setup.ps1 actually
-    # provisioned the profile.
     $leaf = Split-Path -Leaf $agentDir
     $dataDir = Join-Path (Split-Path -Parent $agentDir) "$leaf-data"
     $profileDir = Join-Path $dataDir "profiles\$Pin"
     Write-Step "Excluding skill(s) from this build: $($ExcludeSkills -join ', ')"
     $excludeScript = Join-Path $PSScriptRoot 'exclude-profile-skills.ps1'
-    & $excludeScript -ProfileDir $profileDir -SkillNames $ExcludeSkills
+    if (Test-Path -LiteralPath $excludeScript) {
+        & $excludeScript -ProfileDir $profileDir -SkillNames $ExcludeSkills
+    }
 }
 
 $launcher = Join-Path $agentDir 'north-forge.cmd'
@@ -262,4 +246,5 @@ Write-Host "====================================================" -ForegroundCol
 Write-Host " DEPLOYMENT COMPLETE" -ForegroundColor Green
 Write-Host "====================================================" -ForegroundColor Green
 Write-Host "Launch: $launcher"
+Write-Host "Or:     $(Join-Path $root 'Start North Forge.cmd')"
 exit 0

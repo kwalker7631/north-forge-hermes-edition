@@ -31,10 +31,9 @@ $disks = @(Get-Disk | Where-Object {
     if ($AllowLocal) { $true }
     else {
         $_.BusType -in @('USB', 'SD', 'Multi-Media') -or
-        $_.FriendlyName -match 'USB|Flash|Card Reader|SanDisk|Kingston|PNY|Samsung Bar'
+        $_.FriendlyName -match 'USB|Flash|Card Reader|SanDisk|Kingston|PNY|Samsung Bar|Foxconn'
     }
 })
-# Never offer the Windows system disk even with -AllowLocal unless they insist twice later
 $sys = $null
 try { $sys = (Get-Partition | Where-Object { $_.IsSystem -or $_.DriveLetter -eq 'C' } | Select-Object -First 1).DiskNumber } catch { }
 
@@ -76,13 +75,16 @@ $label = Read-Host 'Volume label (BLACK-NORTH / GREGW-NOREX / FIRSTL-NORTH / BAS
 if (-not $label) { $label = 'BLACK-NORTH' }
 $tier = Read-Host 'Tier: full (admin/Excalibur) or basic [full]'
 if (-not $tier) { $tier = 'full' }
+$pass = Read-Host 'Admin passcode (6+ characters)'
+if ([string]::IsNullOrWhiteSpace($pass) -or $pass.Length -lt 6) {
+    throw 'Passcode must be at least 6 characters. Stopped. Nothing formatted.'
+}
 
 Say ''
 Say 'Hand-off to Zero-Touch / Deploy Console for clone + venv + pack.' 'Cyan'
 $zt = Join-Path $console 'Zero-Touch-Deploy.ps1'
 $launch = Join-Path $console 'Launch-Deploy-Console.cmd'
 
-# Give the disk a letter if RAW so Zero-Touch can take -DriveLetter
 $part = Get-Partition -DiskNumber $num -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | Select-Object -First 1
 if (-not $part) {
     Say "Disk $num has no letter. Opening the existing Deploy Console so it can Initialize + assign." 'Yellow'
@@ -98,7 +100,7 @@ $letter = $part.DriveLetter
 Say "Using letter ${letter}: on Disk $num"
 
 if (Test-Path $zt) {
-    & $zt -DriveLetter $letter -ConfirmFormat FORMAT -Tier $tier -Label $label
+    & $zt -DriveLetter $letter -ConfirmFormat FORMAT -Tier $tier -Label $label -Passcode $pass
 } elseif (Test-Path $launch) {
     Start-Process -FilePath $launch -Verb RunAs
 } else {

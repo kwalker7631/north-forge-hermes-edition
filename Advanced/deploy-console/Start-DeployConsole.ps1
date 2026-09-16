@@ -30,7 +30,23 @@ function Get-UsbDrives {
     foreach ($v in $vols) {
         $letter = ''; if ($v.DriveLetter) { $letter = $v.DriveLetter.TrimEnd(':').ToUpperInvariant() }
         $dt = 0; try { $dt = [int]$v.DriveType } catch { }
-        if ($dt -ne 2) { continue }
+        if ($dt -ne 2) {
+            # USB-SATA / Foxconn enclosures often report DriveType=3 (local disk).
+            $usbFixed = $false
+            if ($dt -eq 3 -and $letter) {
+                try {
+                    $part = Get-Partition -DriveLetter $letter -ErrorAction SilentlyContinue | Select-Object -First 1
+                    if ($part) {
+                        $disk = Get-Disk -Number $part.DiskNumber -ErrorAction SilentlyContinue
+                        if ($disk -and -not $disk.IsBoot -and -not $disk.IsSystem) {
+                            $bus = [string]$disk.BusType
+                            if ($bus -eq 'USB' -or $bus -eq 'USBSTOR' -or $bus -eq 'SD' -or [string]$disk.FriendlyName -match 'USB|Foxconn|Enclosure') { $usbFixed = $true }
+                        }
+                    }
+                } catch { }
+            }
+            if (-not $usbFixed) { continue }
+        }
         if (-not $letter) { Write-ConsoleLog ('skip volume DriveType=2 no letter ' + $v.DeviceID); continue }
         if (Test-IsSystemLetter $letter) { continue }
         $cap = 0; if ($v.Capacity) { $cap = [math]::Round($v.Capacity / 1GB, 2) }
@@ -152,10 +168,10 @@ try {
                 $script:DeployLock = $true
                 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
                 $logFile = Join-Path $LogDir ('deploy-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.log')
-                $argList = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$Engine,'-DriveLetter',$letter.ToUpperInvariant(),'-Tier',$tier)
+                $argList = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$Engine,'-DriveLetter',$letter.ToUpperInvariant(),'-Tier',$tier,'-Passcode',$pass)
                 if ($skipFormat) { $argList += '-SkipFormat' } else { $argList += @('-ConfirmFormat','FORMAT') }
                 if ($label) { $argList += @('-Label',$label) }
-                Write-ConsoleLog ('spawn ' + ($argList -join ' '))
+                Write-ConsoleLog ('spawn letter=' + $letter.ToUpperInvariant() + ' tier=' + $tier + ' (passcode not logged)')
                 try {
                     $prevPass = $env:NF_ADMIN_PASSCODE; $env:NF_ADMIN_PASSCODE = $pass
                     $p = Start-Process -FilePath 'powershell.exe' -ArgumentList $argList -RedirectStandardOutput $logFile -RedirectStandardError ($logFile + '.err') -PassThru -WindowStyle Hidden
